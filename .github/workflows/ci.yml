@@ -179,13 +179,23 @@ jobs:
         run: cargo build -p portfolio-desk --features native-e2e --target-dir target/native-e2e
       - name: Install pinned Tauri WebDriver
         run: cargo install tauri-driver --version 2.0.5 --locked
-      - name: Install matching Edge WebDriver
+      - name: Install matching WebView2 Edge WebDriver
         shell: pwsh
         run: |
-          $candidates = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe")
-          $edge = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
-          if (-not $edge) { throw "Microsoft Edge is unavailable" }
-          $version = (Get-Item $edge).VersionInfo.ProductVersion
+          function Find-WebViewRuntime {
+            @("${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe", "$env:ProgramFiles\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe", "$env:LOCALAPPDATA\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe") | ForEach-Object { Get-Item $_ -ErrorAction SilentlyContinue } | Sort-Object { [version]$_.VersionInfo.ProductVersion } -Descending | Select-Object -First 1
+          }
+          $runtime = Find-WebViewRuntime
+          if (-not $runtime) {
+            $bootstrap = Join-Path $env:RUNNER_TEMP "WebView2Setup.exe"
+            Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile $bootstrap
+            $setup = Start-Process $bootstrap -ArgumentList @('/silent', '/install') -Wait -PassThru
+            if ($setup.ExitCode -ne 0) { throw "WebView2 setup failed: $($setup.ExitCode)" }
+            $runtime = Find-WebViewRuntime
+          }
+          if (-not $runtime) { throw "Microsoft WebView2 runtime is unavailable" }
+          $version = $runtime.VersionInfo.ProductVersion
+          Write-Host "Matching Edge WebDriver to WebView2 runtime $version"
           $zip = Join-Path $env:RUNNER_TEMP "edgedriver.zip"
           $dir = Join-Path $env:RUNNER_TEMP "edgedriver"
           Invoke-WebRequest "https://msedgedriver.microsoft.com/$version/edgedriver_win64.zip" -OutFile $zip

@@ -281,7 +281,7 @@ Own-transfer accounting requires matching sender/recipient evidence in both acco
 
 ## Windows automation
 
-`npm run test:e2e:windows` uses tauri-driver 2.0.5 and the Edge WebDriver matching the runner's installed Edge. Build its isolated test target with:
+`npm run test:e2e:windows` uses tauri-driver 2.0.5 and the Edge WebDriver matching the runner's installed WebView2 runtime. Build its isolated test target with:
 
 ```sh
 npm run build
@@ -289,7 +289,7 @@ cargo build -p portfolio-desk --features native-e2e --target-dir target/native-e
 npm run test:e2e:windows -- --smoke-only
 ```
 
-The native suite drives the real UI/IPC/database, checks a basis edit across process restart, and captures English/Russian, theme and privacy screens. `--smoke-only` limits the acceptance gate to implemented deterministic scenarios; the report explicitly marks remaining live, key-entry and native file-dialog scenarios as blocked. Running the full command fails while those gates remain blocked. Production builds omit the feature and its data-directory override.
+The native suite drives the real UI/IPC/database, checks a basis edit and isolated Windows credential storage across process restart, and captures English/Russian, theme and privacy screens. `--smoke-only` limits the acceptance gate to implemented deterministic scenarios; the report explicitly marks remaining live, offline reconnect and native file-dialog scenarios as blocked. Running the full command fails while those gates remain blocked. Production builds omit the feature and its data-directory override.
 
 The separate production job builds NSIS, silently installs and launches the actual release, reinstalls it and checks that normal uninstall preserves the database. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
 

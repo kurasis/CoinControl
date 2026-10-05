@@ -1,6 +1,6 @@
 // Native WebDriver suite. DOM interactions use the real packaged UI and Rust IPC.
 // It never installs a test server or an IPC bypass in the application.
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -41,6 +41,9 @@ report.applicationSha256 = createHash("sha256").update(readFileSync(application)
 const dataDir = mkdtempSync(join(tmpdir(), "coincontrol-native-"));
 const port = Number(process.env.E2E_DRIVER_PORT ?? 4444);
 const base = `http://127.0.0.1:${port}`;
+const driverEnvironment = { ...process.env, COINCONTROL_E2E_DATA_DIR: dataDir };
+for (const key of ["LIVECOINWATCH_API_KEY", "ZERION_API_KEY", "TRONGRID_API_KEY", "TONAPI_API_KEY"])
+  delete driverEnvironment[key];
 const driver = spawn(
   process.env.TAURI_DRIVER_PATH ?? "tauri-driver",
   [
@@ -51,10 +54,16 @@ const driver = spawn(
       : []),
   ],
   {
-    env: { ...process.env, COINCONTROL_E2E_DATA_DIR: dataDir },
-    stdio: ["ignore", "ignore", "ignore"],
+    env: driverEnvironment,
+    stdio: ["ignore", "pipe", "pipe"],
   },
 );
+let driverLog = "";
+for (const stream of [driver.stdout, driver.stderr])
+  stream.on("data", (chunk) => {
+    driverLog = (driverLog + chunk.toString()).slice(-200000);
+    writeFileSync(join(output, "driver.log"), driverLog);
+  });
 let driverError;
 driver.on("error", (e) => {
   driverError = e;
@@ -66,11 +75,13 @@ async function request(path, method = "GET", body) {
     method,
     headers: { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(path === "/session" ? 120000 : 30000),
   });
   const json = await response.json();
   if (!response.ok || json.value?.error)
-    throw new Error(`WebDriver ${json.value?.error ?? response.status}`);
+    throw new Error(
+      `WebDriver ${method} ${path}: ${json.value?.error ?? response.status}: ${String(json.value?.message ?? "").slice(0, 600)}`,
+    );
   return json.value;
 }
 async function until(test, timeout = 20000) {
@@ -132,6 +143,7 @@ try {
       return false;
     }
   }, 20000);
+  record("WebDriver intermediary and native driver ready", "PASS");
   await open();
   record("Launch through tauri-driver and native IPC", "PASS");
   await route("/settings");
@@ -274,6 +286,16 @@ try {
       "Requires the separate live/installer acceptance run; this deterministic suite does not claim it",
     );
 } catch (e) {
+  const processes = spawnSync(
+    "powershell.exe",
+    [
+      "-NoProfile",
+      "-Command",
+      "Get-Process | Where-Object { $_.ProcessName -match 'portfolio|msedge|tauri' } | Select-Object ProcessName,Id,MainWindowTitle | ConvertTo-Json",
+    ],
+    { encoding: "utf8" },
+  );
+  writeFileSync(join(output, "processes.json"), processes.stdout || "[]");
   try {
     await screenshot("failure");
   } catch {
