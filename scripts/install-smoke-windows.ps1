@@ -67,7 +67,9 @@ try {
   $uninstaller = Get-ChildItem $installDir -Filter '*uninstall*.exe' | Select-Object -First 1
   Record 'Uninstaller exists' ([bool]$uninstaller) 'NSIS uninstall executable'
   $uninstall = Start-Process $uninstaller.FullName -ArgumentList '/S' -Wait -PassThru
-  Record 'Normal uninstall preserves populated portfolio' ($uninstall.ExitCode -eq 0 -and (Test-Path $profile) -and (Get-FileHash $profile -Algorithm SHA256).Hash -eq $beforeUninstall) 'Data retained without an opt-in deletion request'
+  NodeCommand @('scripts/acceptance-fixture.mjs', 'snapshot', $profile, (Join-Path $reportDir 'upgrade-uninstalled.json'))
+  $uninstalled = Get-Content (Join-Path $reportDir 'upgrade-uninstalled.json') -Raw | ConvertFrom-Json
+  Record 'Normal uninstall preserves populated portfolio' ($uninstall.ExitCode -eq 0 -and (Test-Path $profile) -and (Get-FileHash $profile -Algorithm SHA256).Hash -eq $beforeUninstall -and $uninstalled.integrity -eq 'ok' -and (SamePortfolio $reopened $uninstalled)) 'Data and WAL-backed evidence retained without an opt-in deletion request; exact fingerprints and quantities verified after uninstall'
 } catch {
   $checks.Add(@{ name = 'Installer scenario'; result = 'FAIL'; detail = $_.Exception.Message })
 } finally {

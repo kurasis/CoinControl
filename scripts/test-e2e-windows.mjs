@@ -481,9 +481,27 @@ async function viewportScenarios() {
           throw new Error(
             `Required native columns are not reachable at ${width}x${height}/${language}/${theme}`,
           );
-        await execute("document.querySelector('.main').scrollTop=0;return true;");
+        await execute(
+          "document.querySelector('.main').scrollTop=0;document.querySelectorAll('.table-scroll').forEach(e=>e.scrollLeft=0);return true;",
+        );
         const name = `viewport-${width}x${height}-${language}-${theme}`;
         await screenshot(name);
+        if (language === "ru" && theme === "dark") {
+          // Capture the actual columns as well as the portfolio overview.
+          // Left/right views make every value reviewable in narrow windows.
+          for (const [index, kind] of [
+            [0, "assets"],
+            [1, "activity"],
+          ]) {
+            for (const edge of ["left", "right"]) {
+              await execute(
+                "const main=document.querySelector('.main');const table=document.querySelectorAll('.table-scroll')[arguments[0]];main.scrollTop+=table.getBoundingClientRect().top-main.getBoundingClientRect().top-72;table.scrollLeft=arguments[1]==='right'?table.scrollWidth:0;return true;",
+                [index, edge],
+              );
+              await screenshot(`${name}-${kind}-${edge}`);
+            }
+          }
+        }
         report.viewports.push({ name, ...layout, native });
       }
     }
@@ -517,6 +535,7 @@ try {
   await route("/");
   await until(async () => (await body()).includes("Track your crypto, read-only"));
   record("Clean first launch has no fabricated balances", "PASS");
+  await screenshot("empty-first-launch");
   await ownedAccountScenarios();
   await clickText("Explore demo portfolio");
   await until(async () => (await body()).includes("Demo data. Not your portfolio."));
@@ -535,6 +554,7 @@ try {
   await select('[aria-label="Filter by reason"]', "unknown_basis");
   await clickText("Resolve");
   await until(() => execute("return Boolean(document.querySelector('.drawer .editor'));"));
+  await screenshot("missing-basis-review");
   await clickText("Enter acquisition lots");
   await until(() => execute("return Boolean(document.querySelector('.lot-row'));"));
   await input(".lot-row label:nth-child(2) input", "123.45");
@@ -590,6 +610,7 @@ try {
     ),
   );
   record("OS credential persists across restart and can be removed without echoing it", "PASS");
+  await screenshot("provider-setup");
   for (const name of ["real.sqlite", "demo.sqlite"]) {
     const path = join(dataDir, "profiles", name);
     for (const suffix of ["", "-wal", "-shm"]) {
@@ -802,6 +823,7 @@ try {
     await until(() => execute("return Boolean(document.querySelector('.balance'));"));
     await execute("document.querySelector('a[href^=\"#/assets/\"]').click();return true;");
     await until(() => execute("return Boolean(document.querySelector('.metrics'));"));
+    await screenshot("live-bitcoin-asset");
     await route("/wallets");
     await execute("document.querySelector('a[href^=\"#/accounts/\"]').click();return true;");
     await until(() => execute("return Boolean(document.querySelector('.balance'));"));
