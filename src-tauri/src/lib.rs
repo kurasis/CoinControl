@@ -15,6 +15,7 @@ mod error;
 mod providers;
 mod secrets;
 mod sync;
+mod window_geometry;
 
 use secrets::{OsSecretStore, SecretStore};
 
@@ -83,7 +84,13 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .on_window_event(|window, event| {
+            if matches!(event, tauri::WindowEvent::ScaleFactorChanged { .. }) {
+                window_geometry::fit_main(window);
+            }
+        })
         .setup(|app| {
+            window_geometry::fit_main(app);
             let data_dir = app.path().app_data_dir()?;
             #[cfg(feature = "native-e2e")]
             let data_dir = std::env::var_os("COINCONTROL_E2E_DATA_DIR")

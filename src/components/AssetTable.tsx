@@ -1,3 +1,4 @@
+import { WindowedTableBody } from "./WindowedTableBody";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -143,9 +144,9 @@ export function AssetTable({
                 {header("pnl", t("assets.colPnl"), true)}
               </tr>
             </thead>
-            <tbody>
-              {visible.map((r) => (
-                <tr key={r.asset_id}>
+            <WindowedTableBody rows={visible} columns={6} rowKey={(r) => r.asset_id}>
+              {(r) => (
+                <>
                   <td>
                     <div className="asset-cell">
                       <TokenIcon symbol={r.symbol} />
@@ -191,9 +192,9 @@ export function AssetTable({
                       </span>
                     )}
                   </td>
-                </tr>
-              ))}
-            </tbody>
+                </>
+              )}
+            </WindowedTableBody>
           </table>
         </div>
       )}

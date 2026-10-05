@@ -300,7 +300,7 @@ $env:RUN_LIVE_API_TESTS = "1"
 npm run test:e2e:windows -- --live-btc
 ```
 
-The separate production job tests an upgrade from the pinned, SHA-256-verified `0.1.0` NSIS artifact (main `f0603fd`, CI `37345501830`) to `0.1.1`. The old installed app creates schema 6; an external offline fixture utility fills the closed database with two synthetic owned accounts, an internal transfer, one fee, two audit versions and overlapping groups. Both installed versions open and replay that data. The check compares exact source/derived table fingerprints and balance quantities after migration to schema 7, another restart and normal uninstall. The baseline CI artifact must remain available; expiry is an explicit prerequisite failure, never a silently substituted baseline. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
+The separate production job tests an upgrade from the pinned, SHA-256-verified `0.1.0` NSIS artifact (main `f0603fd`, CI `37345501830`) to the current version in `tauri.conf.json` (now `0.1.2`). The old installed app creates schema 6; an external offline fixture utility fills the closed database with two synthetic owned accounts, an internal transfer, one fee, two audit versions and overlapping groups. Both installed versions open and replay that data. The check compares exact source/derived table fingerprints and balance quantities after migration to schema 7, another restart and normal uninstall. The baseline CI artifact must remain available; expiry is an explicit prerequisite failure, never a silently substituted baseline. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
 
 Native acceptance adds the two synthetic addresses and overlapping groups through the actual UI; only deterministic chain evidence is seeded externally while the app is closed. Expected values are independently checked against the production Store APIs: 1.99 ETH at $3000 gives $5970, with one $30 fee. The viewport matrix resizes the actual Windows HWND client area to 1440×900, 1280×800 and 1024×720 CSS pixels, captures EN/RU and dark/light combinations, and checks that all six asset and eight activity columns remain reachable by scrolling. It records WebView2 pixel ratio and Windows window DPI. This does not substitute for changing Windows display scaling to 125%, 150% and 200%; that release gate remains separate. The hosted monitor can be smaller than a requested test window, so the report also records available screen size.
 
@@ -319,6 +319,23 @@ cargo run -p portfolio-store --example performance --release -- \
 ```
 
 The optional verifier checks preview/discard, commit/replay, duplicate rejection and a timer pinned to the preview's async executor thread. Its `LOCAL_IMPORT_REPORT.json` is Store evidence; it does not measure native painting or startup. It leaves one committed decision in the scratch profile. CI prepares its clean native fixture without `--verify-import`. Both modes refuse to overwrite an existing profile.
+
+## Responsive windows, long tables and keyboard panels (0.1.2)
+
+At startup and after an OS DPI change, the decorated window fits the current monitor's physical work area. The normal 1024×720 logical minimum is reduced only when the monitor cannot accommodate it, including caption/borders and taskbar. Narrow windows use icon navigation with accessible names, retain a visible demo label and scroll the sidebar to reach Settings. Toolbars, chart badges, settings and panel forms wrap instead of overflowing. Changing pages starts at the top; opening/closing details preserves the list position.
+
+Asset, activity, review and CSV-preview tables use measured row virtualization above 100 rows. Their own scroll region is keyboard focusable; scrolling and End reach rows outside the initial viewport. A focused row stays mounted even when scrolling or updated data changes its position. Tables retain native headers, logical row counts and row indices. The import and movement panels contain Tab/Shift+Tab, close with Escape when allowed, and restore the opening control. An atomic import shows its applying/recalculation status until completion.
+
+Run the separate browser layout check with:
+
+```bash
+npx playwright install chromium
+npm run test:layout:browser
+```
+
+It starts a temporary Vite development server on localhost:4175, exercises the existing mock demo through 11 pages and both panels, and checks a separate 10,000-row component fixture with varying row heights. Six CSS viewport sizes × EN/RU × dark/light include 1440×900, 1280×800, 1024×720, 800×480, 672×440 and 504×340. Reports/screenshots are in `target/browser-layout-report`; CI uploads `linux-browser-layout-evidence`. This uses browser/mock IPC, not production/native or OS display-scaling evidence. On cloud workspaces with a restricted home directory, set `PLAYWRIGHT_BROWSERS_PATH=/workspace/.cache/cc-browsers` for both commands. Fixtures under `tests/browser` are outside the production entry point.
+
+Windows native automation additionally checks all 11 pages and both panels in the three specified logical sizes and EN/RU/dark/light combinations. `--display-scaling` selects 125/150/200% through the Windows Display Settings UI, verifies real HWND DPI and WebView2 pixel ratio, checks physical outer bounds against the monitor work area, and restores the original setting. The helper permits changes only in a disposable CI desktop. An inaccessible selector, unavailable scale or required logoff is reported **BLOCKED**, never replaced with browser zoom. Hosted Windows Server does not establish physical Windows 11 monitor coverage. The production large-profile scenario checks bounded rendering and final-row reachability for 500 holdings and 200 loaded activity records. [Current validation and remaining gates](TEST_REPORT.md).
 
 ## Local load measurement
 

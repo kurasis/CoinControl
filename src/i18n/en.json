@@ -451,7 +451,8 @@
     "before": "Before",
     "after": "After",
     "mapping": "Column mapping",
-    "unmapped": "Match by header name"
+    "unmapped": "Match by header name",
+    "applying": "Applying rows and recalculating the portfolio…"
   },
   "asset": {
     "title": "Asset",

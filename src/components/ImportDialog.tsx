@@ -1,3 +1,4 @@
+import { WindowedTableBody } from "./WindowedTableBody";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -5,6 +6,7 @@ import { api, isCommandError } from "../ipc/client";
 import type { ImportPreview } from "../ipc/bindings/ImportPreview";
 import type { RecalcSummary } from "../ipc/bindings/RecalcSummary";
 import { Usd } from "./Amount";
+import { useDialogFocus } from "./useDialogFocus";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -29,7 +31,7 @@ const FIELDS = [
 export function ImportDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const closedRef = useRef(false);
   const previewRef = useRef<ImportPreview | null>(null);
   const committingRef = useRef(false);
@@ -37,25 +39,16 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [applied, setApplied] = useState<number | null>(null);
   const [file, setFile] = useState<{ name: string; content: string } | null>(null);
+  useDialogFocus(panelRef, close);
 
   useEffect(() => {
     closedRef.current = false;
-    const opener = document.activeElement as HTMLElement | null;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    window.addEventListener("keydown", onKey);
     return () => {
       closedRef.current = true;
       if (previewRef.current)
         void api.discardBasisImport(previewRef.current.batch_id).catch(() => undefined);
       previewRef.current = null;
-      window.removeEventListener("keydown", onKey);
-      opener?.focus?.();
     };
-    // close reads the latest lifecycle state through refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fail = (e: unknown) => {
@@ -122,6 +115,8 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
   return (
     <div className="drawer-backdrop" onClick={close}>
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className="dialog"
         role="dialog"
         aria-modal="true"
@@ -131,12 +126,7 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
         <header className="drawer-head">
           <h2 id="import-title">{t("import.title")}</h2>
           <div className="toolbar-spacer" />
-          <button
-            ref={closeRef}
-            className="btn btn-ghost"
-            onClick={close}
-            disabled={commit.isPending}
-          >
+          <button className="btn btn-ghost" onClick={close} disabled={commit.isPending}>
             {t("common.close")}
           </button>
         </header>
@@ -156,6 +146,11 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
             />
           </label>
           {load.isPending && <p className="meta">{t("import.reading")}</p>}
+          {commit.isPending && (
+            <p className="notice" role="status">
+              {t("import.applying")}
+            </p>
+          )}
           {error && (
             <p className="field-error" role="alert">
               {error}
@@ -253,9 +248,9 @@ function PreviewView({
               <th>{t("import.colMessages")}</th>
             </tr>
           </thead>
-          <tbody>
-            {p.rows.map((r) => (
-              <tr key={r.row}>
+          <WindowedTableBody rows={p.rows} columns={5} rowKey={(r) => r.row}>
+            {(r) => (
+              <>
                 <td className="num">
                   {r.row}
                   {r.external_row_id && <span className="meta"> · {r.external_row_id}</span>}
@@ -275,9 +270,9 @@ function PreviewView({
                   <Usd value={r.total_basis_usd} />
                 </td>
                 <td className="meta wrap">{r.messages.join("; ")}</td>
-              </tr>
-            ))}
-          </tbody>
+              </>
+            )}
+          </WindowedTableBody>
         </table>
       </div>
       <div className="row gap-top">

@@ -7,6 +7,7 @@ import { join, resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { ownedFixture, seedOwnedFixture, acceptanceSnapshot } from "./acceptance-fixture.mjs";
+import { verifyNativePages, verifyDisplayScaling } from "./lib/native-layout.mjs";
 
 const output = "target/native-report";
 mkdirSync(output, { recursive: true });
@@ -415,6 +416,23 @@ async function ownedAccountScenarios() {
 }
 
 async function viewportScenarios() {
+  const layoutUi = {
+    execute,
+    route,
+    screenshot,
+    pid: () => nativeApp.pid,
+    key: async (value, shift = false) => {
+      const actions = [
+        ...(shift ? [{ type: "keyDown", value: "\uE008" }] : []),
+        { type: "keyDown", value },
+        { type: "keyUp", value },
+        ...(shift ? [{ type: "keyUp", value: "\uE008" }] : []),
+      ];
+      await request(`/session/${session}/actions`, "POST", {
+        actions: [{ type: "key", id: "layout-keyboard", actions }],
+      });
+    },
+  };
   report.viewports = [];
   for (const [width, height] of [
     [1440, 900],
@@ -506,8 +524,21 @@ async function viewportScenarios() {
           }
         }
         report.viewports.push({ name, ...layout, native });
+        await verifyNativePages(
+          layoutUi,
+          {
+            name,
+            capture:
+              (language === "ru" && theme === "dark") ||
+              (width === 1440 && language === "en" && theme === "light"),
+          },
+          report,
+        );
       }
     }
+  }
+  if (process.argv.includes("--display-scaling")) {
+    await verifyDisplayScaling(layoutUi, record, report);
   }
   await route("/settings");
   await select("#language", "en");
