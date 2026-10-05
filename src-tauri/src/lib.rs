@@ -59,6 +59,27 @@ pub fn run() {
         )
         .init();
 
+    let context = tauri::generate_context!();
+    #[cfg(feature = "native-e2e")]
+    let context = {
+        let mut context = context;
+        if let Some(root) = std::env::var_os("COINCONTROL_E2E_DATA_DIR") {
+            for window in &mut context.config_mut().app.windows {
+                window.data_directory = Some(PathBuf::from(&root).join("webview"));
+                if let Some(port) = std::env::var("COINCONTROL_E2E_DEBUG_PORT")
+                    .ok()
+                    .and_then(|value| value.parse::<u16>().ok())
+                    .filter(|port| *port > 0)
+                {
+                    window.additional_browser_args = Some(format!(
+                        "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --remote-debugging-port={port}"
+                    ));
+                }
+            }
+        }
+        context
+    };
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -130,6 +151,6 @@ pub fn run() {
             commands::restore_backup,
             commands::export_csv,
         ])
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running Portfolio Desk");
 }

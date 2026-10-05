@@ -135,6 +135,7 @@ async function open() {
     env: {
       ...driverEnvironment,
       TAURI_WEBVIEW_AUTOMATION: "true",
+      COINCONTROL_E2E_DEBUG_PORT: String(debugPort),
       WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${debugPort}`,
       WEBVIEW2_USER_DATA_FOLDER: join(dataDir, "webview"),
     },
@@ -342,7 +343,7 @@ try {
     [
       "-NoProfile",
       "-Command",
-      "Get-Process | Where-Object { $_.ProcessName -match 'portfolio|msedge|tauri' } | Select-Object ProcessName,Id,MainWindowTitle | ConvertTo-Json",
+      "Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'portfolio|msedge|tauri' } | Select-Object Name,ProcessId,CommandLine | ConvertTo-Json",
     ],
     { encoding: "utf8" },
   );
