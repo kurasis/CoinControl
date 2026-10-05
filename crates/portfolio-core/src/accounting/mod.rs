@@ -17,7 +17,7 @@ pub use valuation::{
 };
 
 /// Version of the accounting semantics; persisted with derived results.
-pub const ACCOUNTING_ENGINE_VERSION: u32 = 2;
+pub const ACCOUNTING_ENGINE_VERSION: u32 = 3;
 
 use crate::decimal::Dec;
 

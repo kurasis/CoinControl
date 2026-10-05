@@ -1,6 +1,7 @@
 // Typed wrappers for the Rust IPC commands. This is the only way the UI
 // reaches data: there is no direct provider call from the renderer.
 import { invoke } from "@tauri-apps/api/core";
+import type { AssetPolicy } from "./bindings/AssetPolicy";
 import type { Account } from "./bindings/Account";
 import type { AccountSyncStatus } from "./bindings/AccountSyncStatus";
 import type { ActivityFilter } from "./bindings/ActivityFilter";
@@ -28,6 +29,7 @@ import type { ReplayReport } from "./bindings/ReplayReport";
 import type { ReviewList } from "./bindings/ReviewList";
 import type { Scope } from "./bindings/Scope";
 import type { Settings } from "./bindings/Settings";
+import type { SyncProgress } from "./bindings/SyncProgress";
 import type { SyncSummary } from "./bindings/SyncSummary";
 import type { Wallet } from "./bindings/Wallet";
 
@@ -74,6 +76,8 @@ export const api = {
   renameWallet: (id: string, label: string) => call<void>("rename_wallet", { id, label }),
   addAccount: (walletId: string, network: NetworkId, address: string, label?: string) =>
     call<Account>("add_account", { walletId, network, address, label: label ?? null }),
+  addAccounts: (walletId: string, network: NetworkId, addresses: string[]) =>
+    call<Account[]>("add_accounts", { walletId, network, addresses }),
   listAccounts: (walletId?: string) =>
     call<Account[]>("list_accounts", { walletId: walletId ?? null }),
   setAccountArchived: (id: string, archived: boolean) =>
@@ -84,9 +88,18 @@ export const api = {
   setGroupWallets: (groupId: string, walletIds: string[]) =>
     call<void>("set_group_wallets", { groupId, walletIds }),
   deleteGroup: (groupId: string) => call<void>("delete_group", { groupId }),
+  listAssetPolicies: () => call<AssetPolicy[]>("list_asset_policies"),
+  setAssetPolicy: (assetId: string, hidden: boolean, excludeOverride: boolean | null) =>
+    call<void>("set_asset_policy", { assetId, hidden, excludeOverride }),
   listHoldings: (scope: Scope) => call<HoldingRow[]>("list_holdings", { scope }),
   portfolioSummary: (scope: Scope) => call<PortfolioSummary>("get_portfolio_summary", { scope }),
-  chart: (scope: Scope, range: ChartRange) => call<ChartSeries>("get_chart", { scope, range }),
+  chart: (scope: Scope, range: ChartRange, window?: { start: number; end: number }) =>
+    call<ChartSeries>("get_chart", {
+      scope,
+      range,
+      start: window?.start ?? null,
+      end: window?.end ?? null,
+    }),
   listActivity: (
     scope: Scope,
     cursor?: string | null,
@@ -98,7 +111,11 @@ export const api = {
       cursor: cursor ?? null,
       limit: limit ?? null,
       filter: filter
-        ? { asset_id: filter.asset_id ?? null, unresolved_only: filter.unresolved_only ?? false }
+        ? {
+            ...filter,
+            asset_id: filter.asset_id ?? null,
+            unresolved_only: filter.unresolved_only ?? false,
+          }
         : null,
     }),
   assetDetail: (scope: Scope, assetId: string) =>
@@ -121,6 +138,13 @@ export const api = {
   removeProviderKey: (provider: string) =>
     call<ProviderStatus>("remove_provider_key", { provider }),
   syncNow: (accountId?: string) => call<SyncSummary>("sync_now", { accountId: accountId ?? null }),
+  cancelSync: () => call<void>("cancel_sync"),
+  syncProgress: () => call<SyncProgress>("get_sync_progress"),
+  testProvider: (provider: string) => call<void>("test_provider", { provider }),
+  exportBackup: () => call<boolean>("export_backup"),
+  inspectBackup: (content: string) => call<string>("inspect_backup", { content }),
+  restoreBackup: (content: string) => call<void>("restore_backup", { content }),
+  exportCsv: (kind: string) => call<boolean>("export_csv", { kind }),
   listSyncStatus: () => call<AccountSyncStatus[]>("list_sync_status"),
 };
 

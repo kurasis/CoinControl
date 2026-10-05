@@ -630,6 +630,7 @@ impl Store {
 
     /// Applies a previewed batch in one transaction, then replays accounting.
     pub async fn commit_basis_import(&self, batch_id: &str) -> Result<ImportResult> {
+        let guard = self.write_lock.lock().await;
         let row =
             sqlx::query("SELECT file_sha256, status, rows_json FROM import_batches WHERE id = ?")
                 .bind(batch_id)
@@ -669,7 +670,6 @@ impl Store {
         }
         let source = format!("csv:{batch_id}");
         {
-            let _guard = self.write_lock.lock().await;
             let mut tx = self.pool.begin().await?;
             let now = self.now();
             for (leg_id, o) in &planned.legs {
@@ -688,6 +688,7 @@ impl Store {
             .await?;
             tx.commit().await?;
         }
+        drop(guard);
         let replay = self.replay_accounting().await?;
         Ok(ImportResult {
             batch_id: batch_id.to_owned(),

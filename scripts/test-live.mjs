@@ -107,6 +107,17 @@ for (const name of expected) {
 for (const p of blocked)
   rows.push(`| ${p} | SKIPPED_NOT_IN_SCOPE | 0 | - | optional provider not used by this build |`);
 
+const usageFile = `${REPORT_DIR}/usage.json`;
+if (existsSync(usageFile)) {
+  const usage = JSON.parse(readFileSync(usageFile, "utf8"));
+  const ceiling = Number(process.env.LIVE_TEST_MAX_REQUESTS_PER_PROVIDER ?? 50);
+  for (const [provider, requests] of Object.entries(usage)) {
+    if (requests > ceiling) failed = true;
+    rows.push(
+      `| ${provider} total across suites | ${requests <= ceiling ? "PASS" : "FAIL"} | ${requests} | - | shared budget ceiling ${ceiling} |`,
+    );
+  }
+}
 const report = [
   "# Live provider test report",
   "",

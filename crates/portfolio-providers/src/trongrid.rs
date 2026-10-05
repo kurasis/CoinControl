@@ -442,6 +442,7 @@ fn native_leg(signed: BigInt, leg_type: &str) -> LegSpec {
         Direction::SelfTransfer
     };
     LegSpec {
+        counterparty: None,
         unresolved: direction == Direction::In,
         asset: AssetSpec::native(NetworkId::Tron, PROVIDER),
         signed_raw: signed,
@@ -500,7 +501,13 @@ pub fn native_tx_for_account(tx: &NativeTx, account: &str) -> Result<TxSpec, Pro
             }
             .to_owned();
             if status != TxStatus::Failed && (owned_by_account || to_account) {
-                legs.push(native_leg(signed, &operation));
+                legs.push(
+                    native_leg(signed, &operation).with_counterparty(if owned_by_account {
+                        str_field(value, "to_address").and_then(base58)
+                    } else {
+                        owner.and_then(base58)
+                    }),
+                );
             }
         }
         "TriggerSmartContract" => {
@@ -667,6 +674,11 @@ pub fn trc20_specs_for_account(events: &[Trc20Transfer], account: &str) -> Vec<T
             provider: PROVIDER,
             operation: operation.to_owned(),
             legs: vec![LegSpec {
+                counterparty: Some(if operation == "send" {
+                    e.to.clone()
+                } else {
+                    e.from.clone()
+                }),
                 unresolved: direction == Direction::In,
                 asset: e.token_info.asset(),
                 signed_raw: signed,

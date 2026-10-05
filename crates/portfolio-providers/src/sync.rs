@@ -10,6 +10,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::future::Future;
 use std::sync::Mutex;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
 
 use bigdecimal::Zero;
 use num_bigint::BigInt;
@@ -175,18 +179,24 @@ struct HistoryOutcome {
     confirmed_seen: BTreeSet<String>,
 }
 
+type ProgressHook = Arc<dyn Fn(&str, u32, bool) + Send + Sync>;
+
 pub struct SyncEngine {
+    progress_hook: Option<ProgressHook>,
+    cancelled: Arc<AtomicBool>,
     store: Store,
     providers: Providers,
     options: SyncOptions,
     /// Providers stopped for the rest of this run (auth failure, budget, throttling).
-    stopped: Mutex<BTreeMap<&'static str, String>>,
+    stopped: Mutex<BTreeMap<&'static str, ProviderError>>,
     btc_tip: tokio::sync::Mutex<Option<i64>>,
 }
 
 impl SyncEngine {
     pub fn new(store: Store, providers: Providers, options: SyncOptions) -> Self {
         SyncEngine {
+            progress_hook: None,
+            cancelled: Arc::new(AtomicBool::new(false)),
             store,
             providers,
             options,
@@ -195,8 +205,26 @@ impl SyncEngine {
         }
     }
 
+    pub fn with_progress(mut self, hook: ProgressHook) -> Self {
+        self.progress_hook = Some(hook);
+        self
+    }
+    fn report_progress(&self, account: &str, pages: u32, done: bool) {
+        if let Some(hook) = &self.progress_hook {
+            hook(account, pages, done);
+        }
+    }
     pub fn providers(&self) -> &Providers {
         &self.providers
+    }
+
+    pub fn with_cancellation(mut self, cancelled: Arc<AtomicBool>) -> Self {
+        self.cancelled = cancelled;
+        self
+    }
+
+    pub fn is_cancelled(&self) -> bool {
+        self.cancelled.load(Ordering::Relaxed)
     }
 
     /// Which provider serves an account's network in this build.
@@ -217,7 +245,7 @@ impl SyncEngine {
 
     fn check_stopped(&self, provider: &'static str) -> Result<(), ProviderError> {
         match self.stopped.lock().expect("stopped lock").get(provider) {
-            Some(_) => Err(ProviderError::BudgetExhausted { provider }),
+            Some(error) => Err(error.clone()),
             None => Ok(()),
         }
     }
@@ -229,7 +257,7 @@ impl SyncEngine {
             self.stopped
                 .lock()
                 .expect("stopped lock")
-                .insert(provider, e.to_string());
+                .insert(provider, e.clone());
         }
     }
 
@@ -267,12 +295,21 @@ impl SyncEngine {
         };
         let mut reports = Vec::new();
         for account in accounts.into_iter().filter(|a| !a.archived) {
+            if self.is_cancelled() {
+                break;
+            }
             reports.push(self.sync_account(&account).await);
         }
         reports
     }
 
     pub async fn sync_account(&self, account: &Account) -> AccountSyncReport {
+        self.report_progress(&account.id, 0, false);
+        let report = self.sync_account_inner(account).await;
+        self.report_progress(&account.id, 0, true);
+        report
+    }
+    async fn sync_account_inner(&self, account: &Account) -> AccountSyncReport {
         let provider = Self::provider_for(account.network);
         let mut report = AccountSyncReport {
             account_id: account.id.clone(),
@@ -389,6 +426,11 @@ impl SyncEngine {
         let mut reached_end = false;
         let mut forward_pages = 0;
         while forward_pages < forward_budget {
+            if self.is_cancelled() {
+                checkpoint.coverage = Coverage::Paused;
+                outcome.coverage = Coverage::Paused;
+                return Ok(outcome);
+            }
             forward_pages += 1;
             pages_left -= 1;
             let page = fetch(cursor.clone()).await?;
@@ -419,6 +461,21 @@ impl SyncEngine {
                     cursor = Some(next);
                 }
             }
+            if first_run {
+                checkpoint.backfill_cursor = cursor.clone();
+                self.store
+                    .save_checkpoint(
+                        &account.id,
+                        Self::provider_for(account.network).unwrap_or("sync"),
+                        if fingerprint.contains("trc20") {
+                            HISTORY_TRC20
+                        } else {
+                            HISTORY
+                        },
+                        checkpoint,
+                    )
+                    .await?;
+            }
         }
         if reached_end {
             checkpoint.backfill_cursor = None;
@@ -436,6 +493,11 @@ impl SyncEngine {
 
         // Backfill older history from the persisted cursor.
         while pages_left > 0 {
+            if self.is_cancelled() {
+                checkpoint.coverage = Coverage::Paused;
+                outcome.coverage = Coverage::Paused;
+                return Ok(outcome);
+            }
             let Some(from) = checkpoint.backfill_cursor.clone() else {
                 break;
             };
@@ -462,6 +524,18 @@ impl SyncEngine {
                 }
                 Some(next) => checkpoint.backfill_cursor = Some(next),
             }
+            self.store
+                .save_checkpoint(
+                    &account.id,
+                    Self::provider_for(account.network).unwrap_or("sync"),
+                    if fingerprint.contains("trc20") {
+                        HISTORY_TRC20
+                    } else {
+                        HISTORY
+                    },
+                    checkpoint,
+                )
+                .await?;
         }
 
         checkpoint.coverage =
@@ -513,6 +587,7 @@ impl SyncEngine {
                 outcome.confirmed_seen.insert(tx.hash.clone());
             }
         }
+        self.report_progress(&account.id, 1, false);
         Ok(known_count)
     }
 
@@ -651,6 +726,35 @@ impl SyncEngine {
         report.new_transactions = outcome.new_transactions;
 
         // Unconfirmed activity, kept separate from the confirmed ledger.
+        if self.is_cancelled() {
+            return Ok(());
+        }
+        for hash in self
+            .store
+            .recent_confirmed_transactions(&account.id, tip - 6, self.options.max_pending_checks)
+            .await?
+        {
+            if self.is_cancelled() {
+                return Ok(());
+            }
+            match esplora.tx(&hash).await? {
+                Some(tx) => {
+                    if !tx.status.confirmed {
+                        self.store
+                            .invalidate_confirmation(NetworkId::Bitcoin, &hash, true)
+                            .await?;
+                    }
+                    if let Some(spec) = esplora::tx_for_account(&tx, address, &owned, now) {
+                        self.store.ingest_transaction(&account.id, &spec).await?;
+                    }
+                }
+                None => {
+                    self.store
+                        .invalidate_confirmation(NetworkId::Bitcoin, &hash, false)
+                        .await?
+                }
+            }
+        }
         let mempool = esplora.mempool_txs(address).await?;
         checkpoint.state.pending_incomplete = mempool.len() >= esplora::MEMPOOL_CAP;
         let mut in_mempool = BTreeSet::new();
@@ -988,6 +1092,9 @@ impl SyncEngine {
     /// priced only by contract identity through DefiLlama. An asset with no
     /// quote stays unpriced; it is never valued at zero.
     pub async fn refresh_prices(&self) -> PriceReport {
+        if self.is_cancelled() {
+            return PriceReport::default();
+        }
         let mut report = PriceReport::default();
         let held = match self.store.held_assets().await {
             Ok(h) => h,
@@ -1171,6 +1278,9 @@ impl SyncEngine {
     /// identities through DefiLlama's free chart route; nothing is matched by
     /// ticker. Coverage is remembered, so a run with nothing new costs nothing.
     pub async fn refresh_price_history(&self) -> PriceHistoryReport {
+        if self.is_cancelled() {
+            return PriceHistoryReport::default();
+        }
         let mut report = PriceHistoryReport::default();
         if self.providers.defillama.is_none() {
             return report;

@@ -16,9 +16,9 @@
     "check": "node scripts/check.mjs",
     "test:offline": "node scripts/test-offline.mjs",
     "test:live": "node scripts/test-live.mjs",
-    "test:e2e:windows": "node scripts/not-yet.mjs test:e2e:windows",
+    "test:e2e:windows": "node scripts/test-e2e-windows.mjs",
     "build:windows": "tauri build --bundles nsis",
-    "verify:release": "node scripts/not-yet.mjs verify:release",
+    "verify:release": "node scripts/verify-release.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:web": "vitest run"

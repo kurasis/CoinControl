@@ -46,12 +46,30 @@ fn key(var: &str) -> String {
         .unwrap_or_else(|| panic!("{var} is not configured"))
 }
 
-fn budget() -> Arc<Budget> {
+static BUDGETS: std::sync::OnceLock<
+    std::sync::Mutex<std::collections::BTreeMap<&'static str, Arc<Budget>>>,
+> = std::sync::OnceLock::new();
+fn budget(provider: &'static str) -> Arc<Budget> {
     let max = std::env::var("LIVE_TEST_MAX_REQUESTS_PER_PROVIDER")
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(50);
-    Budget::limited(max)
+    BUDGETS
+        .get_or_init(Default::default)
+        .lock()
+        .unwrap()
+        .entry(provider)
+        .or_insert_with(|| Budget::limited(max))
+        .clone()
+}
+fn budget_usage() -> std::collections::BTreeMap<&'static str, u32> {
+    BUDGETS
+        .get_or_init(Default::default)
+        .lock()
+        .unwrap()
+        .iter()
+        .map(|(p, b)| (*p, b.used()))
+        .collect()
 }
 
 fn root() -> PathBuf {
@@ -83,6 +101,10 @@ struct Report {
     checks: Vec<Check>,
     #[serde(skip)]
     start: Option<Instant>,
+    #[serde(skip)]
+    completed: bool,
+    #[serde(skip)]
+    usage_start: std::collections::BTreeMap<String, u32>,
 }
 
 impl Report {
@@ -96,6 +118,11 @@ impl Report {
             endpoints: BTreeSet::new(),
             checks: Vec::new(),
             start: Some(Instant::now()),
+            completed: false,
+            usage_start: budget_usage()
+                .into_iter()
+                .map(|(p, n)| (p.to_owned(), n))
+                .collect(),
         }
     }
 
@@ -115,10 +142,16 @@ impl Report {
     }
 
     fn finish(mut self, requests: u32) {
+        self.completed = true;
         self.requests = requests;
         self.duration_ms = self.start.take().map_or(0, |s| s.elapsed().as_millis());
         let dir = root().join("target/live-report");
         std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(
+            dir.join("usage.json"),
+            serde_json::to_string_pretty(&budget_usage()).unwrap(),
+        )
+        .unwrap();
         let file = dir.join(format!("{}.json", self.provider));
         std::fs::write(&file, serde_json::to_string_pretty(&self).unwrap()).unwrap();
         let failed: Vec<_> = self
@@ -135,6 +168,37 @@ impl Report {
     }
 }
 
+impl Drop for Report {
+    fn drop(&mut self) {
+        if self.completed {
+            return;
+        }
+        self.duration_ms = self.start.take().map_or(0, |s| s.elapsed().as_millis());
+        let usage = budget_usage();
+        self.requests = if let Some(n) = usage.get(self.provider.as_str()) {
+            n.saturating_sub(*self.usage_start.get(&self.provider).unwrap_or(&0))
+        } else {
+            usage
+                .iter()
+                .map(|(p, n)| n.saturating_sub(*self.usage_start.get(*p).unwrap_or(&0)))
+                .sum()
+        };
+        self.checks.push(Check {
+            name: "Suite completion".into(),
+            result: "FAIL",
+            detail: "Provider request aborted; consult sanitized test output for status".into(),
+        });
+        let dir = root().join("target/live-report");
+        let _ = std::fs::create_dir_all(&dir);
+        if let Ok(json) = serde_json::to_string_pretty(&self) {
+            let _ = std::fs::write(dir.join(format!("{}.json", self.provider)), json);
+        }
+        if let Ok(json) = serde_json::to_string_pretty(&usage) {
+            let _ = std::fs::write(dir.join("usage.json"), json);
+        }
+    }
+}
+
 fn s(v: &Value) -> &str {
     v.as_str().expect("string in manifest")
 }
@@ -146,7 +210,8 @@ async fn esplora_live() {
         return;
     }
     let t = targets();
-    let b = budget();
+    let b = budget("esplora");
+    let used_before = b.used();
     let api = Esplora::new(esplora::DEFAULT_BASE, b.clone()).unwrap();
     let mut r = Report::new("esplora");
 
@@ -232,7 +297,7 @@ async fn esplora_live() {
         mempool.len() <= esplora::MEMPOOL_CAP,
         format!("{} pending", mempool.len()),
     );
-    r.finish(b.used());
+    r.finish(b.used() - used_before);
 }
 
 #[tokio::test]
@@ -242,7 +307,8 @@ async fn zerion_live() {
         return;
     }
     let t = targets();
-    let b = budget();
+    let b = budget("zerion");
+    let used_before = b.used();
     let api = Zerion::new(zerion::DEFAULT_BASE, &key("ZERION_API_KEY"), b.clone()).unwrap();
     let mut r = Report::new("zerion");
     let address = s(&t["ethereum"]["address"]).to_ascii_lowercase();
@@ -365,7 +431,16 @@ async fn zerion_live() {
     // partitioned to the requested chain.
     let evm = &t["evm_networks"];
     let evm_address = s(&evm["address"]).to_ascii_lowercase();
-    for name in evm["networks"].as_array().unwrap().iter().map(s) {
+    // The full-network engine suite already exercises these chains. Avoid
+    // spending the same credential's quota twice in a combined run.
+    let combined = selected("trongrid") && selected("tonapi");
+    for name in evm["networks"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(s)
+        .filter(|_| !combined)
+    {
         let network = NetworkId::parse(name).unwrap();
         let positions = api.positions(network, &evm_address).await.unwrap();
         let page = api
@@ -464,7 +539,7 @@ async fn zerion_live() {
             tx.map(|t| t.legs.len())
         ),
     );
-    r.finish(b.used());
+    r.finish(b.used() - used_before);
 }
 
 #[tokio::test]
@@ -474,7 +549,8 @@ async fn trongrid_live() {
         return;
     }
     let t = targets();
-    let b = budget();
+    let b = budget("trongrid");
+    let used_before = b.used();
     let api = TronGrid::new(trongrid::DEFAULT_BASE, &key("TRONGRID_API_KEY"), b.clone()).unwrap();
     let mut r = Report::new("trongrid");
     let tron = &t["tron"];
@@ -653,7 +729,7 @@ async fn trongrid_live() {
         fee_checks == wanted.len(),
         format!("{fee_checks} of {} found", wanted.len()),
     );
-    r.finish(b.used());
+    r.finish(b.used() - used_before);
 }
 
 #[tokio::test]
@@ -663,7 +739,8 @@ async fn tonapi_live() {
         return;
     }
     let t = targets();
-    let b = budget();
+    let b = budget("tonapi");
+    let used_before = b.used();
     let api = TonApi::new(tonapi::DEFAULT_BASE, &key("TONAPI_API_KEY"), b.clone()).unwrap();
     let mut r = Report::new("tonapi");
     let ton = &t["ton"];
@@ -774,7 +851,7 @@ async fn tonapi_live() {
                 .and_then(|x| x.fee.as_ref().map(|f| f.raw.to_string()))
         ),
     );
-    r.finish(b.used());
+    r.finish(b.used() - used_before);
 }
 
 /// Stage D: every required network synchronized through the app's engine:
@@ -808,7 +885,14 @@ async fn networks_live() {
     ] {
         accounts.push(store.add_account(&wallet.id, n, addr, None).await.unwrap());
     }
-    let budgets = [budget(), budget(), budget(), budget(), budget()];
+    let budgets = [
+        budget("zerion"),
+        budget("trongrid"),
+        budget("tonapi"),
+        budget("livecoinwatch"),
+        budget("defillama"),
+    ];
+    let used_before: u32 = budgets.iter().map(|b| b.used()).sum();
     let providers = Providers {
         zerion: Some(
             Zerion::new(
@@ -935,7 +1019,7 @@ async fn networks_live() {
             .collect::<Vec<_>>()
             .join(", "),
     );
-    r.finish(budgets.iter().map(|b| b.used()).sum());
+    r.finish(budgets.iter().map(|b| b.used()).sum::<u32>() - used_before);
 }
 
 #[tokio::test]
@@ -945,7 +1029,8 @@ async fn livecoinwatch_live() {
         return;
     }
     let t = targets();
-    let b = budget();
+    let b = budget("livecoinwatch");
+    let used_before = b.used();
     let api = LiveCoinWatch::new(
         livecoinwatch::DEFAULT_BASE,
         &key("LIVECOINWATCH_API_KEY"),
@@ -1034,7 +1119,7 @@ async fn livecoinwatch_live() {
             points.last().map(|p| p.at)
         ),
     );
-    r.finish(b.used());
+    r.finish(b.used() - used_before);
 }
 
 #[tokio::test]
@@ -1044,7 +1129,8 @@ async fn defillama_live() {
         return;
     }
     let t = targets();
-    let b = budget();
+    let b = budget("defillama");
+    let used_before = b.used();
     let api = DefiLlama::new(defillama::DEFAULT_BASE, b.clone()).unwrap();
     let mut r = Report::new("defillama");
     let d = &t["defillama"];
@@ -1131,7 +1217,7 @@ async fn defillama_live() {
         native.as_ref().is_some_and(|s| s.points.len() >= 6),
         format!("{:?} points", native.map(|s| s.points.len())),
     );
-    r.finish(b.used());
+    r.finish(b.used() - used_before);
 }
 
 /// The stage B vertical slice against real services: add addresses, read
@@ -1167,7 +1253,13 @@ async fn vertical_slice_live() {
     } else {
         None
     };
-    let budgets = [budget(), budget(), budget(), budget()];
+    let budgets = [
+        budget("esplora"),
+        budget("zerion"),
+        budget("livecoinwatch"),
+        budget("defillama"),
+    ];
+    let used_before: u32 = budgets.iter().map(|b| b.used()).sum();
     let providers = Providers {
         esplora: Some(Esplora::new(esplora::DEFAULT_BASE, budgets[0].clone()).unwrap()),
         zerion: selected("zerion").then(|| {
@@ -1318,5 +1410,5 @@ async fn vertical_slice_live() {
             ),
         );
     }
-    r.finish(budgets.iter().map(|b| b.used()).sum());
+    r.finish(budgets.iter().map(|b| b.used()).sum::<u32>() - used_before);
 }

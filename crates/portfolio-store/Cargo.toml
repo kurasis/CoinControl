@@ -21,9 +21,10 @@ sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio",
 uuid = { version = "1", features = ["v4"] }
 csv = "1"
 sha2 = "0.10"
-
-[dev-dependencies]
+base64 = "0.22"
 tempfile = "3"
+
+
 
 [features]
 ts = ["dep:ts-rs", "portfolio-core/ts"]

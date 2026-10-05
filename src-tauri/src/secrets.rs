@@ -12,7 +12,11 @@ use std::sync::Mutex;
 use serde::Serialize;
 use zeroize::Zeroizing;
 
+#[cfg(not(feature = "native-e2e"))]
 const SERVICE: &str = "com.coincontrol.portfoliodesk";
+// Automation must never overwrite a user's production credentials.
+#[cfg(feature = "native-e2e")]
+const SERVICE: &str = "com.coincontrol.portfoliodesk.native-e2e";
 
 /// A credential value. Debug/Display output is always redacted.
 pub struct Secret(Zeroizing<String>);

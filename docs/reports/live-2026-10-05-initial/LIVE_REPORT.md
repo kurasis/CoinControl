@@ -1,0 +1,72 @@
+# Live provider test report
+
+Run at 2026-10-05T15:38:48.737Z. Requests are counted locally, retries included.
+Credentials, full URLs and response bodies are never recorded.
+
+| Provider       | Result | Requests | Duration (ms) | Endpoints / check                                                                                                                                           |
+| -------------- | ------ | -------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| esplora        | PASS   | 6        | 5247          | address, blocks/tip/height, tx, txs/chain, txs/mempool                                                                                                      |
+|                | PASS   |          |               | tip height: height 970043                                                                                                                                   |
+|                | PASS   |          |               | balance and statistics: confirmed balance 5757425459 sat, 66809 confirmed txs                                                                               |
+|                | PASS   |          |               | two confirmed history pages via last_seen_txid: page sizes 25 and 25, overlap 0, newest-first true                                                          |
+|                | PASS   |          |               | known transaction status and fee: height Some(57043), fee 99000000 sat                                                                                      |
+|                | PASS   |          |               | input/output effect for 17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ: principal 1000000000000 sat, fee 0 sat                                                          |
+|                | PASS   |          |               | input/output effect for 1XPTgDRhN8RFnzniWCddobD9iKZatrvH4: principal -1000000000000 sat, fee 99000000 sat                                                   |
+|                | PASS   |          |               | mempool listing within documented cap: 13 pending                                                                                                           |
+| zerion         | FAIL   | -        | -             | no report (the test aborted; see output above)                                                                                                              |
+| livecoinwatch  | PASS   | 3        | 5391          | coins/map, coins/single/history, credits                                                                                                                    |
+|                | PASS   |          |               | authenticated credits: provider-reported 9967 of 10000 daily credits remaining                                                                              |
+|                | PASS   |          |               | USD quote batch for mapped assets: BTC=85309.69261277997, ETH=2697.2909637424264, USDC=0.9985823051381664                                                   |
+|                | PASS   |          |               | 24h ratio normalized to percent: BTC -0.02%, ETH -0.11%, USDC -0.15%                                                                                        |
+|                | PASS   |          |               | missing code is absent, not zero: 3 returned codes                                                                                                          |
+|                | PASS   |          |               | historical series with ascending timestamps: 97 points, first Some(1788220800), last Some(1788480000)                                                       |
+| defillama      | PASS   | 4        | 3099          | chart, prices/current, prices/historical                                                                                                                    |
+|                | PASS   |          |               | current price by contract identity: price Some("0.999981658544282"), timestamp Some(1791214490), confidence Some("0.99")                                    |
+|                | PASS   |          |               | missing token is absent, not zero: not returned                                                                                                             |
+|                | PASS   |          |               | historical price near the requested time: price Some("1") at Some(1700000107)                                                                               |
+|                | PASS   |          |               | daily chart returns one dollar-pegged point per day in range: 30 points, first Some((1699920001, "0.99902")), last Some((1702425613, "0.999603"))           |
+|                | PASS   |          |               | native asset daily chart by CoinGecko identity: Some(7) points                                                                                              |
+| trongrid       | PASS   | 7        | 4035          | v1/accounts, v1/accounts/transactions, v1/accounts/transactions/trc20                                                                                       |
+|                | PASS   |          |               | key access and balances: liquid 528884280427388 SUN, staked 1458682642599664 SUN, 304 TRC-20 balances                                                       |
+|                | PASS   |          |               | native history: two pages, fingerprint continuity, all records normalized: page sizes 20 and 20, overlap 0, newest-first true, normalize None               |
+|                | PASS   |          |               | TRC-20 history: two pages without duplicate events: page sizes 20 and 20, duplicates 0                                                                      |
+|                | PASS   |          |               | known TRC-20 transfer normalized by contract identity: found true, leg Some("-3123513000000")                                                               |
+|                | PASS   |          |               | fee-bearing receipt fc476d1110: operation send, legs 0, fee Some("13373400") SUN                                                                            |
+|                | PASS   |          |               | fee-bearing receipt 1bb453dc02: operation send, legs 1, fee Some("1100000") SUN                                                                             |
+|                | PASS   |          |               | known fee-bearing records located: 2 of 2 found                                                                                                             |
+| tonapi         | PASS   | 5        | 4500          | accounts, accounts/events, accounts/events/{id}, accounts/jettons                                                                                           |
+|                | PASS   |          |               | friendly and raw address forms are one account: 0:83dfd552e63729b472fcbcc8c45ebcc6691702558b68ec7527e1ba403a0f31a8                                          |
+|                | PASS   |          |               | TON and Jetton holdings keyed by Jetton master: 1592540633737234 nanoton, 119 Jettons (33 whitelisted, 14 blacklisted)                                      |
+|                | PASS   |          |               | events: two pages continued by logical time: page sizes 10 and 10, overlap 0, strictly descending lt true                                                   |
+|                | PASS   |          |               | events link to transactions without duplicate records: 20 events, 20 with transaction references                                                            |
+|                | PASS   |          |               | known Jetton receipt with master identity and fee: found true, legs Some(1), fee Some("3472")                                                               |
+| vertical-slice | PASS   | 25       | 24305         |                                                                                                                                                             |
+|                | PASS   |          |               | bitcoin: holdings and complete history persisted: 22 transactions in 1 pages, coverage Complete, error None                                                 |
+|                | PASS   |          |               | bitcoin: re-sync adds nothing: 0 new, 1 pages                                                                                                               |
+|                | PASS   |          |               | ethereum: holdings and first history pages persisted: 50 transactions in 2 pages, coverage Loading (backfill continues next sweep), error None              |
+|                | PASS   |          |               | prices: bitcoin holding valued: 28 priced, 444 unpriced, errors []; BTC 0.00585704 x Some("85334.89490578882") = Some("499.8098928590013502928")            |
+|                | PASS   |          |               | portfolio total available: 472 holdings, 444 unpriced, 603 spam excluded                                                                                    |
+|                | PASS   |          |               | activity readable through the app's query: 72 rows on the first page                                                                                        |
+|                | PASS   |          |               | price history: daily series downloaded within the request cap: 2 requests, 1000 points, 30 assets pending, 0 unavailable, errors []                         |
+|                | PASS   |          |               | accounting replay over real history: Ok(ReplayReport { events: 75, lots: 34, review_items: 68, reconciliation_items: 14, orphaned_overrides: 0 })           |
+|                | PASS   |          |               | bitcoin 1Y price and holdings charts use historical prices: 366 of 366 price points, 366 valued holdings points                                             |
+| networks       | PASS   | 84       | 72357         |                                                                                                                                                             |
+|                | PASS   |          |               | base: holdings and first history page persisted: provider Some("zerion"), 20 transactions in 1 pages, coverage Loading, error None                          |
+|                | PASS   |          |               | base: immediate re-sync adds nothing: 0 new, 1 pages                                                                                                        |
+|                | PASS   |          |               | arbitrum: holdings and first history page persisted: provider Some("zerion"), 20 transactions in 1 pages, coverage Loading, error None                      |
+|                | PASS   |          |               | arbitrum: immediate re-sync adds nothing: 0 new, 1 pages                                                                                                    |
+|                | PASS   |          |               | optimism: holdings and first history page persisted: provider Some("zerion"), 20 transactions in 1 pages, coverage Loading, error None                      |
+|                | PASS   |          |               | optimism: immediate re-sync adds nothing: 0 new, 1 pages                                                                                                    |
+|                | PASS   |          |               | polygon: holdings and first history page persisted: provider Some("zerion"), 20 transactions in 1 pages, coverage Loading, error None                       |
+|                | PASS   |          |               | polygon: immediate re-sync adds nothing: 0 new, 1 pages                                                                                                     |
+|                | PASS   |          |               | bsc: holdings and first history page persisted: provider Some("zerion"), 20 transactions in 1 pages, coverage Loading, error None                           |
+|                | PASS   |          |               | bsc: immediate re-sync adds nothing: 0 new, 1 pages                                                                                                         |
+|                | PASS   |          |               | solana: holdings and first history page persisted: provider Some("zerion"), 20 transactions in 1 pages, coverage Loading, error None                        |
+|                | PASS   |          |               | solana: immediate re-sync adds nothing: 0 new, 1 pages                                                                                                      |
+|                | PASS   |          |               | tron: holdings and first history page persisted: provider Some("trongrid"), 80 transactions in 2 pages, coverage Loading, error None                        |
+|                | PASS   |          |               | tron: immediate re-sync adds nothing: 0 new, 2 pages                                                                                                        |
+|                | PASS   |          |               | ton: holdings and first history page persisted: provider Some("tonapi"), 50 transactions in 1 pages, coverage Loading, error None                           |
+|                | PASS   |          |               | ton: immediate re-sync adds nothing: 0 new, 1 pages                                                                                                         |
+|                | PASS   |          |               | native assets of every network valued; case-sensitive token identity priced: 107 priced, 916 unpriced, missing [], TRON USDT priced true, errors []         |
+|                | PASS   |          |               | accounting replay over all networks: Ok(ReplayReport { events: 245, lots: 150, review_items: 182, reconciliation_items: 36, orphaned_overrides: 0 })        |
+|                | PASS   |          |               | coverage reported for every account: Some(Loading), Some(Loading), Some(Loading), Some(Loading), Some(Loading), Some(Loading), Some(Loading), Some(Loading) |

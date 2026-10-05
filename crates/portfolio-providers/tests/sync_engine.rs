@@ -61,6 +61,12 @@ async fn mount_btc(server: &MockServer, txs: &[serde_json::Value]) {
         .await;
     // Pages of 25 keyed by the last txid seen, exactly like Esplora.
     let pages: Vec<&[serde_json::Value]> = txs.chunks(25).collect();
+    if pages.is_empty() {
+        Mock::given(path(format!("/address/{BTC}/txs/chain")))
+            .respond_with(ResponseTemplate::new(200).set_body_string("[]"))
+            .mount(server)
+            .await;
+    }
     for (i, page) in pages.iter().enumerate() {
         let route = if i == 0 {
             format!("/address/{BTC}/txs/chain")
@@ -384,7 +390,8 @@ async fn auth_failure_keeps_last_balance_as_stale_and_reports() {
     );
     // The provider is stopped for the rest of the run: no further requests.
     let before = server.received_requests().await.unwrap().len();
-    engine.sync_account(&account).await;
+    let stopped = engine.sync_account(&account).await;
+    assert!(stopped.error.unwrap().contains("credential rejected"));
     assert_eq!(server.received_requests().await.unwrap().len(), before);
     let status = store.sync_status().await.unwrap();
     assert!(status[0].last_error.is_some());
@@ -624,4 +631,93 @@ async fn price_history_is_downloaded_once_and_remembered() {
     let second = engine().refresh_price_history().await;
     assert_eq!(second.requests, 0, "{second:?}");
     assert_eq!(server.received_requests().await.unwrap().len(), requests);
+}
+
+#[tokio::test]
+async fn cancellation_saves_the_first_page_and_resumes_without_duplicates() {
+    use std::sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    };
+    let server = MockServer::start().await;
+    let store = store().await;
+    let wallet = store.create_wallet("Cancel test").await.unwrap();
+    let account = store
+        .add_account(&wallet.id, NetworkId::Bitcoin, BTC, None)
+        .await
+        .unwrap();
+    mount_btc(&server, &chain(53)).await;
+    let cancelled = Arc::new(AtomicBool::new(false));
+    let flag = cancelled.clone();
+    let first = btc_engine(&store, &server, 8)
+        .with_cancellation(cancelled)
+        .with_progress(Arc::new(move |_, pages, _| {
+            if pages > 0 {
+                flag.store(true, Ordering::Relaxed);
+            }
+        }));
+    let report = first.sync_account(&account).await;
+    assert_eq!(report.error, None);
+    assert_eq!(report.coverage, Coverage::Paused);
+    assert_eq!(activity_count(&store).await, 25);
+    assert!(
+        store
+            .checkpoint(&account.id, "esplora", "history")
+            .await
+            .unwrap()
+            .backfill_cursor
+            .is_some()
+    );
+    let resumed = btc_engine(&store, &server, 8).sync_account(&account).await;
+    assert_eq!(resumed.error, None);
+    assert_eq!(resumed.coverage, Coverage::Complete);
+    assert_eq!(activity_count(&store).await, 53);
+}
+
+#[tokio::test]
+async fn a_confirmed_bitcoin_transaction_disappearing_from_the_chain_rolls_back() {
+    let server = MockServer::start().await;
+    let store = store().await;
+    let wallet = store.create_wallet("Reorg test").await.unwrap();
+    let account = store
+        .add_account(&wallet.id, NetworkId::Bitcoin, BTC, None)
+        .await
+        .unwrap();
+    let mut transaction = btc_tx(1);
+    transaction["status"]["block_height"] = json!(900000);
+    let hash = transaction["txid"].as_str().unwrap().to_owned();
+    mount_btc(&server, &[transaction.clone()]).await;
+    Mock::given(path(format!("/tx/{hash}")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(transaction))
+        .mount(&server)
+        .await;
+    assert_eq!(
+        btc_engine(&store, &server, 2)
+            .sync_account(&account)
+            .await
+            .error,
+        None
+    );
+    store.replay_accounting().await.unwrap();
+    mount_btc(&server, &[]).await;
+    Mock::given(path(format!("/tx/{hash}")))
+        .respond_with(ResponseTemplate::new(404))
+        .mount(&server)
+        .await;
+    assert_eq!(
+        btc_engine(&store, &server, 2)
+            .sync_account(&account)
+            .await
+            .error,
+        None
+    );
+    store.replay_accounting().await.unwrap();
+    let rows = store
+        .list_activity(&Scope::All, &Default::default(), None, 200)
+        .await
+        .unwrap()
+        .rows;
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].status, "reorged");
+    assert!(store.list_holdings(&Scope::All).await.unwrap().is_empty());
 }

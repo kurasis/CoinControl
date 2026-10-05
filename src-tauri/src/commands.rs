@@ -58,6 +58,7 @@ pub async fn switch_profile(
             "The test profile is not available in the app.",
         ));
     }
+    let _sync_guard = state.sync.run_lock.lock().await;
     let mut guard = state.store.write().await;
     if guard.profile() == profile {
         return Ok(profile);
@@ -157,6 +158,50 @@ pub async fn add_account(
 }
 
 #[tauri::command]
+pub async fn add_accounts(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    wallet_id: String,
+    network: NetworkId,
+    addresses: Vec<String>,
+) -> CommandResult<Vec<Account>> {
+    let store = state.store().await;
+    let accounts = store
+        .add_accounts(&wallet_id, network, &addresses, None)
+        .await?;
+    if store.profile() == ProfileKind::Real {
+        tauri::async_runtime::spawn(async move {
+            let _ = sync::run(&app, None).await;
+        });
+    }
+    Ok(accounts)
+}
+
+#[tauri::command]
+pub async fn list_asset_policies(
+    state: State<'_, AppState>,
+) -> CommandResult<Vec<portfolio_store::AssetPolicy>> {
+    Ok(state.store().await.list_asset_policies().await?)
+}
+#[tauri::command]
+pub async fn set_asset_policy(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    asset_id: String,
+    hidden: bool,
+    exclude_override: Option<bool>,
+) -> CommandResult<()> {
+    let store = state.store().await;
+    store
+        .set_asset_policy(&asset_id, hidden, exclude_override)
+        .await?;
+    store.replay_accounting().await?;
+    use tauri::Emitter;
+    app.emit(sync::DATA_CHANGED_EVENT, ())
+        .map_err(|_| CommandError::new("event", "Could not refresh asset policy."))?;
+    Ok(())
+}
+#[tauri::command]
 pub async fn list_accounts(
     state: State<'_, AppState>,
     wallet_id: Option<String>,
@@ -239,8 +284,24 @@ pub async fn get_chart(
     state: State<'_, AppState>,
     scope: Scope,
     range: ChartRange,
+    start: Option<i64>,
+    end: Option<i64>,
 ) -> CommandResult<ChartSeries> {
-    Ok(state.store().await.get_chart(&scope, range).await?)
+    let window = match (start, end) {
+        (None, None) => None,
+        (Some(a), Some(b)) => Some((a, b)),
+        _ => {
+            return Err(CommandError::new(
+                "invalid",
+                "both chart dates are required",
+            ));
+        }
+    };
+    Ok(state
+        .store()
+        .await
+        .get_chart_window(&scope, range, window)
+        .await?)
 }
 
 #[tauri::command]
@@ -417,4 +478,97 @@ pub async fn sync_now(
 #[tauri::command]
 pub async fn list_sync_status(state: State<'_, AppState>) -> CommandResult<Vec<AccountSyncStatus>> {
     Ok(state.store().await.sync_status().await?)
+}
+
+#[tauri::command]
+pub fn cancel_sync(state: State<'_, AppState>) {
+    state
+        .sync
+        .cancelled
+        .store(true, std::sync::atomic::Ordering::Relaxed);
+}
+#[tauri::command]
+pub fn get_sync_progress(state: State<'_, AppState>) -> sync::SyncProgress {
+    sync::progress(&state.sync)
+}
+
+#[tauri::command]
+pub async fn test_provider(state: State<'_, AppState>, provider: String) -> CommandResult<()> {
+    let _sync = state.sync.run_lock.lock().await;
+    sync::test_provider(&state.store().await, state.secrets.as_ref(), &provider).await
+}
+
+async fn save_text(app: tauri::AppHandle, name: &str, text: String) -> CommandResult<bool> {
+    use tauri_plugin_dialog::DialogExt;
+    let name = name.to_owned();
+    let selected = tauri::async_runtime::spawn_blocking(move || {
+        app.dialog().file().set_file_name(name).blocking_save_file()
+    })
+    .await
+    .map_err(|_| CommandError::new("dialog", "File dialog failed."))?;
+    let Some(selected) = selected else {
+        return Ok(false);
+    };
+    let path = selected
+        .into_path()
+        .map_err(|_| CommandError::new("file", "Choose a local file."))?;
+    tauri::async_runtime::spawn_blocking(move || std::fs::write(path, text))
+        .await
+        .map_err(|_| CommandError::new("file", "Export worker failed."))?
+        .map_err(|_| CommandError::new("file", "Could not save the selected file."))?;
+    Ok(true)
+}
+
+#[tauri::command]
+pub async fn export_backup(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> CommandResult<bool> {
+    let text = state.store().await.export_backup().await?;
+    save_text(app, "CoinControl.ccbackup", text).await
+}
+
+#[tauri::command]
+pub async fn inspect_backup(state: State<'_, AppState>, content: String) -> CommandResult<String> {
+    Ok(state.store().await.inspect_backup(&content).await?)
+}
+
+#[tauri::command]
+pub async fn restore_backup(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    content: String,
+) -> CommandResult<()> {
+    let _sync = state.sync.run_lock.lock().await;
+    let store = state.store().await;
+    let backups = state.profiles_dir.join("safety-backups");
+    std::fs::create_dir_all(&backups)
+        .map_err(|_| CommandError::new("file", "Could not create safety backup directory."))?;
+    let path = backups.join(format!(
+        "{}-{}-{}.ccbackup",
+        store.profile().as_str(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos(),
+        std::process::id()
+    ));
+    store.restore_backup(&content, &path).await?;
+    store.replay_accounting().await?;
+    use tauri::Emitter;
+    app.emit(sync::DATA_CHANGED_EVENT, ())
+        .map_err(|_| CommandError::new("event", "Could not refresh restored views."))?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn export_csv(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    kind: String,
+) -> CommandResult<bool> {
+    let store = state.store().await;
+    store.replay_if_dirty().await?;
+    let text = store.export_csv(&kind).await?;
+    save_text(app, &format!("CoinControl-{kind}.csv"), text).await
 }

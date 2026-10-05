@@ -250,3 +250,36 @@ describe("accounting", () => {
     expect(screen.getByRole("heading", { name: "Activity for this asset" })).toBeInTheDocument();
   });
 });
+
+describe("address batches and history filters", () => {
+  it("validates the whole paste before creating a wallet or adding accounts", async () => {
+    const user = userEvent.setup();
+    window.location.hash = "#/wallets?add=1";
+    renderApp();
+    await user.type(await screen.findByLabelText("Wallet name"), "Batch wallet");
+    await user.type(
+      screen.getByLabelText("Public address"),
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa\ninvalid",
+    );
+    const add = screen.getByRole("button", { name: "Add address" });
+    await waitFor(() => expect(add).toBeEnabled());
+    await user.click(add);
+    expect(await screen.findByText(/invalid address: too short/)).toBeInTheDocument();
+    expect(await api.listWallets()).toHaveLength(0);
+    expect(await api.listAccounts()).toHaveLength(0);
+  });
+
+  it("filters the displayed history instead of keeping unrelated statuses", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    window.location.hash = "#/activity";
+    renderApp();
+    const select = await screen.findByLabelText("Status");
+    await user.selectOptions(select, "failed");
+    expect(await screen.findByText("No activity in this scope yet.")).toBeInTheDocument();
+    await user.selectOptions(select, "final");
+    await waitFor(() =>
+      expect(screen.queryByText("No activity in this scope yet.")).not.toBeInTheDocument(),
+    );
+  });
+});

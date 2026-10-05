@@ -12,13 +12,13 @@ Start with its README, which lists the reading order.
 The project follows the delivery stages in
 [SPECIFICATION.md §13](docs/spec/SPECIFICATION.md#13-delivery-stages-and-acceptance).
 
-| Stage                     | State                                                           |
-| ------------------------- | --------------------------------------------------------------- |
-| A. Foundation             | Implemented. See [TEST_REPORT.md](TEST_REPORT.md).              |
-| B. First vertical slice   | Implemented: Bitcoin, Ethereum, prices, live API tests.         |
-| C. Accounting and history | Implemented: FIFO replay, pairing, review, CSV, history charts. |
-| D. Required networks      | Implemented: all 10 networks sync; see the coverage table.      |
-| E. Product completion     | Not started (installer is built by CI but not yet tested).      |
+| Stage                     | State                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------- |
+| A. Foundation             | Implemented. See [TEST_REPORT.md](TEST_REPORT.md).                                            |
+| B. First vertical slice   | Implemented: Bitcoin, Ethereum, prices, live API tests.                                       |
+| C. Accounting and history | Implemented: FIFO replay, pairing, review, CSV, history charts.                               |
+| D. Required networks      | Implemented: all 10 networks sync; see the coverage table.                                    |
+| E. Product completion     | Recovery and operational UI implemented; native/release acceptance tracked in TEST_REPORT.md. |
 
 Addresses on all ten required networks (Bitcoin, Ethereum, Base, Arbitrum,
 Optimism, Polygon, BNB Chain, Solana, TRON, TON) synchronize real balances and
@@ -264,3 +264,35 @@ Key decisions:
 | `docs/ENVIRONMENT_REPORT.md` | Development environment report                   |
 | `TEST_REPORT.md`             | Verification evidence with PASS/BLOCKED statuses |
 | `.github/workflows/ci.yml`   | Linux checks/tests and Windows installer build   |
+
+## Recovery and portfolio controls
+
+Settings → Data saves a `.ccbackup` file with a versioned manifest and SHA-256 checksum. The SQLite image includes committed WAL data, accounts, groups, source evidence, settings and versioned decisions. Provider keys stay in the OS credential store and are not exported. Restore accepts the same profile kind, checks the actual schema and database integrity, and saves the current database under `profiles/safety-backups` before replacing rows in one transaction. The database image limit is 128 MiB.
+
+CSV exports cover current active-account holdings and activity, FIFO lots and the complete decision audit. Quantities and USD amounts remain decimal strings; timestamps are Unix seconds in UTC. Exports use the desktop file picker. User-controlled text is escaped against spreadsheet formula interpretation.
+
+Token controls in Settings → Data let you hide an asset from the holdings list independently of its inclusion in valuation/accounting. Provider spam classification is the default, and an explicit inclusion decision survives later provider metadata refreshes. Original observations and activity remain available.
+
+Address entry accepts up to 50 lines on one explicitly selected network. All lines are normalized before the database transaction; a duplicate or invalid row prevents the batch from being added. Wallet and asset views link to individual account pages. Activity supports account, asset, network, type, status and UTC date filters; portfolio charts support custom UTC endpoints and compute period performance over the same interval.
+
+Synchronization shows account/page progress and can stop after the current bounded request/page. A first import and older backfill save safe cursors; a resumed sweep reuses stored evidence without duplication. BTC synchronization rechecks up to five transactions from the last six blocks and invalidates an old confirmation only after an authoritative transaction lookup, never after a timeout or an omitted history page. Other indexer sources retain their documented coverage limitations.
+
+Own-transfer accounting requires matching sender/recipient evidence in both account views. A multi-party transaction or a source without payment-edge evidence stays available for manual pairing. Same-second transaction order uses numeric block position where reported; absent positions use a deterministic fallback without claiming an unavailable chain index.
+
+## Windows automation
+
+`npm run test:e2e:windows` uses tauri-driver 2.0.5 and the Edge WebDriver matching the runner's installed WebView2 runtime. Build its isolated test target with:
+
+```sh
+npm run build
+cargo build -p portfolio-desk --features native-e2e --target-dir target/native-e2e
+npm run test:e2e:windows -- --smoke-only
+```
+
+The native suite drives the real UI/IPC/database, checks a basis edit and isolated Windows credential storage across process restart, and captures English/Russian, theme and privacy screens. `--smoke-only` limits the acceptance gate to implemented deterministic scenarios; the report explicitly marks remaining live, offline reconnect and native file-dialog scenarios as blocked. Running the full command fails while those gates remain blocked. Production builds omit the feature and its data-directory override.
+
+The separate production job builds NSIS, silently installs and launches the actual release, reinstalls it and checks that normal uninstall preserves the database. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
+
+## Cloud development
+
+`bash scripts/cloud-setup.sh` installs the pinned Rust toolchain and Node dependencies. In the Debian cloud sandbox, system libraries are extracted under `/workspace/.system`, keeping the host package database untouched. Start later shells with `source /workspace/coincontrol-env.sh`. The setup and its warm rerun were tested; restoring a newly published cloud snapshot has not yet been independently verified.

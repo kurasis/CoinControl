@@ -9,6 +9,8 @@ import type { Support } from "../ipc/bindings/Support";
 import { useApp } from "../app/AppContext";
 import { useNetworkNames } from "../app/hooks";
 import { Page } from "../components/Layout";
+import { AssetPolicyControls } from "../components/AssetPolicyControls";
+import { RecoveryControls } from "../components/RecoveryControls";
 import { openExternal } from "../lib/external";
 
 export function SettingsPage() {
@@ -145,13 +147,17 @@ function SourceCard({ provider: p }: { provider: ProviderStatus }) {
       return queryClient.invalidateQueries({ queryKey: ["providers"] });
     },
   });
+  const test = useMutation({
+    mutationFn: () => api.testProvider(p.id),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["providers"] }),
+  });
   const remove = useMutation({
     mutationFn: () => api.removeProviderKey(p.id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["providers"] }),
   });
   const status = storageLabel(p, t);
   const inputId = `key-${p.id}`;
-  const error = save.error ?? remove.error;
+  const error = save.error ?? remove.error ?? test.error;
 
   return (
     <article className="card source-card" aria-labelledby={`${p.id}-name`}>
@@ -219,12 +225,28 @@ function SourceCard({ provider: p }: { provider: ProviderStatus }) {
                 {t("sources.remove")}
               </button>
             )}
-            <button type="button" className="btn" disabled title={t("sources.testUnavailable")}>
+            <button
+              type="button"
+              className="btn"
+              disabled={!p.adapter_available || test.isPending}
+              onClick={() => test.mutate()}
+            >
               {t("sources.test")}
             </button>
           </div>
         </form>
       )}
+      {p.key_requirement === "not_needed" && (
+        <button
+          type="button"
+          className="btn"
+          disabled={!p.adapter_available || test.isPending}
+          onClick={() => test.mutate()}
+        >
+          {t("sources.test")}
+        </button>
+      )}
+      {test.isSuccess && <span className="meta positive">{t("ops.testOk")}</span>}
       {!p.adapter_available && <span className="meta">{t("sources.adapterPending")}</span>}
       {p.last_error && (
         <span className="meta">{t("sources.lastError", { error: p.last_error })}</span>
@@ -399,7 +421,10 @@ function DataSettings() {
       </div>
       <div className="settings-row">
         <span>{t("settings.backupExport")}</span>
-        <span className="meta">{t("settings.backupPending")}</span>
+        <RecoveryControls />
+      </div>
+      <div className="card-pad">
+        <AssetPolicyControls />
       </div>
     </section>
   );

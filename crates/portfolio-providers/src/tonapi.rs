@@ -329,6 +329,7 @@ fn leg(asset: AssetSpec, signed: BigInt, leg_type: &str) -> LegSpec {
         Direction::SelfTransfer
     };
     LegSpec {
+        counterparty: None,
         unresolved: direction == Direction::In,
         asset,
         signed_raw: signed,
@@ -388,7 +389,13 @@ pub fn event_for_account(event: &Event, account: &str) -> TxSpec {
                 match amount(body.get("amount"))
                     .and_then(|raw| signed_for(account, s.as_deref(), r.as_deref(), raw))
                 {
-                    Some(signed) => legs.push(leg(ton(), signed, "transfer")),
+                    Some(signed) => legs.push(leg(ton(), signed, "transfer").with_counterparty(
+                        if s.as_deref() == Some(account) {
+                            r.clone()
+                        } else {
+                            s.clone()
+                        },
+                    )),
                     None => decoding = Decoding::Partial,
                 }
             }
@@ -408,7 +415,15 @@ pub fn event_for_account(event: &Event, account: &str) -> TxSpec {
                 match (asset, raw) {
                     (Some(asset), Some(raw)) => {
                         match signed_for(account, s.as_deref(), r.as_deref(), raw) {
-                            Some(signed) => legs.push(leg(asset, signed, leg_type)),
+                            Some(signed) => {
+                                legs.push(leg(asset, signed, leg_type).with_counterparty(
+                                    if s.as_deref() == Some(account) {
+                                        r.clone()
+                                    } else {
+                                        s.clone()
+                                    },
+                                ))
+                            }
                             None => decoding = Decoding::Partial,
                         }
                     }

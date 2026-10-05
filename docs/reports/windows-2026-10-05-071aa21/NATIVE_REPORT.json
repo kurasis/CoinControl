@@ -1,0 +1,87 @@
+{
+  "mode": "native-windows",
+  "at": "2026-10-05T16:54:41.992Z",
+  "checks": [
+    {
+      "name": "WebDriver intermediary and native driver ready",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Attach WebDriver to the native application and real IPC",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Clean first launch has no fabricated balances",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Separate SQLite demo loaded through Rust IPC",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Account navigation and scoped holdings",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Cost basis saved and audit version displayed",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Credential saved in isolated Windows Credential Manager entry",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "OS credential persists across restart and can be removed without echoing it",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "SQLite databases and WAL exclude credentials",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "SQLite basis decision survives process restart",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Language and theme change through native settings",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Privacy masks portfolio values",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Live native synchronization",
+      "result": "BLOCKED",
+      "detail": "Requires the separate live/installer acceptance run; this deterministic suite does not claim it"
+    },
+    {
+      "name": "Native file dialog backup/restore",
+      "result": "BLOCKED",
+      "detail": "Requires the separate live/installer acceptance run; this deterministic suite does not claim it"
+    },
+    {
+      "name": "Installer upgrade and uninstall",
+      "result": "BLOCKED",
+      "detail": "Requires the separate live/installer acceptance run; this deterministic suite does not claim it"
+    },
+    {
+      "name": "Offline reconnect",
+      "result": "BLOCKED",
+      "detail": "Requires the separate live/installer acceptance run; this deterministic suite does not claim it"
+    }
+  ],
+  "applicationSha256": "8e151977ff87285a25be288b9d71a65a5b9ee0268a2d7242ff336b2eafe86f02"
+}

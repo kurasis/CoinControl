@@ -315,7 +315,30 @@ pub fn tx_for_account(
         Decoding::Interpreted
     };
     let native = AssetSpec::native(NetworkId::Bitcoin, PROVIDER);
+    let senders: BTreeSet<&str> = tx
+        .vin
+        .iter()
+        .filter_map(|v| v.prevout.as_ref()?.scriptpubkey_address.as_deref())
+        .collect();
+    let recipients: BTreeSet<&str> = tx
+        .vout
+        .iter()
+        .filter_map(|v| v.scriptpubkey_address.as_deref())
+        .filter(|a| !senders.contains(a))
+        .collect();
+    let counterparty = if !missing_prevout && senders.len() == 1 {
+        if direction == Direction::In {
+            senders.first().map(|a| (*a).to_owned())
+        } else if recipients.len() == 1 {
+            recipients.first().map(|a| (*a).to_owned())
+        } else {
+            None
+        }
+    } else {
+        None
+    };
     let legs = vec![LegSpec {
+        counterparty,
         asset: native.clone(),
         signed_raw: principal,
         direction,

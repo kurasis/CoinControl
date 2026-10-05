@@ -109,7 +109,12 @@ async fn long_retry_after_and_exhausted_retries_fail_fast() {
         ),
         "{e:?}"
     );
-    let e = client.quotes(&["BTC"]).await.unwrap_err();
+    // Independently exercise short throttling with a fresh credential budget.
+    let e = lcw(&server, fast())
+        .await
+        .quotes(&["BTC"])
+        .await
+        .unwrap_err();
     assert!(matches!(
         e,
         ProviderError::RateLimited {
@@ -263,4 +268,28 @@ fn missing_keys_are_reported_without_requests() {
     assert!(matches!(z.err(), Some(ProviderError::MissingKey { .. })));
     let l = LiveCoinWatch::new("http://127.0.0.1:9", "", Budget::unlimited());
     assert!(matches!(l.err(), Some(ProviderError::MissingKey { .. })));
+}
+
+#[tokio::test]
+async fn authentication_failure_stops_every_client_sharing_the_credential_budget() {
+    let server = MockServer::start().await;
+    Mock::given(path("/coins/map"))
+        .respond_with(ResponseTemplate::new(403))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let budget = Budget::limited(50);
+    let first =
+        LiveCoinWatch::with_config(&server.uri(), SENTINEL_KEY, budget.clone(), fast()).unwrap();
+    let second =
+        LiveCoinWatch::with_config(&server.uri(), SENTINEL_KEY, budget.clone(), fast()).unwrap();
+    assert!(matches!(
+        first.quotes(&["BTC"]).await,
+        Err(ProviderError::Auth { .. })
+    ));
+    assert!(matches!(
+        second.quotes(&["ETH"]).await,
+        Err(ProviderError::Auth { status: 403, .. })
+    ));
+    assert_eq!(budget.used(), 1);
 }

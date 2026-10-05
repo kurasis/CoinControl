@@ -441,7 +441,12 @@ function LegEditor({ leg }: { leg: LegDetail }) {
       </label>
       <label className="field">
         <span>{t("leg.note")}</span>
-        <input className="input" value={note} onChange={(e) => setNote(e.target.value)} />
+        <input
+          name="decision-note"
+          className="input"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
       </label>
       {error && (
         <p className="field-error" role="alert">

@@ -48,7 +48,15 @@ function SyncButton() {
     mutationFn: () => api.syncNow(),
     onSettled: () => queryClient.invalidateQueries(),
   });
+  const progress = useQuery({
+    queryKey: ["sync-progress"],
+    queryFn: api.syncProgress,
+    refetchInterval: 1000,
+    enabled: profile === "real",
+  });
+  const cancel = useMutation({ mutationFn: api.cancelSync });
   if (profile !== "real") return null;
+  const running = sync.isPending || progress.data?.running;
   const failed = sync.data?.accounts.some((a) => a.error !== null) ?? false;
   return (
     <>
@@ -56,9 +64,30 @@ function SyncButton() {
         {sync.isSuccess && (failed ? t("sync.doneWithErrors") : t("sync.done"))}
         {sync.isError && errorText(sync.error, t)}
       </span>
-      <button className="btn" onClick={() => sync.mutate()} disabled={sync.isPending}>
-        {sync.isPending ? t("sync.running") : t("sync.now")}
+      <button className="btn" onClick={() => sync.mutate()} disabled={running}>
+        {running ? t("sync.running") : t("sync.now")}
       </button>
+      {running && progress.data && (
+        <span role="status">
+          {t("ops.syncProgress", {
+            done: progress.data.details.completed_accounts,
+            total: progress.data.details.total_accounts,
+            pages: progress.data.details.pages_fetched,
+          })}
+        </span>
+      )}
+      {running && (
+        <button
+          className="btn"
+          onClick={() => cancel.mutate()}
+          disabled={progress.data?.cancel_requested}
+        >
+          {t("ops.cancelSync")}
+        </button>
+      )}
+      {progress.data?.cancel_requested && running && (
+        <span role="status">{t("ops.pauseRequested")}</span>
+      )}
     </>
   );
 }
@@ -129,7 +158,11 @@ function AddAddressForm({ onDone }: { onDone: () => void }) {
     ok: NormalizedAddress | null;
     error: string | null;
   } | null>(null);
-  const trimmed = address.trim();
+  const addresses = address
+    .split(/\r?\n/)
+    .map((a) => a.trim())
+    .filter(Boolean);
+  const trimmed = addresses[0] ?? "";
   const validationKey = `${network}|${trimmed}`;
   // Only show a result for exactly the current input.
   const validation = trimmed && result?.key === validationKey ? result : { ok: null, error: null };
@@ -154,9 +187,15 @@ function AddAddressForm({ onDone }: { onDone: () => void }) {
 
   const submit = useMutation({
     mutationFn: async () => {
+      const normalized = await Promise.all(addresses.map((a) => api.validateAddress(network, a)));
+      if (
+        new Set(normalized.map((a) => a.canonical)).size !== addresses.length ||
+        addresses.length > 50
+      )
+        throw { code: "invalid_input", message: t("ops.batchHint") };
       let target = walletId;
       if (target === "new") target = (await api.createWallet(newWallet)).id;
-      return api.addAccount(target, network, address.trim());
+      return api.addAccounts(target, network, addresses);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries();
@@ -228,7 +267,9 @@ function AddAddressForm({ onDone }: { onDone: () => void }) {
       </div>
       <div className="field gap-top">
         <label htmlFor={ids.address}>{t("addAddress.address")}</label>
-        <input
+        <textarea
+          rows={4}
+          placeholder={t("ops.batchHint")}
           id={ids.address}
           className="input address"
           value={address}
@@ -310,9 +351,13 @@ function WalletList() {
               .map((a) => (
                 <div key={a.id} className="list-row">
                   <span className="chip">{networkNames.get(a.network) ?? a.network}</span>
-                  <span className="address" title={privacy ? undefined : a.display_address}>
+                  <Link
+                    to={`/accounts/${a.id}`}
+                    className="address"
+                    title={privacy ? undefined : a.display_address}
+                  >
                     {privacy ? MASK : a.display_address}
-                  </span>
+                  </Link>
                   {a.archived && <span className="chip">{t("wallets.archived")}</span>}
                   <SyncLine status={syncStatus.data?.find((s) => s.account_id === a.id)} />
                   <div className="toolbar-spacer" />

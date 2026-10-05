@@ -59,10 +59,37 @@ pub fn run() {
         )
         .init();
 
+    let context = tauri::generate_context!();
+    #[cfg(feature = "native-e2e")]
+    let context = {
+        let mut context = context;
+        if let Some(root) = std::env::var_os("COINCONTROL_E2E_DATA_DIR") {
+            for window in &mut context.config_mut().app.windows {
+                window.data_directory = Some(PathBuf::from(&root).join("webview"));
+                if let Some(port) = std::env::var("COINCONTROL_E2E_DEBUG_PORT")
+                    .ok()
+                    .and_then(|value| value.parse::<u16>().ok())
+                    .filter(|port| *port > 0)
+                {
+                    window.additional_browser_args = Some(format!(
+                        "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --remote-debugging-port={port}"
+                    ));
+                }
+            }
+        }
+        context
+    };
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            let profiles_dir = app.path().app_data_dir()?.join("profiles");
+            let data_dir = app.path().app_data_dir()?;
+            #[cfg(feature = "native-e2e")]
+            let data_dir = std::env::var_os("COINCONTROL_E2E_DATA_DIR")
+                .map(PathBuf::from)
+                .unwrap_or(data_dir);
+            let profiles_dir = data_dir.join("profiles");
             std::fs::create_dir_all(&profiles_dir)?;
             let store =
                 tauri::async_runtime::block_on(open_profile(&profiles_dir, ProfileKind::Real))
@@ -87,6 +114,9 @@ pub fn run() {
             commands::create_wallet,
             commands::list_wallets,
             commands::rename_wallet,
+            commands::add_accounts,
+            commands::list_asset_policies,
+            commands::set_asset_policy,
             commands::add_account,
             commands::list_accounts,
             commands::set_account_archived,
@@ -113,7 +143,14 @@ pub fn run() {
             commands::remove_provider_key,
             commands::sync_now,
             commands::list_sync_status,
+            commands::cancel_sync,
+            commands::get_sync_progress,
+            commands::test_provider,
+            commands::export_backup,
+            commands::inspect_backup,
+            commands::restore_backup,
+            commands::export_csv,
         ])
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running Portfolio Desk");
 }

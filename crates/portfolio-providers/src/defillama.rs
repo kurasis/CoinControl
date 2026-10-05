@@ -170,7 +170,7 @@ impl DefiLlama {
                 let Some(requested) = chunk
                     .iter()
                     .find(|c| **c == id)
-                    .or_else(|| chunk.iter().find(|c| c.eq_ignore_ascii_case(&id)))
+                    .or_else(|| chunk.iter().find(|c| equivalent_coin(c, &id)))
                 else {
                     continue;
                 };
@@ -225,7 +225,7 @@ impl DefiLlama {
         let Some((_, coin_data)) = chart
             .coins
             .into_iter()
-            .find(|(id, _)| id.eq_ignore_ascii_case(coin))
+            .find(|(id, _)| equivalent_coin(id, coin))
         else {
             return Ok(None);
         };
@@ -263,5 +263,31 @@ impl DefiLlama {
             ids,
         )
         .await
+    }
+}
+
+/// Case folding is only valid for hexadecimal EVM contract identities.
+fn equivalent_coin(a: &str, b: &str) -> bool {
+    if a == b {
+        return true;
+    }
+    let Some((chain, _)) = a.split_once(':') else {
+        return false;
+    };
+    matches!(
+        chain,
+        "ethereum" | "base" | "arbitrum" | "optimism" | "polygon" | "bsc"
+    ) && a.eq_ignore_ascii_case(b)
+}
+
+#[cfg(test)]
+mod identity_tests {
+    use super::*;
+    #[test]
+    fn price_identity_keeps_base58_case() {
+        assert!(!equivalent_coin("solana:AbC", "solana:abc"));
+        assert!(!equivalent_coin("tron:TAbC", "tron:Tabc"));
+        assert!(!equivalent_coin("ton:EQAbC", "ton:EQabc"));
+        assert!(equivalent_coin("ethereum:0xAbC", "ethereum:0xabc"));
     }
 }

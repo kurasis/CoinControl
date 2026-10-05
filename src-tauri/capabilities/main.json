@@ -12,6 +12,7 @@
     "allow-get-settings",
     "allow-update-settings",
     "allow-list-networks",
+    "allow-list-network-capabilities",
     "allow-validate-address",
     "allow-create-wallet",
     "allow-list-wallets",
@@ -121,6 +122,16 @@
           "url": "https://tonviewer.com/*"
         }
       ]
-    }
+    },
+    "allow-cancel-sync",
+    "allow-get-sync-progress",
+    "allow-test-provider",
+    "allow-export-backup",
+    "allow-inspect-backup",
+    "allow-restore-backup",
+    "allow-export-csv",
+    "allow-add-accounts",
+    "allow-list-asset-policies",
+    "allow-set-asset-policy"
   ]
 }

@@ -352,6 +352,7 @@ mod ingest {
             provider: "test",
             operation: "receive".into(),
             legs: vec![LegSpec {
+                counterparty: None,
                 asset: AssetSpec::native(NetworkId::Ethereum, "test"),
                 signed_raw: BigInt::from(amount),
                 direction: Direction::In,
@@ -455,4 +456,57 @@ mod ingest {
         let chart = store.get_chart(&Scope::All, ChartRange::Day).await.unwrap();
         assert!(chart.points.last().unwrap().value_usd.is_some());
     }
+}
+
+#[tokio::test]
+async fn address_batches_validate_all_rows_and_commit_atomically() {
+    let store = mem(ProfileKind::Test).await;
+    let wallet = store.create_wallet("Batch").await.unwrap();
+    let a = "0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed".to_owned();
+    let b = "0xfb6916095ca1df60bb79ce92ce3ea74c37c5d359".to_owned();
+    assert!(
+        store
+            .add_accounts(
+                &wallet.id,
+                NetworkId::Ethereum,
+                &[a.clone(), "invalid".into()],
+                None
+            )
+            .await
+            .is_err()
+    );
+    assert!(store.list_accounts(None).await.unwrap().is_empty());
+    assert!(
+        store
+            .add_accounts(
+                &wallet.id,
+                NetworkId::Ethereum,
+                &[a.clone(), a.to_uppercase()],
+                None
+            )
+            .await
+            .is_err()
+    );
+    assert!(store.list_accounts(None).await.unwrap().is_empty());
+    store
+        .add_accounts(
+            &wallet.id,
+            NetworkId::Ethereum,
+            &[a.clone(), b.clone()],
+            None,
+        )
+        .await
+        .unwrap();
+    assert!(
+        store
+            .add_accounts(
+                &wallet.id,
+                NetworkId::Ethereum,
+                &["0x0000000000000000000000000000000000000001".into(), b],
+                None
+            )
+            .await
+            .is_err()
+    );
+    assert_eq!(store.list_accounts(None).await.unwrap().len(), 2);
 }
