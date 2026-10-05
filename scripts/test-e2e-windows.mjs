@@ -6,6 +6,7 @@ import { tmpdir, release, arch } from "node:os";
 import { join, resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
+import { ownedFixture, seedOwnedFixture, acceptanceSnapshot } from "./acceptance-fixture.mjs";
 
 const output = "target/native-report";
 mkdirSync(output, { recursive: true });
@@ -288,6 +289,215 @@ async function waitSync() {
     180000,
   );
 }
+async function ownedAccountScenarios() {
+  // Addresses and membership are entered through the shipped UI. Only the
+  // deterministic chain evidence is seeded externally while the app is closed.
+  networkRule();
+  try {
+    for (let i = 0; i < 2; i++) {
+      await route("/wallets?add=1");
+      await until(() => execute("return Boolean(document.querySelector('textarea'));"));
+      await select("form select", "new");
+      await input('input[placeholder="e.g. Cold storage"]', ownedFixture.wallets[i]);
+      await execute(
+        "const select=[...document.querySelectorAll('form select')].find(e=>[...e.options].some(o=>o.value==='ethereum'));select.value='ethereum';select.dispatchEvent(new Event('change',{bubbles:true}));return true;",
+      );
+      await input("textarea", ownedFixture.addresses[i]);
+      await until(() =>
+        execute(
+          "return Boolean(document.querySelector('form button[type=submit]:not(:disabled)'));",
+        ),
+      );
+      await execute("document.querySelector('form').requestSubmit();return true;");
+      await until(() => execute("return !document.querySelector('textarea');"));
+    }
+    record("Two owned synthetic accounts added through native address validation and UI", "PASS");
+    await request(`/session/${session}`, "DELETE");
+    session = undefined;
+    closeApplication();
+    seedOwnedFixture(join(dataDir, "profiles", "real.sqlite"), { groups: false });
+    await open();
+    await route("/wallets");
+    for (const [label, members] of [
+      ["Acceptance both", [0, 1]],
+      ["Acceptance A only", [0]],
+    ]) {
+      await input('input[aria-label="New group name"]', label);
+      await clickText("Create group");
+      await until(() =>
+        execute(
+          "return [...document.querySelectorAll('#groups a')].some(e=>e.textContent===arguments[0]);",
+          [label],
+        ),
+      );
+      for (const index of members) {
+        await execute(
+          "const row=[...document.querySelectorAll('#groups a')].find(e=>e.textContent===arguments[0]).closest('.list-row');const label=[...row.querySelectorAll('label')].find(e=>e.textContent.trim()===arguments[1]);label.querySelector('input').click();return true;",
+          [label, ownedFixture.wallets[index]],
+        );
+        await until(() =>
+          execute(
+            "const row=[...document.querySelectorAll('#groups a')].find(e=>e.textContent===arguments[0]).closest('.list-row');return [...row.querySelectorAll('label')].find(e=>e.textContent.trim()===arguments[1]).querySelector('input').checked;",
+            [label, ownedFixture.wallets[index]],
+          ),
+        );
+        await until(
+          () =>
+            readProfile("SELECT COUNT(*) AS n FROM group_wallets")[0].n ===
+            (label === "Acceptance both" ? index + 1 : 3),
+        );
+      }
+    }
+    const scopes = readProfile("SELECT id,label FROM groups ORDER BY label");
+    report.ownedFixture = {
+      expectedTotalUsd: ownedFixture.totalUsd,
+      expectedFeeUsd: ownedFixture.feeUsd,
+      scopes: [],
+    };
+    for (const group of scopes) {
+      await route(`/groups/${group.id}`);
+      const total = group.label === "Acceptance both" ? "$5,970.00" : "$2,970.00";
+      await until(() =>
+        execute("return document.querySelector('.balance')?.textContent.trim()===arguments[0];", [
+          total,
+        ]),
+      );
+      await until(() =>
+        execute(
+          "const card=[...document.querySelectorAll('.metric')].find(e=>e.textContent.includes('Fees and expenses'));return card?.textContent.includes('$30.00') && card.textContent.includes('1 fee');",
+        ),
+      );
+      report.ownedFixture.scopes.push({
+        label: group.label,
+        totalUsd: total,
+        feeUsd: "30.00",
+        feeCharges: 1,
+      });
+      await screenshot(
+        group.label === "Acceptance both" ? "owned-both-group" : "owned-single-group",
+      );
+    }
+    const snapshot = acceptanceSnapshot(join(dataDir, "profiles", "real.sqlite"));
+    if (
+      snapshot.ownTransferLegs !== 2 ||
+      snapshot.feeCharges !== 1 ||
+      snapshot.fingerprints.group_wallets.rows !== 3 ||
+      snapshot.fingerprints.accounting_overrides.rows !== 2
+    )
+      throw new Error("Owned transfer, fee deduplication, audit or overlapping membership differs");
+    writeFileSync(
+      join(output, "OWNED_FIXTURE_REPORT.json"),
+      JSON.stringify(snapshot, null, 2) + "\n",
+    );
+    await restart();
+    await route(`/groups/${scopes.find((g) => g.label === "Acceptance both").id}`);
+    await until(() =>
+      execute("return document.querySelector('.balance')?.textContent.trim()==='$5,970.00';"),
+    );
+    record(
+      "Overlapping native groups preserve scope totals, one fee and owned-transfer accounting across restart",
+      "PASS",
+      "Synthetic offline evidence: 1.99 ETH total; $5970; $30 fee exactly once",
+    );
+  } finally {
+    networkRule(true);
+  }
+  dataDir = mkdtempSync(join(tmpdir(), "coincontrol-native-demo-"));
+  await restart();
+  await route("/settings");
+  await until(() => execute("return Boolean(document.querySelector('#language'));"));
+  await select("#language", "en");
+  await route("/");
+  await until(async () => (await body()).includes("Track your crypto, read-only"));
+}
+
+async function viewportScenarios() {
+  report.viewports = [];
+  for (const [width, height] of [
+    [1440, 900],
+    [1280, 800],
+    [1024, 720],
+  ]) {
+    const ratio = await execute("return devicePixelRatio;");
+    const result = spawnSync(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-File",
+        resolve("scripts/native-window-size.ps1"),
+        "-ApplicationPid",
+        String(nativeApp.pid),
+        "-Width",
+        String(width),
+        "-Height",
+        String(height),
+        "-PixelRatio",
+        String(ratio),
+      ],
+      { encoding: "utf8" },
+    );
+    if (result.status !== 0)
+      throw new Error(`Native HWND resize failed: ${result.stderr.slice(-500)}`);
+    await until(() =>
+      execute(
+        "return Math.abs(innerWidth-arguments[0])<=1 && Math.abs(innerHeight-arguments[1])<=1;",
+        [width, height],
+      ),
+    );
+    const native = JSON.parse(result.stdout);
+    for (const language of ["en", "ru"]) {
+      for (const theme of ["dark", "light"]) {
+        await route("/settings");
+        await until(() => execute("return Boolean(document.querySelector('#language'));"));
+        await select("#language", language);
+        await until(() =>
+          execute("return document.documentElement.lang===arguments[0];", [language]),
+        );
+        await execute(
+          "document.querySelectorAll('[aria-labelledby=theme-label] button')[arguments[0]==='dark'?0:1].click();return true;",
+          [theme],
+        );
+        await until(() =>
+          execute(
+            "return document.documentElement.lang===arguments[0] && document.documentElement.dataset.theme===arguments[1];",
+            [language, theme],
+          ),
+        );
+        await route("/");
+        await until(() =>
+          execute(
+            "return document.querySelectorAll('.table').length>=2 && !document.querySelector('.skeleton-balance');",
+          ),
+        );
+        const layout = await execute(
+          "const main=document.querySelector('.main');const tables=[...document.querySelectorAll('.table-scroll')].map(e=>{e.scrollLeft=e.scrollWidth;const last=e.querySelector('th:last-child').getBoundingClientRect();const bounds=e.getBoundingClientRect();return {columns:e.querySelectorAll('th').length,scrollable:e.scrollWidth>e.clientWidth,lastColumnReachable:last.right<=bounds.right+2};});return {width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio,screen:{width:screen.width,height:screen.height,availableWidth:screen.availWidth,availableHeight:screen.availHeight},mainOverflow:main.scrollWidth>main.clientWidth+2,tables};",
+        );
+        if (
+          layout.mainOverflow ||
+          layout.tables.some((t) => !t.lastColumnReachable) ||
+          layout.tables[0]?.columns !== 6 ||
+          layout.tables[1]?.columns !== 8
+        )
+          throw new Error(
+            `Required native columns are not reachable at ${width}x${height}/${language}/${theme}`,
+          );
+        await execute("document.querySelector('.main').scrollTop=0;return true;");
+        const name = `viewport-${width}x${height}-${language}-${theme}`;
+        await screenshot(name);
+        report.viewports.push({ name, ...layout, native });
+      }
+    }
+  }
+  await route("/settings");
+  await select("#language", "en");
+  await clickText("Dark");
+  await route("/");
+  record(
+    "Native HWND viewport matrix: 3 sizes × 2 languages × 2 themes; all 6 asset and 8 activity columns reachable",
+    "PASS",
+    "Actual WebView2 CSS dimensions measured; hosted Windows DPI recorded, no display-scale emulation",
+  );
+}
 try {
   await until(async () => {
     if (driverError) throw driverError;
@@ -307,10 +517,12 @@ try {
   await route("/");
   await until(async () => (await body()).includes("Track your crypto, read-only"));
   record("Clean first launch has no fabricated balances", "PASS");
+  await ownedAccountScenarios();
   await clickText("Explore demo portfolio");
   await until(async () => (await body()).includes("Demo data. Not your portfolio."));
   await screenshot("portfolio-demo");
   record("Separate SQLite demo loaded through Rust IPC", "PASS");
+  await viewportScenarios();
   await route("/wallets");
   await until(() => execute("return Boolean(document.querySelector('a[href^=\"#/accounts/\"]'));"));
   await execute("document.querySelector('a[href^=\"#/accounts/\"]').click();return true;");

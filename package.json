@@ -1,7 +1,7 @@
 {
   "name": "coincontrol",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Portfolio Desk: personal read-only crypto portfolio tracker (Tauri 2 + React + Rust + SQLite).",
   "type": "module",
   "engines": {
