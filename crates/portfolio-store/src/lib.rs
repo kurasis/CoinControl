@@ -29,6 +29,7 @@ pub mod prices;
 mod recovery;
 mod review;
 mod settings;
+mod view_cache;
 mod wallets;
 
 pub use accounting::{
@@ -55,6 +56,8 @@ pub struct Store {
     write_lock: Arc<Mutex<()>>,
     clock: Arc<dyn Clock>,
     profile: ProfileKind,
+    read_watcher: Option<SqlitePool>,
+    view_cache: Arc<Mutex<view_cache::ViewCache>>,
 }
 
 impl Store {
@@ -69,9 +72,15 @@ impl Store {
             .busy_timeout(Duration::from_secs(5));
         let pool = SqlitePoolOptions::new()
             .max_connections(4)
+            .connect_with(options.clone())
+            .await?;
+        let watcher = SqlitePoolOptions::new()
+            .max_connections(1)
+            .max_lifetime(None)
+            .idle_timeout(None)
             .connect_with(options)
             .await?;
-        Self::init(pool, profile, clock).await
+        Self::init(pool, profile, clock, Some(watcher)).await
     }
 
     /// Opens a private in-memory database (tests only).
@@ -82,10 +91,15 @@ impl Store {
             .max_connections(1)
             .connect_with(options)
             .await?;
-        Self::init(pool, profile, clock).await
+        Self::init(pool, profile, clock, None).await
     }
 
-    async fn init(pool: SqlitePool, profile: ProfileKind, clock: Arc<dyn Clock>) -> Result<Self> {
+    async fn init(
+        pool: SqlitePool,
+        profile: ProfileKind,
+        clock: Arc<dyn Clock>,
+        read_watcher: Option<SqlitePool>,
+    ) -> Result<Self> {
         reject_future_schema(&pool).await?;
         MIGRATOR.run(&pool).await?;
         let store = Store {
@@ -93,6 +107,8 @@ impl Store {
             write_lock: Arc::new(Mutex::new(())),
             clock,
             profile,
+            read_watcher,
+            view_cache: Arc::new(Mutex::new(view_cache::ViewCache::default())),
         };
         store.ensure_profile_identity().await?;
         Ok(store)
@@ -108,6 +124,9 @@ impl Store {
     }
 
     pub async fn close(&self) {
+        if let Some(watcher) = &self.read_watcher {
+            watcher.close().await;
+        }
         self.pool.close().await;
     }
 

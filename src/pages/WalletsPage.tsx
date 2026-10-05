@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { api, isCommandError, type NetworkId } from "../ipc/client";
 import type { AccountSyncStatus } from "../ipc/bindings/AccountSyncStatus";
+import type { SyncProgress } from "../ipc/bindings/SyncProgress";
 import type { NormalizedAddress } from "../ipc/bindings/NormalizedAddress";
 import type { Wallet } from "../ipc/bindings/Wallet";
 import { useApp } from "../app/AppContext";
@@ -54,7 +55,15 @@ function SyncButton() {
     refetchInterval: 1000,
     enabled: profile === "real",
   });
-  const cancel = useMutation({ mutationFn: api.cancelSync });
+  const cancel = useMutation({
+    mutationFn: api.cancelSync,
+    onSuccess: () => {
+      queryClient.setQueryData<SyncProgress>(["sync-progress"], (previous) =>
+        previous ? { ...previous, cancel_requested: true } : previous,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["sync-progress"] });
+    },
+  });
   if (profile !== "real") return null;
   const running = sync.isPending || progress.data?.running;
   const failed = sync.data?.accounts.some((a) => a.error !== null) ?? false;

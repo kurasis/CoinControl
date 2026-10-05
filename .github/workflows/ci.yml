@@ -158,7 +158,7 @@ jobs:
           if-no-files-found: error
 
   windows-native:
-    name: Windows native deterministic scenarios
+    name: Windows native recovery and public BTC scenarios
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -202,11 +202,38 @@ jobs:
           Expand-Archive $zip -DestinationPath $dir
           "EDGE_WEBDRIVER_PATH=$dir\msedgedriver.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Native scenarios through real IPC and SQLite
-        run: npm run test:e2e:windows -- --smoke-only
+        env:
+          RUN_LIVE_API_TESTS: "1"
+        run: npm run test:e2e:windows -- --live-btc
       - name: Native evidence and acceptance gaps
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: windows-native-evidence
           path: target/native-report/
+          if-no-files-found: error
+
+  performance:
+    name: Cached load measurements (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install Rust toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - name: Measure 50 accounts, 500 assets and 100000 legs (no network)
+        run: npm run test:performance
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-${{ matrix.os }}
+          path: target/performance-report/
           if-no-files-found: error

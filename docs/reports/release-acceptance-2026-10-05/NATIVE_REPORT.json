@@ -1,0 +1,112 @@
+{
+  "mode": "native-windows",
+  "at": "2026-10-05T17:54:10.135Z",
+  "checks": [
+    {
+      "name": "WebDriver intermediary and native driver ready",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Attach WebDriver to the native application and real IPC",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Clean first launch has no fabricated balances",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Separate SQLite demo loaded through Rust IPC",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Account navigation and scoped holdings",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Cost basis saved and audit version displayed",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Credential saved in isolated Windows Credential Manager entry",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "OS credential persists across restart and can be removed without echoing it",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "SQLite databases and WAL exclude credentials",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "SQLite basis decision survives process restart",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Language and theme change through native settings",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Privacy masks portfolio values",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Native Save dialogs export backup and four populated CSV files; OS key absent",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Restore in a fresh installation preserves exact holdings/history/lots/audit CSV and groups; keys absent",
+      "result": "PASS",
+      "detail": "Fresh demo destination is automatically seeded by the app before restoring its matching demo archive"
+    },
+    {
+      "name": "Native public BTC import, cancellation/restart/resume and Portfolio/Asset/Account/Activity navigation",
+      "result": "PASS",
+      "detail": "22 transactions; cancellation feedback 13 ms"
+    },
+    {
+      "name": "OS-enforced offline failure retains cached amounts and stale UI; reconnect refreshes without duplicates",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Installer upgrade and uninstall",
+      "result": "SKIPPED_NOT_IN_SCOPE",
+      "detail": "Executed independently by windows-installer job"
+    }
+  ],
+  "environment": {
+    "os": "win32",
+    "osVersion": "10.0.26100",
+    "arch": "x64",
+    "node": "v22.23.3",
+    "tauriDriver": "",
+    "webViewMatchingDriver": "Microsoft Edge WebDriver 153.0.4234.48 (cf31d6623d8718e7a3c3e181e55e59c1aae57a73)"
+  },
+  "applicationSha256": "16b7441c56642ca239271281a26a677eecc651e5792dd395aec5ad194c8b3001",
+  "cancellationFeedbackMs": 13,
+  "providerUsage": [
+    {
+      "provider": "defillama",
+      "requests": 16
+    },
+    {
+      "provider": "esplora",
+      "requests": 13
+    }
+  ],
+  "originalIsolatedProfile": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\coincontrol-native-yT2rVR"
+}

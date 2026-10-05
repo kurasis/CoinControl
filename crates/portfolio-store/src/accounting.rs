@@ -2002,13 +2002,20 @@ impl Store {
         &self,
         accounts: &BTreeSet<String>,
     ) -> Result<BTreeMap<(String, String), Vec<Lot>>> {
-        let rows = sqlx::query(
+        if accounts.is_empty() {
+            return Ok(BTreeMap::new());
+        }
+        let mut query = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
             "SELECT id, account_id, asset_id, remaining_quantity, remaining_basis_usd, basis_kind,
                     acquired_at, arrived_at, source_event
-             FROM lots WHERE remaining_quantity != '0' ORDER BY account_id, asset_id, acquired_at, id",
-        )
-        .fetch_all(&self.pool)
-        .await?;
+             FROM lots WHERE remaining_quantity != '0' AND account_id IN (",
+        );
+        let mut ids = query.separated(",");
+        for account in accounts {
+            ids.push_bind(account);
+        }
+        ids.push_unseparated(") ORDER BY account_id, asset_id, acquired_at, id");
+        let rows = query.build().fetch_all(&self.pool).await?;
         let mut out: BTreeMap<(String, String), Vec<Lot>> = BTreeMap::new();
         for r in rows {
             let account: String = r.get("account_id");

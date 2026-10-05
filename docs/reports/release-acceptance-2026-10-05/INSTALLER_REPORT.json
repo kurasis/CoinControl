@@ -1,0 +1,36 @@
+{
+  "checks": [
+    {
+      "name": "Silent clean installation",
+      "result": "PASS",
+      "detail": "exit 0"
+    },
+    {
+      "name": "Installed production application",
+      "result": "PASS",
+      "detail": "Application executable is installed"
+    },
+    {
+      "name": "Actual release first launch",
+      "result": "PASS",
+      "detail": "Production process remains alive and creates its SQLite profile"
+    },
+    {
+      "name": "Installer upgrade retains portfolio database",
+      "result": "PASS",
+      "detail": "Existing SQLite file is unchanged by reinstall"
+    },
+    {
+      "name": "Uninstaller exists",
+      "result": "PASS",
+      "detail": "NSIS uninstall executable"
+    },
+    {
+      "name": "Normal uninstall preserves portfolio database",
+      "result": "PASS",
+      "detail": "Portfolio data is preserved"
+    }
+  ],
+  "at": "2026-10-05T17:58:24.2259206Z",
+  "mode": "windows-production-installer"
+}

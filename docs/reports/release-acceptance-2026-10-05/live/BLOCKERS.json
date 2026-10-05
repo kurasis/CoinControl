@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "34af7256cd8cd3225cd6c82d39d4fad94b1a5a56",
+  "run": "https://github.com/kurasis/CoinControl/actions/runs/37351607605",
+  "result": "BLOCKED",
+  "provider": "zerion",
+  "httpStatus": 429,
+  "sanitizedError": "RateLimited on positions; retry_after_secs: None",
+  "sharedOutboundRequestsIncludingRetries": 3,
+  "independentSuitesPassed": 5,
+  "affectedSuites": ["zerion", "networks", "vertical"],
+  "note": "Per-suite aborted reports retain partial counters; usage.json is the shared outbound ledger. No quota reset time was supplied."
+}

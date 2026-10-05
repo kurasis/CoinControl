@@ -162,12 +162,14 @@ npm run dev               # browser preview with a mock IPC backend (UI work onl
 npm run check             # tsc, ESLint, Prettier, rustfmt, Clippy (-D warnings)
 npm run test:offline      # all Rust tests + Vitest; no network
 npm run test:live         # opt-in live provider tests (see below)
+npm run test:performance  # release-mode synthetic 50-account / 100000-leg load
 npm run build:windows     # unsigned NSIS installer (run on Windows)
 npm run gen:bindings      # regenerate src/ipc/bindings from the Rust DTOs
 ```
 
-`npm run test:e2e:windows` and `npm run verify:release` exist as required entry
-points but currently exit with a `BLOCKED` message: they are not implemented yet.
+`npm run test:e2e:windows` drives a real Windows binary; `npm run verify:release`
+inspects production resources and the installer. Their Windows scopes require a
+Windows runner; portable inspection is available with `--source-only`.
 
 The browser preview (`npm run dev`) uses an in-memory mock of the IPC layer so
 screens can be developed without the Rust backend. It is excluded from
@@ -289,9 +291,22 @@ cargo build -p portfolio-desk --features native-e2e --target-dir target/native-e
 npm run test:e2e:windows -- --smoke-only
 ```
 
-The native suite drives the real UI/IPC/database, checks a basis edit and isolated Windows credential storage across process restart, and captures English/Russian, theme and privacy screens. `--smoke-only` limits the acceptance gate to implemented deterministic scenarios; the report explicitly marks remaining live, offline reconnect and native file-dialog scenarios as blocked. Running the full command fails while those gates remain blocked. Production builds omit the feature and its data-directory override.
+The deterministic suite drives the real UI/IPC/database, checks a basis edit and isolated Windows credential storage across restart, and exports a backup plus four CSV files through the actual Windows Save dialogs. It restores the matching demo archive into a fresh installation (whose demo destination is initially seeded by the app), compares all four exports and overlapping group membership, and checks that the OS credential is absent from the archive and restored installation. `--smoke-only` permits the separate live gate to remain blocked; it does not skip executed recovery checks. Production builds omit the feature and its data-directory and automation-port overrides.
+
+The separate small live path needs no private keys or Zerion quota. It uses the public BTC manifest target, cancels and resumes synchronization across restart, then blocks the application executable's outbound traffic with an application-scoped Windows firewall rule. It checks cached quantities and stale indicators, removes the rule in cleanup, reconnects and checks that history was not duplicated. Stop remaining price backfill after the failed offline balance read to conserve the shared 50-request public-provider budget. The Windows runner needs permission to manage this isolated firewall rule. Run in PowerShell:
+
+```powershell
+$env:RUN_LIVE_API_TESTS = "1"
+npm run test:e2e:windows -- --live-btc
+```
 
 The separate production job builds NSIS, silently installs and launches the actual release, reinstalls it and checks that normal uninstall preserves the database. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
+
+## Local load measurement
+
+`npm run test:performance` creates an isolated synthetic SQLite profile with 50 accounts, 500 token identities and 100,000 normalized legs. No addresses are queried. It measures fixture loading, full accounting replay, 1,000 idempotent ingestion overlaps, cached store reopening/first summary, 25 calls per view (summary, holdings, account holdings, paginated activity and chart), and peak process memory. Reports include p50/p95, first/max query latency, release/debug mode, commit and machine details; p95 >= 300 ms fails the command. CI executes the same workload on Linux and Windows.
+
+Repeated summary/holdings queries use a bounded process-local DTO cache for up to 30 seconds; charts expire after one second so their end time follows the clock. Every SQLite commit invalidates entries through a dedicated connection's `data_version`, including commits by another Store or process. Only unchanged database versions are cached after computation. Account queries restrict lots in SQL. Broad activity scopes use a global time index so the first page does not sort all history; small/selective scopes retain account-first lookup. Two deterministic pages are checked for exact order and no overlap. Cold reads remain visible in the report; memory-cache p95 and store-open timing are not claims about cold native rendering or a full 100,000-row CSV import. In-memory test stores do not use this cache.
 
 ## Cloud development
 
