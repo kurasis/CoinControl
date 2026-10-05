@@ -106,6 +106,11 @@ jobs:
   windows-installer:
     name: Windows NSIS installer (unsigned)
     runs-on: windows-latest
+    permissions:
+      contents: read
+      actions: read
+    env:
+      ACCEPTANCE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
 
@@ -135,9 +140,17 @@ jobs:
           TONAPI_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
         run: npm run build:windows
 
-      - name: Install launch upgrade and uninstall production build
+      - name: Download pinned previous production installer
+        uses: actions/download-artifact@v4
+        with:
+          name: portfolio-desk-windows-nsis-unsigned
+          run-id: 37345501830
+          github-token: ${{ github.token }}
+          path: target/prior-release
+
+      - name: Upgrade populated production 0.1.0 to 0.1.1 and uninstall
         shell: pwsh
-        run: ./scripts/install-smoke-windows.ps1
+        run: ./scripts/install-smoke-windows.ps1 -PreviousInstaller 'target/prior-release/Portfolio Desk_0.1.0_x64-setup.exe'
 
       - name: Inspect production release and installer
         env:
