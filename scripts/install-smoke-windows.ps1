@@ -60,7 +60,7 @@ try {
   Record 'Upgrade installs production 0.1.1' ($binary.VersionInfo.ProductVersion -match '^0\.1\.1(?:\.|$)') "version $($binary.VersionInfo.ProductVersion)"
   $after = LaunchSnapshot 'upgrade-after'
   Record 'Production launch migrates schema 6 to 7' ($after.schema -eq 7 -and $after.integrity -eq 'ok' -and $after.accountingDirty -eq '0') 'Migration and accounting readiness checked after actual installed app launch'
-  Record 'Populated upgrade preserves exact portfolio and audit' (SamePortfolio $before $after) '20 source/derived table fingerprints plus exact balance quantities, including groups, lots, history, settings and audit versions'
+  Record 'Populated upgrade preserves exact portfolio and audit' (SamePortfolio $before $after) "$(@($after.fingerprints.PSObject.Properties).Count) source/derived table fingerprints plus exact balance quantities, including groups, lots, history, settings and audit versions"
   $reopened = LaunchSnapshot 'upgrade-reopened'
   Record 'Upgraded portfolio survives another process restart' (SamePortfolio $after $reopened) 'No duplicated balance, movement, fee or accounting record'
   $beforeUninstall = (Get-FileHash $profile -Algorithm SHA256).Hash

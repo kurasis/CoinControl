@@ -1,0 +1,97 @@
+{
+  "schema": 7,
+  "integrity": "ok",
+  "accountingDirty": "0",
+  "fingerprints": {
+    "wallets": {
+      "rows": 2,
+      "sha256": "cdc597933e8ebf69b6894bbf9c26d6d1453a3935241c1ebf62b49a011a0753f6"
+    },
+    "accounts": {
+      "rows": 2,
+      "sha256": "6a24e85b0629ea875f6c832c61602e9c44b54df73665ea39400aa3f604cd8422"
+    },
+    "groups": {
+      "rows": 2,
+      "sha256": "f695d00949a464512a320a13de764fa5bdd1edde849c655ecbe1ed7ea05587b7"
+    },
+    "group_wallets": {
+      "rows": 3,
+      "sha256": "03845523f9dbb4b9fa712df82e404e89039aae4d0b3dd6bac65aaadb7a5aa255"
+    },
+    "assets": {
+      "rows": 1,
+      "sha256": "22f249496689dc2c34b45be1e9584580482a2fc555b6999ffe81fdb800d6c9e9"
+    },
+    "asset_preferences": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "chain_transactions": {
+      "rows": 2,
+      "sha256": "b96cda70dffca5041d3a94027665ebdeaf21731b68afee5358d7f98c03fb82ab"
+    },
+    "account_transactions": {
+      "rows": 3,
+      "sha256": "822ccce04a9307d03fdaf994deccb499569b34c68b105262109e08de6f02c690"
+    },
+    "activity_legs": {
+      "rows": 3,
+      "sha256": "4ba50a501506d7675bb92c850294fa3a8cdf5d0df657846ddf7d4e36e111bb0f"
+    },
+    "transaction_fees": {
+      "rows": 1,
+      "sha256": "f5c6f986b733b906b4c0392f61afe9eec56a51df82f542f754b216bb13167f0a"
+    },
+    "accounting_overrides": {
+      "rows": 2,
+      "sha256": "f8af89fddf99624485c1cc9f4d2e8b0da2e788fbc5a7e818f8d4cdf6ed8d9a56"
+    },
+    "portfolio_snapshots": {
+      "rows": 3,
+      "sha256": "fc55a3c1463415c65e79b8e951210f8fdf8c95ee426ec90e6a020b043c1db78c"
+    },
+    "settings": {
+      "rows": 1,
+      "sha256": "1186bb0ec2385c4af62a47e9a09e918b24bb3aaef7721615044b3874563c4f70"
+    },
+    "lots": {
+      "rows": 2,
+      "sha256": "5a0a7e05787a3e70c9b06d4367b45ee238148d7bd20b9b9dbf62d86bede1cb6b"
+    },
+    "lot_consumptions": {
+      "rows": 2,
+      "sha256": "0a594c17c842c94ca079dc24cd5bd69fa53ed28e08c1833e7372845f553f9860"
+    },
+    "leg_accounting": {
+      "rows": 4,
+      "sha256": "69e4324bada43987f68fb633f0d0b7ffe759b7538880ff6e145b854eacd9fb57"
+    },
+    "account_accounting": {
+      "rows": 2,
+      "sha256": "3d0e0bd26a2acf9ad69492fc85a771d02de6aa6102801d1326893ab02c021cc6"
+    },
+    "accounting_flows": {
+      "rows": 2,
+      "sha256": "506253d2e1fa82c5f12362d99757bf3743f33b893f3e66a4ce2bfc5626a0b4db"
+    },
+    "reconciliation_items": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "balances": [
+    {
+      "account_id": "779c2359-ef3b-49c7-a3d7-bd623e539cc8",
+      "asset_id": "ethereum:native",
+      "raw_quantity": "1000000000000000000"
+    },
+    {
+      "account_id": "9f65135b-8bb0-4744-9722-fabc1a6310fb",
+      "asset_id": "ethereum:native",
+      "raw_quantity": "990000000000000000"
+    }
+  ],
+  "feeCharges": 1,
+  "ownTransferLegs": 2
+}

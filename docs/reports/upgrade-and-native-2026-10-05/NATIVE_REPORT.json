@@ -1,0 +1,507 @@
+{
+  "mode": "native-windows",
+  "at": "2026-10-05T18:58:37.991Z",
+  "checks": [
+    {
+      "name": "WebDriver intermediary and native driver ready",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Attach WebDriver to the native application and real IPC",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Clean first launch has no fabricated balances",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Two owned synthetic accounts added through native address validation and UI",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Overlapping native groups preserve scope totals, one fee and owned-transfer accounting across restart",
+      "result": "PASS",
+      "detail": "Synthetic offline evidence: 1.99 ETH total; $5970; $30 fee exactly once"
+    },
+    {
+      "name": "Separate SQLite demo loaded through Rust IPC",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Native HWND viewport matrix: 3 sizes × 2 languages × 2 themes; all 6 asset and 8 activity columns reachable",
+      "result": "PASS",
+      "detail": "Actual WebView2 CSS dimensions measured; hosted Windows DPI recorded, no display-scale emulation"
+    },
+    {
+      "name": "Account navigation and scoped holdings",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Cost basis saved and audit version displayed",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Credential saved in isolated Windows Credential Manager entry",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "OS credential persists across restart and can be removed without echoing it",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "SQLite databases and WAL exclude credentials",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "SQLite basis decision survives process restart",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Language and theme change through native settings",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Privacy masks portfolio values",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Native Save dialogs export backup and four populated CSV files; OS key absent",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Restore in a fresh installation preserves exact holdings/history/lots/audit CSV and groups; keys absent",
+      "result": "PASS",
+      "detail": "Fresh demo destination is automatically seeded by the app before restoring its matching demo archive"
+    },
+    {
+      "name": "Native public BTC import, cancellation/restart/resume and Portfolio/Asset/Account/Activity navigation",
+      "result": "PASS",
+      "detail": "22 transactions; cancellation feedback 18 ms"
+    },
+    {
+      "name": "OS-enforced offline failure retains cached amounts and stale UI; reconnect refreshes without duplicates",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Installer upgrade and uninstall",
+      "result": "SKIPPED_NOT_IN_SCOPE",
+      "detail": "Executed independently by windows-installer job"
+    }
+  ],
+  "environment": {
+    "os": "win32",
+    "osVersion": "10.0.26100",
+    "arch": "x64",
+    "node": "v22.23.3",
+    "tauriDriver": "",
+    "webViewMatchingDriver": "Microsoft Edge WebDriver 153.0.4234.48 (cf31d6623d8718e7a3c3e181e55e59c1aae57a73)"
+  },
+  "applicationSha256": "380ed472a0d3355a92a3f9d2c465fc4e0e48da215c4d027ec0a529a359e433a9",
+  "ownedFixture": {
+    "expectedTotalUsd": "5970.00",
+    "expectedFeeUsd": "30.00",
+    "scopes": [
+      {
+        "label": "Acceptance A only",
+        "totalUsd": "$2,970.00",
+        "feeUsd": "30.00",
+        "feeCharges": 1
+      },
+      {
+        "label": "Acceptance both",
+        "totalUsd": "$5,970.00",
+        "feeUsd": "30.00",
+        "feeCharges": 1
+      }
+    ]
+  },
+  "viewports": [
+    {
+      "name": "viewport-1440x900-en-dark",
+      "height": 900,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1440,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1440, 900],
+        "outerPhysical": [1456, 939]
+      }
+    },
+    {
+      "name": "viewport-1440x900-en-light",
+      "height": 900,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1440,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1440, 900],
+        "outerPhysical": [1456, 939]
+      }
+    },
+    {
+      "name": "viewport-1440x900-ru-dark",
+      "height": 900,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1440,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1440, 900],
+        "outerPhysical": [1456, 939]
+      }
+    },
+    {
+      "name": "viewport-1440x900-ru-light",
+      "height": 900,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1440,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1440, 900],
+        "outerPhysical": [1456, 939]
+      }
+    },
+    {
+      "name": "viewport-1280x800-en-dark",
+      "height": 800,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1280,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1280, 800],
+        "outerPhysical": [1296, 839]
+      }
+    },
+    {
+      "name": "viewport-1280x800-en-light",
+      "height": 800,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1280,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1280, 800],
+        "outerPhysical": [1296, 839]
+      }
+    },
+    {
+      "name": "viewport-1280x800-ru-dark",
+      "height": 800,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1280,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1280, 800],
+        "outerPhysical": [1296, 839]
+      }
+    },
+    {
+      "name": "viewport-1280x800-ru-light",
+      "height": 800,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1280,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1280, 800],
+        "outerPhysical": [1296, 839]
+      }
+    },
+    {
+      "name": "viewport-1024x720-en-dark",
+      "height": 720,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1024,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1024, 720],
+        "outerPhysical": [1040, 759]
+      }
+    },
+    {
+      "name": "viewport-1024x720-en-light",
+      "height": 720,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1024,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1024, 720],
+        "outerPhysical": [1040, 759]
+      }
+    },
+    {
+      "name": "viewport-1024x720-ru-dark",
+      "height": 720,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1024,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1024, 720],
+        "outerPhysical": [1040, 759]
+      }
+    },
+    {
+      "name": "viewport-1024x720-ru-light",
+      "height": 720,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 720,
+        "availableWidth": 1024,
+        "height": 768,
+        "width": 1024
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1024,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1024, 720],
+        "outerPhysical": [1040, 759]
+      }
+    }
+  ],
+  "cancellationFeedbackMs": 18,
+  "providerUsage": [
+    {
+      "provider": "defillama",
+      "requests": 16
+    },
+    {
+      "provider": "esplora",
+      "requests": 13
+    }
+  ],
+  "originalIsolatedProfile": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\coincontrol-native-demo-Ozqidv"
+}
