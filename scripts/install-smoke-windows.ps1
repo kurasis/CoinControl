@@ -1,8 +1,9 @@
-# Production 0.1.0 -> 0.1.1 upgrade on a populated, app-created schema 6 database.
+# Production 0.1.0 -> current version upgrade on a populated, app-created schema 6 database.
 param([Parameter(Mandatory=$true)][string]$PreviousInstaller)
 $ErrorActionPreference = 'Stop'
 $reportDir = 'target/release-report'
 New-Item -ItemType Directory -Path $reportDir -Force | Out-Null
+$targetVersion = (Get-Content 'src-tauri/tauri.conf.json' -Raw | ConvertFrom-Json).version
 $checks = [System.Collections.Generic.List[object]]::new()
 $application = $null
 function Record($name, $ok, $detail) {
@@ -57,7 +58,7 @@ try {
   Record 'Previous app replays populated synthetic portfolio' ($before.integrity -eq 'ok' -and $before.accountingDirty -eq '0' -and $before.ownTransferLegs -eq 2 -and $before.feeCharges -eq 1 -and $before.fingerprints.accounting_overrides.rows -eq 2 -and $before.fingerprints.group_wallets.rows -eq 3) '2 accounts; 2 owned-transfer legs; 1 fee; 2 audit versions; overlapping groups'
   Install $installer.FullName
   $binary = Get-ChildItem $installDir -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
-  Record 'Upgrade installs production 0.1.1' ($binary.VersionInfo.ProductVersion -match '^0\.1\.1(?:\.|$)') "version $($binary.VersionInfo.ProductVersion)"
+  Record "Upgrade installs production $targetVersion" ($binary.VersionInfo.ProductVersion -match ('^' + [regex]::Escape($targetVersion) + '(?:\.|$)')) "version $($binary.VersionInfo.ProductVersion)"
   $after = LaunchSnapshot 'upgrade-after'
   Record 'Production launch migrates schema 6 to 7' ($after.schema -eq 7 -and $after.integrity -eq 'ok' -and $after.accountingDirty -eq '0') 'Migration and accounting readiness checked after actual installed app launch'
   Record 'Populated upgrade preserves exact portfolio and audit' (SamePortfolio $before $after) "$(@($after.fingerprints.PSObject.Properties).Count) source/derived table fingerprints plus exact balance quantities, including groups, lots, history, settings and audit versions"
@@ -74,7 +75,7 @@ try {
   $checks.Add(@{ name = 'Installer scenario'; result = 'FAIL'; detail = $_.Exception.Message })
 } finally {
   StopApplication
-  @{ mode = 'windows-production-installer'; at = (Get-Date).ToUniversalTime().ToString('o'); sourceSha = $env:ACCEPTANCE_SOURCE_SHA; ciSha = $env:GITHUB_SHA; baseline = @{ version = '0.1.0'; schema = 6; sourceSha = 'f0603fde8a7f4e13d60509ee2c188ffe2486d136'; runId = '37345501830'; sha256 = $baselineHash }; targetVersion = '0.1.1'; checks = $checks } | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $reportDir 'INSTALLER_REPORT.json')
+  @{ mode = 'windows-production-installer'; at = (Get-Date).ToUniversalTime().ToString('o'); sourceSha = $env:ACCEPTANCE_SOURCE_SHA; ciSha = $env:GITHUB_SHA; baseline = @{ version = '0.1.0'; schema = 6; sourceSha = 'f0603fde8a7f4e13d60509ee2c188ffe2486d136'; runId = '37345501830'; sha256 = $baselineHash }; targetVersion = $targetVersion; checks = $checks } | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $reportDir 'INSTALLER_REPORT.json')
 }
 $checks | Format-Table name, result, detail
 if ($checks.result -contains 'FAIL') { exit 1 }

@@ -80,6 +80,9 @@ describe("pending CSV lifecycle", () => {
     await waitFor(() => expect(commit).toHaveBeenCalledOnce());
     expect(within(dialog).getByRole("button", { name: "Close" })).toBeDisabled();
     expect(within(dialog).getByLabelText("CSV file")).toBeDisabled();
+    expect(
+      within(dialog).getByText("Applying rows and recalculating the portfolio…"),
+    ).toHaveAttribute("role", "status");
     await user.keyboard("{Escape}");
     expect(dialog).toBeInTheDocument();
     const completed = await original(commit.mock.calls[0]![0]);
@@ -104,11 +107,31 @@ describe("first launch", () => {
 });
 
 describe("demo portfolio", () => {
+  it("starts a new page at the top and preserves list position when opening details", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    renderApp();
+    await screen.findByRole("region", { name: "Assets" });
+    const main = screen.getByRole("main");
+    main.scrollTop = 1200;
+    await user.click(screen.getByRole("link", { name: "Review" }));
+    await screen.findByRole("heading", { name: "Review missing data", level: 1 });
+    expect(main.scrollTop).toBe(0);
+    main.scrollTop = 275;
+    await user.click((await screen.findAllByRole("button", { name: "Resolve" }))[0]!);
+    const dialog = await screen.findByRole("dialog", { name: "Movement details" });
+    expect(main.scrollTop).toBe(275);
+    await user.click(within(dialog).getByRole("button", { name: "Close" }));
+    expect(main.scrollTop).toBe(275);
+  });
+
   it("shows required columns, a dash for missing quotes, and masks values in privacy mode", async () => {
     const user = userEvent.setup();
     renderApp();
     await user.click(await screen.findByRole("button", { name: "Explore demo portfolio" }));
-    expect(await screen.findByText("Demo data. Not your portfolio.")).toBeInTheDocument();
+    expect(
+      await within(screen.getByRole("complementary")).findByText("Demo data. Not your portfolio."),
+    ).toBeInTheDocument();
 
     const assets = await screen.findByRole("region", { name: "Assets" });
     const table = await within(assets).findByRole("table");

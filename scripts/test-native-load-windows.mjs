@@ -154,6 +154,19 @@ try {
     worstStartupMs <= 2000,
     `${worstStartupMs.toFixed(2)} ms maximum`,
   );
+  await until(() =>
+    native.execute(
+      "const b=document.querySelector('tbody[data-row-count=\"500\"]');return b?.dataset.windowed==='true' && b.querySelectorAll('tr[data-index]').length<80;",
+    ),
+  );
+  await native.execute(
+    "const table=document.querySelector('.table-windowed');table.scrollTop=table.scrollHeight;return true;",
+  );
+  await until(() =>
+    native.execute("return Boolean(document.querySelector('tr[data-index=\"499\"]'));"),
+  );
+  record("All 500 native holdings remain scrollable with fewer than 80 mounted rows", true);
+  await native.screenshot("load-assets-500-windowed");
   await native.screenshot("load-portfolio");
   await native.execute(
     "window.__nativeFrameGaps=[];let previous=performance.now();function frame(now){window.__nativeFrameGaps.push(now-previous);previous=now;if(window.__nativeFrameGaps.length<20000)requestAnimationFrame(frame)}requestAnimationFrame(frame);return true;",
@@ -183,6 +196,28 @@ try {
   );
   record("Activity renders two 50-row pages while background preview calculates", true);
   await native.screenshot("load-activity-100");
+  for (let page = 0; page < 2; page++) {
+    await native.clickText("Load more");
+    await until(() =>
+      native.execute(
+        "return document.querySelector('tbody')?.dataset.rowCount===String(arguments[0]);",
+        [150 + page * 50],
+      ),
+    );
+  }
+  await until(() =>
+    native.execute(
+      "const body=document.querySelector('tbody[data-windowed=true]');return body?.dataset.rowCount==='200' && body.querySelectorAll('tr[data-index]').length<80;",
+    ),
+  );
+  await native.execute(
+    "const table=document.querySelector('.table-windowed');table.focus();table.scrollTop=table.scrollHeight;return true;",
+  );
+  await until(() =>
+    native.execute("return Boolean(document.querySelector('tr[data-index=\"199\"]'));"),
+  );
+  record("Virtualized native activity reaches row 200 with fewer than 80 mounted rows", true);
+  await native.screenshot("load-activity-200-windowed");
   await until(() => counts().discarded === 1, 180000);
   const cancelled = counts();
   if (

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { api, isCommandError, type LegOverride } from "../ipc/client";
@@ -10,6 +10,7 @@ import { useAccountLabels, useNetworkNames } from "../app/hooks";
 import { openExternal } from "../lib/external";
 import { formatDateTime } from "../lib/format";
 import { Quantity, Usd } from "./Amount";
+import { useDialogFocus } from "./useDialogFocus";
 
 const INCOMING: LegClassification[] = ["deposit", "reward", "unclassified"];
 const OUTGOING: LegClassification[] = [
@@ -57,25 +58,16 @@ function fromUtcInput(value: string): number | null {
 /** Right-hand drawer with a movement's facts, the decision editor and its audit trail. */
 export function LegDrawer({ legId, onClose }: { legId: string; onClose: () => void }) {
   const { t } = useTranslation();
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const detail = useQuery({ queryKey: ["leg", legId], queryFn: () => api.legDetail(legId) });
 
-  useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    closeRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      opener?.focus?.();
-    };
-  }, [onClose]);
+  useDialogFocus(panelRef, onClose);
 
   return (
     <div className="drawer-backdrop" onClick={onClose}>
       <aside
+        ref={panelRef}
+        tabIndex={-1}
         className="drawer"
         role="dialog"
         aria-modal="true"
@@ -85,7 +77,7 @@ export function LegDrawer({ legId, onClose }: { legId: string; onClose: () => vo
         <header className="drawer-head">
           <h2 id="leg-drawer-title">{t("leg.title")}</h2>
           <div className="toolbar-spacer" />
-          <button ref={closeRef} className="btn btn-ghost" onClick={onClose}>
+          <button className="btn btn-ghost" onClick={onClose}>
             {t("common.close")}
           </button>
         </header>

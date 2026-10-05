@@ -53,6 +53,19 @@ jobs:
       - name: npm run test:offline
         run: npm run test:offline
 
+      - name: Install Chromium for browser layout checks
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser pages, panels and 10000-row table (mock IPC, separate from native)
+        run: npm run test:layout:browser
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-browser-layout-evidence
+          path: target/browser-layout-report/
+          if-no-files-found: warn
+
       - name: TypeScript bindings are up to date
         run: |
           npm run gen:bindings
@@ -148,7 +161,7 @@ jobs:
           github-token: ${{ github.token }}
           path: target/prior-release
 
-      - name: Upgrade populated production 0.1.0 to 0.1.1 and uninstall
+      - name: Upgrade populated production 0.1.0 to current release and uninstall
         shell: pwsh
         run: ./scripts/install-smoke-windows.ps1 -PreviousInstaller 'target/prior-release/Portfolio Desk_0.1.0_x64-setup.exe'
 
@@ -198,7 +211,7 @@ jobs:
       - name: Native scenarios through real IPC and SQLite
         env:
           RUN_LIVE_API_TESTS: "1"
-        run: npm run test:e2e:windows -- --live-btc
+        run: npm run test:e2e:windows -- --live-btc --display-scaling
       - name: Native evidence and acceptance gaps
         if: always()
         uses: actions/upload-artifact@v4

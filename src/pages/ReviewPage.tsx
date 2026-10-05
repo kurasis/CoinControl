@@ -1,3 +1,4 @@
+import { WindowedTableBody } from "../components/WindowedTableBody";
 import { useState } from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -88,9 +89,9 @@ export function ReviewPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                {items.map((i) => (
-                  <tr key={i.leg_id}>
+              <WindowedTableBody rows={items} columns={7} rowKey={(i) => i.leg_id}>
+                {(i) => (
+                  <>
                     <td className="num">{formatDateTime(i.occurred_at, locale, timeZone)}</td>
                     <td>
                       <span className="chip chip-warning">{t(`review.reason.${i.reason}`)}</span>
@@ -111,9 +112,9 @@ export function ReviewPage() {
                         {t("review.resolve")}
                       </button>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
+                  </>
+                )}
+              </WindowedTableBody>
             </table>
           </div>
         )}

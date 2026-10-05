@@ -1,0 +1,61 @@
+{
+  "mode": "local-development-verification",
+  "sourceSha": "7b94c67e944c085d938f8a22d5d78bf4de7b6bfa",
+  "version": "0.1.2",
+  "checks": [
+    {
+      "name": "npm run check",
+      "result": "PASS"
+    },
+    {
+      "name": "npm run test:offline",
+      "result": "PASS"
+    },
+    {
+      "name": "npm run build",
+      "result": "PASS"
+    },
+    {
+      "name": "npm run verify:release -- --source-only",
+      "result": "PASS"
+    },
+    {
+      "name": "cargo clippy --workspace --all-targets --features native-e2e -- -D warnings",
+      "result": "PASS"
+    },
+    {
+      "name": "npm run gen:bindings and clean generated IPC diff",
+      "result": "PASS"
+    },
+    {
+      "name": "PowerShell 7.6.6 syntax parser (four Windows scripts)",
+      "result": "PASS"
+    }
+  ],
+  "rust": {
+    "deterministicTests": 133,
+    "optOutLiveFunctions": 8,
+    "allPassingFunctions": 141,
+    "liveNetworkTestsExecuted": 0
+  },
+  "vitestTests": 27,
+  "windows": {
+    "nativeUI": "NOT_EXECUTED",
+    "productionInstaller012": "NOT_EXECUTED",
+    "osDisplayScaling": "NOT_EXECUTED",
+    "physicalWindows11": "NOT_EXECUTED"
+  },
+  "limits": [
+    "Source-only release inspection excludes Windows PE/NSIS execution.",
+    "PowerShell parsing excludes Windows UI Automation execution.",
+    "Historical Zerion 429 remains a separate provider gate; live provider tests were not rerun locally for this UI stage."
+  ],
+  "environment": {
+    "os": "Debian 13/Linux 6.18.44",
+    "cpu": "Intel Xeon Platinum 8573C",
+    "logicalCpus": 5,
+    "memoryBytes": 35743784960,
+    "rust": "1.97.0",
+    "node": "24.19.0"
+  }
+}

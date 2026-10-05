@@ -1,3 +1,4 @@
+import { WindowedTableBody } from "./WindowedTableBody";
 import { useTranslation } from "react-i18next";
 import type { ActivityRow } from "../ipc/bindings/ActivityRow";
 import type { NetworkId } from "../ipc/client";
@@ -41,9 +42,13 @@ export function ActivityTable({
             <th>{t("activity.colNetwork")}</th>
           </tr>
         </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={`${r.transaction_id}:${r.account_id}`}>
+        <WindowedTableBody
+          rows={rows}
+          columns={8}
+          rowKey={(r) => `${r.transaction_id}:${r.account_id}`}
+        >
+          {(r) => (
+            <>
               <td className="num">{formatDateTime(r.occurred_at, locale, timeZone)}</td>
               <td>
                 <span className="row">
@@ -114,9 +119,9 @@ export function ActivityTable({
               </td>
               <td>{accountLabels.get(r.account_id) ?? "—"}</td>
               <td>{networkNames.get(r.network) ?? r.network}</td>
-            </tr>
-          ))}
-        </tbody>
+            </>
+          )}
+        </WindowedTableBody>
       </table>
     </div>
   );
