@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-leg-detail"
+description = "Enables the get_leg_detail command without any pre-configured scope."
+commands.allow = ["get_leg_detail"]
+
+[[permission]]
+identifier = "deny-get-leg-detail"
+description = "Denies the get_leg_detail command without any pre-configured scope."
+commands.deny = ["get_leg_detail"]

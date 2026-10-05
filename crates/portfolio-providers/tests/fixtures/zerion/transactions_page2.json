@@ -1,0 +1,247 @@
+{
+  "links": {
+    "self": "x"
+  },
+  "data": [
+    {
+      "type": "transactions",
+      "id": "a935a5b5e82954b48aae617c106a1a73",
+      "attributes": {
+        "address": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "operation_type": "approve",
+        "hash": "0x12b4ab2a7352a5bfba1865ca802cfe1dbc65b740d91fc69ac4aa12c3348e5f4d",
+        "mined_at_block": 24992750,
+        "mined_at": "2026-04-30T11:53:23Z",
+        "sent_from": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "sent_to": "0x6eb7c4b8f4a3ca01062d5b752dea5c629c5f1b15",
+        "status": "confirmed",
+        "nonce": 1532,
+        "fee": {
+          "fungible_info": {
+            "id": "eth",
+            "name": "Ethereum",
+            "symbol": "ETH",
+            "icon": {
+              "url": "https://cdn.zerion.io/eth.png"
+            },
+            "flags": {
+              "verified": true
+            },
+            "implementations": [
+              {
+                "chain_id": "ethereum",
+                "address": "",
+                "decimals": 18
+              }
+            ]
+          },
+          "quantity": {
+            "int": "58600335258540",
+            "decimals": 18,
+            "float": 5.86003352585e-5,
+            "numeric": "0.000058600335258540"
+          },
+          "price": 2258.03,
+          "value": 0.13232131502375077
+        },
+        "transfers": [],
+        "approvals": [
+          {
+            "fungible_info": {
+              "id": "0x6eb7c4b8f4a3ca01062d5b752dea5c629c5f1b15",
+              "name": "Garfield",
+              "symbol": "GARF",
+              "icon": null,
+              "flags": {
+                "verified": false
+              },
+              "implementations": [
+                {
+                  "chain_id": "ethereum",
+                  "address": "0x6eb7c4b8f4a3ca01062d5b752dea5c629c5f1b15",
+                  "decimals": 18
+                }
+              ]
+            },
+            "quantity": {
+              "int": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+              "decimals": 18,
+              "float": 1.157920892373162e59,
+              "numeric": "115792089237316195423570985008687907853269984665640564039457.584007913129639935"
+            },
+            "sender": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+            "act_id": "0"
+          }
+        ],
+        "application_metadata": {
+          "name": "Uniswap V2",
+          "icon": {
+            "url": "https://protocol-icons.s3.amazonaws.com/icons/uniswap-v2.jpg"
+          },
+          "contract_address": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+          "method": {
+            "id": "0x095ea7b3",
+            "name": "Approve"
+          }
+        },
+        "flags": {
+          "is_trash": false
+        },
+        "acts": [
+          {
+            "id": "0",
+            "type": "approve",
+            "application_metadata": {
+              "name": "Uniswap V2",
+              "icon": {
+                "url": "https://protocol-icons.s3.amazonaws.com/icons/uniswap-v2.jpg"
+              },
+              "contract_address": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+              "method": {
+                "id": "0x095ea7b3",
+                "name": "Approve"
+              }
+            }
+          }
+        ]
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        },
+        "dapp": {
+          "data": {
+            "type": "dapps",
+            "id": "uniswap-v2"
+          }
+        }
+      }
+    },
+    {
+      "type": "transactions",
+      "id": "dbd299771c685b83b83700af0fccf8ca",
+      "attributes": {
+        "address": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "operation_type": "approve",
+        "hash": "0x6ba8f8d307a06a6ae9f9c250afeb594570354c47e4800835e5f694928991feed",
+        "mined_at_block": 24992724,
+        "mined_at": "2026-04-30T11:47:59Z",
+        "sent_from": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "sent_to": "0xa741c29721bae289e7d7f44dfd5e28e5fe8de663",
+        "status": "confirmed",
+        "nonce": 1526,
+        "fee": {
+          "fungible_info": {
+            "id": "eth",
+            "name": "Ethereum",
+            "symbol": "ETH",
+            "icon": {
+              "url": "https://cdn.zerion.io/eth.png"
+            },
+            "flags": {
+              "verified": true
+            },
+            "implementations": [
+              {
+                "chain_id": "ethereum",
+                "address": "",
+                "decimals": 18
+              }
+            ]
+          },
+          "quantity": {
+            "int": "59768657816649",
+            "decimals": 18,
+            "float": 5.97686578166e-5,
+            "numeric": "0.000059768657816649"
+          },
+          "price": 2257.78,
+          "value": 0.13494448024516317
+        },
+        "transfers": [],
+        "approvals": [
+          {
+            "fungible_info": {
+              "id": "0xa741c29721bae289e7d7f44dfd5e28e5fe8de663",
+              "name": "TrashPanda",
+              "symbol": "TRAP",
+              "icon": null,
+              "flags": {
+                "verified": false
+              },
+              "implementations": [
+                {
+                  "chain_id": "ethereum",
+                  "address": "0xa741c29721bae289e7d7f44dfd5e28e5fe8de663",
+                  "decimals": 18
+                }
+              ]
+            },
+            "quantity": {
+              "int": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+              "decimals": 18,
+              "float": 1.157920892373162e59,
+              "numeric": "115792089237316195423570985008687907853269984665640564039457.584007913129639935"
+            },
+            "sender": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+            "act_id": "0"
+          }
+        ],
+        "application_metadata": {
+          "name": "Uniswap V2",
+          "icon": {
+            "url": "https://protocol-icons.s3.amazonaws.com/icons/uniswap-v2.jpg"
+          },
+          "contract_address": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+          "method": {
+            "id": "0x095ea7b3",
+            "name": "Approve"
+          }
+        },
+        "flags": {
+          "is_trash": false
+        },
+        "acts": [
+          {
+            "id": "0",
+            "type": "approve",
+            "application_metadata": {
+              "name": "Uniswap V2",
+              "icon": {
+                "url": "https://protocol-icons.s3.amazonaws.com/icons/uniswap-v2.jpg"
+              },
+              "contract_address": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+              "method": {
+                "id": "0x095ea7b3",
+                "name": "Approve"
+              }
+            }
+          }
+        ]
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        },
+        "dapp": {
+          "data": {
+            "type": "dapps",
+            "id": "uniswap-v2"
+          }
+        }
+      }
+    }
+  ]
+}

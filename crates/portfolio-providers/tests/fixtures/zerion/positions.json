@@ -1,0 +1,280 @@
+{
+  "links": {
+    "self": "https://api.zerion.io/v1/wallets/0x1Db3439a222C519ab44bb1144fC28167b4Fa6EE6/positions/?currency=usd&filter%5Bchain_ids%5D=ethereum&filter%5Bpositions%5D=only_simple&filter%5Btrash%5D=no_filter&sort=value"
+  },
+  "data": [
+    {
+      "type": "positions",
+      "id": "base-ethereum-asset-asset",
+      "attributes": {
+        "parent": null,
+        "protocol": null,
+        "name": "Asset",
+        "position_type": "wallet",
+        "quantity": {
+          "int": "775181563502083362",
+          "decimals": 18,
+          "float": 0.7751815635020834,
+          "numeric": "0.775181563502083362"
+        },
+        "value": 2089.3546199228003,
+        "price": 2695.31,
+        "changes": {
+          "absolute_1d": 12.945532110484692,
+          "percent_1d": 0.6234576888759502
+        },
+        "fungible_info": {
+          "name": "Ethereum",
+          "symbol": "ETH",
+          "icon": {
+            "url": "https://cdn.zerion.io/eth.png"
+          },
+          "flags": {
+            "verified": true
+          },
+          "implementations": [
+            {
+              "chain_id": "base",
+              "address": null,
+              "decimals": 18
+            },
+            {
+              "chain_id": "ethereum",
+              "address": null,
+              "decimals": 18
+            }
+          ]
+        },
+        "flags": {
+          "displayable": true,
+          "is_trash": false
+        },
+        "updated_at": "2026-07-03T16:36:47Z",
+        "updated_at_block": 25453226
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        },
+        "fungible": {
+          "links": {
+            "related": "https://api.zerion.io/v1/fungibles/eth?currency=usd"
+          },
+          "data": {
+            "type": "fungibles",
+            "id": "eth"
+          }
+        }
+      }
+    },
+    {
+      "type": "positions",
+      "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2-ethereum-asset-asset",
+      "attributes": {
+        "parent": null,
+        "protocol": null,
+        "name": "Asset",
+        "position_type": "wallet",
+        "quantity": {
+          "int": "1663359330651054064",
+          "decimals": 18,
+          "float": 1.6633593306510541,
+          "numeric": "1.663359330651054064"
+        },
+        "value": 4481.869658563734,
+        "price": 2694.4687031692,
+        "changes": {
+          "absolute_1d": 26.716626321151125,
+          "percent_1d": 0.5996792058050371
+        },
+        "fungible_info": {
+          "name": "Wrapped Ether",
+          "symbol": "WETH",
+          "icon": {
+            "url": "https://cdn.zerion.io/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png"
+          },
+          "flags": {
+            "verified": true
+          },
+          "implementations": [
+            {
+              "chain_id": "base",
+              "address": "0x4200000000000000000000000000000000000006",
+              "decimals": 18
+            },
+            {
+              "chain_id": "ethereum",
+              "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+              "decimals": 18
+            }
+          ]
+        },
+        "flags": {
+          "displayable": true,
+          "is_trash": false
+        },
+        "updated_at": "2026-03-05T23:20:23Z",
+        "updated_at_block": 24594512
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        },
+        "fungible": {
+          "links": {
+            "related": "https://api.zerion.io/v1/fungibles/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2?currency=usd"
+          },
+          "data": {
+            "type": "fungibles",
+            "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+          }
+        }
+      }
+    },
+    {
+      "type": "positions",
+      "id": "0x7e184e30f311745286c21406123cf5760fd38fc4-ethereum-asset-asset",
+      "attributes": {
+        "parent": null,
+        "protocol": null,
+        "name": "Asset",
+        "position_type": "wallet",
+        "quantity": {
+          "int": "5000000",
+          "decimals": 4,
+          "float": 500,
+          "numeric": "500.0000"
+        },
+        "value": 2935.0145936801914,
+        "price": 5.870029187360383,
+        "changes": {
+          "absolute_1d": 16.944687303143837,
+          "percent_1d": 0.5806813354989782
+        },
+        "fungible_info": {
+          "name": "AlamoToken",
+          "symbol": "ALMO",
+          "icon": null,
+          "flags": {
+            "verified": false
+          },
+          "implementations": [
+            {
+              "chain_id": "ethereum",
+              "address": "0x7e184e30f311745286c21406123cf5760fd38fc4",
+              "decimals": 4
+            }
+          ]
+        },
+        "flags": {
+          "displayable": true,
+          "is_trash": true
+        },
+        "updated_at": "2023-08-05T07:59:23Z",
+        "updated_at_block": 17847414
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        },
+        "fungible": {
+          "links": {
+            "related": "https://api.zerion.io/v1/fungibles/bfaf35f2-1e96-4de2-ac5e-1edebce6b51e?currency=usd"
+          },
+          "data": {
+            "type": "fungibles",
+            "id": "bfaf35f2-1e96-4de2-ac5e-1edebce6b51e"
+          }
+        }
+      }
+    },
+    {
+      "type": "positions",
+      "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2-base-asset-asset",
+      "attributes": {
+        "parent": null,
+        "protocol": null,
+        "name": "Asset",
+        "position_type": "wallet",
+        "quantity": {
+          "int": "1663359330651054064",
+          "decimals": 18,
+          "float": 1.6633593306510541,
+          "numeric": "1.663359330651054064"
+        },
+        "value": 4481.869658563734,
+        "price": 2694.4687031692,
+        "changes": {
+          "absolute_1d": 26.716626321151125,
+          "percent_1d": 0.5996792058050371
+        },
+        "fungible_info": {
+          "name": "Wrapped Ether",
+          "symbol": "WETH",
+          "icon": {
+            "url": "https://cdn.zerion.io/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png"
+          },
+          "flags": {
+            "verified": true
+          },
+          "implementations": [
+            {
+              "chain_id": "base",
+              "address": "0x4200000000000000000000000000000000000006",
+              "decimals": 18
+            },
+            {
+              "chain_id": "ethereum",
+              "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+              "decimals": 18
+            }
+          ]
+        },
+        "flags": {
+          "displayable": true,
+          "is_trash": false
+        },
+        "updated_at": "2026-03-05T23:20:23Z",
+        "updated_at_block": 24594512
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "base"
+          }
+        },
+        "fungible": {
+          "links": {
+            "related": "https://api.zerion.io/v1/fungibles/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2?currency=usd"
+          },
+          "data": {
+            "type": "fungibles",
+            "id": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+          }
+        }
+      }
+    }
+  ]
+}

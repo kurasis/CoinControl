@@ -1,0 +1,32 @@
+[package]
+name = "portfolio-store"
+version = "0.1.0"
+description = "SQLite persistence for Portfolio Desk (SQLx, migrations, profiles)."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+portfolio-core = { path = "../portfolio-core" }
+bigdecimal.workspace = true
+num-bigint.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+ts-rs = { workspace = true, optional = true }
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "sqlite-bundled", "migrate", "macros"] }
+uuid = { version = "1", features = ["v4"] }
+csv = "1"
+sha2 = "0.10"
+
+[dev-dependencies]
+tempfile = "3"
+
+[features]
+ts = ["dep:ts-rs", "portfolio-core/ts"]
+
+[lints]
+workspace = true

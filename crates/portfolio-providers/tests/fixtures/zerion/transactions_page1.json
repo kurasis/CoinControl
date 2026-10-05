@@ -1,0 +1,576 @@
+{
+  "links": {
+    "self": "https://api.zerion.io/v1/wallets/0x1Db3439a222C519ab44bb1144fC28167b4Fa6EE6/transactions/?page%5Bsize%5D=5",
+    "next": "https://api.zerion.io/v1/wallets/0x1Db3439a222C519ab44bb1144fC28167b4Fa6EE6/transactions/?currency=usd&filter%5Bchain_ids%5D=ethereum&page%5Bafter%5D=CURSOR2&page%5Bsize%5D=5"
+  },
+  "data": [
+    {
+      "type": "transactions",
+      "id": "3449520aa881552c9daab5dd9b43a545",
+      "attributes": {
+        "address": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "operation_type": "send",
+        "hash": "0xe3916baadb393e8e2827625d4d6191d04c5e8998afcc9be796bb8b508f579898",
+        "mined_at_block": 25834500,
+        "mined_at": "2026-08-25T20:07:59Z",
+        "sent_from": "0x5ec1ba7892d11059c39557b762a97dd695778ca5",
+        "sent_to": "0x7083ddece38216c7741fa76c75326bea744ed321",
+        "status": "confirmed",
+        "nonce": 48,
+        "fee": {
+          "fungible_info": {
+            "id": "eth",
+            "name": "Ethereum",
+            "symbol": "ETH",
+            "icon": {
+              "url": "https://cdn.zerion.io/eth.png"
+            },
+            "flags": {
+              "verified": true
+            },
+            "implementations": [
+              {
+                "chain_id": "ethereum",
+                "address": "",
+                "decimals": 18
+              }
+            ]
+          },
+          "quantity": {
+            "int": "2227695962589966",
+            "decimals": 18,
+            "float": 0.00222769596259,
+            "numeric": "0.002227695962589966"
+          },
+          "price": null,
+          "value": null
+        },
+        "transfers": [
+          {
+            "nft_info": {
+              "contract_address": "0xfaafdc07907ff5120a76b34b731b278c38d6043c",
+              "token_id": "36411184310952944508859562575390614563768575651911745716961922930335654349144",
+              "name": "#36411184310952944508859562575390614563768575651911745716961922930335654349144",
+              "interface": "ERC1155",
+              "flags": {
+                "is_spam": false
+              }
+            },
+            "direction": "out",
+            "quantity": {
+              "int": "1",
+              "decimals": 0,
+              "float": 1,
+              "numeric": "1"
+            },
+            "value": null,
+            "price": null,
+            "sender": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+            "recipient": "0x7083ddece38216c7741fa76c75326bea744ed321",
+            "act_id": "0"
+          }
+        ],
+        "approvals": [],
+        "flags": {
+          "is_trash": false
+        },
+        "acts": [
+          {
+            "id": "0",
+            "type": "send",
+            "application_metadata": {
+              "contract_address": "0x7083ddece38216c7741fa76c75326bea744ed321"
+            }
+          }
+        ]
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        }
+      }
+    },
+    {
+      "type": "transactions",
+      "id": "9e1119d3cde955d59b7addc3ab37f1ae",
+      "attributes": {
+        "address": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "operation_type": "send",
+        "hash": "0xba4abf04cd9e56582bf3e6461c5f92d938eda3f5a36702c333d3e6615c18735e",
+        "mined_at_block": 25453352,
+        "mined_at": "2026-07-03T17:02:11Z",
+        "sent_from": "0x1584a8ee67789d1fe161065388657ad2f2a3c7dd",
+        "sent_to": "0x77eb52e44db06777bce478159f25c0d55a295314",
+        "status": "confirmed",
+        "nonce": 150427,
+        "fee": {
+          "fungible_info": {
+            "id": "eth",
+            "name": "Ethereum",
+            "symbol": "ETH",
+            "icon": {
+              "url": "https://cdn.zerion.io/eth.png"
+            },
+            "flags": {
+              "verified": true
+            },
+            "implementations": [
+              {
+                "chain_id": "ethereum",
+                "address": "",
+                "decimals": 18
+              }
+            ]
+          },
+          "quantity": {
+            "int": "182739004861716",
+            "decimals": 18,
+            "float": 0.0001827390048617,
+            "numeric": "0.000182739004861716"
+          },
+          "price": null,
+          "value": null
+        },
+        "transfers": [
+          {
+            "fungible_info": {
+              "id": "32ab8511-63df-4cb3-bde7-0e240a3fac32",
+              "name": "\u0116T\u1e28",
+              "symbol": "\u0116T\u1e28",
+              "icon": null,
+              "flags": {
+                "verified": false
+              },
+              "implementations": [
+                {
+                  "chain_id": "ethereum",
+                  "address": "0x1aed8c8e8f5ac86800b1e914d797929f0f93f9c1",
+                  "decimals": 18
+                }
+              ]
+            },
+            "direction": "out",
+            "quantity": {
+              "int": "79000000000000000000",
+              "decimals": 18,
+              "float": 79,
+              "numeric": "79.000000000000000000"
+            },
+            "value": null,
+            "price": null,
+            "sender": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+            "recipient": "0x3c77652cfab9c257ef9dad96016e6946bf1241ab",
+            "act_id": "0"
+          }
+        ],
+        "approvals": [],
+        "flags": {
+          "is_trash": true
+        },
+        "acts": [
+          {
+            "id": "0",
+            "type": "send",
+            "application_metadata": {
+              "contract_address": "0x3c77652cfab9c257ef9dad96016e6946bf1241ab"
+            }
+          }
+        ]
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        }
+      }
+    },
+    {
+      "type": "transactions",
+      "id": "637654939a7b58838fe8ca234a2b5783",
+      "attributes": {
+        "address": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "operation_type": "send",
+        "hash": "0x6d688bc397c67c08198373cc0a868af4e9069ed6943342385017c56a3ee3906c",
+        "mined_at_block": 25452918,
+        "mined_at": "2026-07-03T15:34:59Z",
+        "sent_from": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "sent_to": "0x3c7779d27348017415a9184acadc0d62052841ab",
+        "status": "confirmed",
+        "nonce": 1538,
+        "fee": {
+          "fungible_info": {
+            "id": "eth",
+            "name": "Ethereum",
+            "symbol": "ETH",
+            "icon": {
+              "url": "https://cdn.zerion.io/eth.png"
+            },
+            "flags": {
+              "verified": true
+            },
+            "implementations": [
+              {
+                "chain_id": "ethereum",
+                "address": "",
+                "decimals": 18
+              }
+            ]
+          },
+          "quantity": {
+            "int": "6151018965000",
+            "decimals": 18,
+            "float": 6.151018965e-6,
+            "numeric": "0.000006151018965000"
+          },
+          "price": 1732.6600000000003,
+          "value": 0.010657624519896903
+        },
+        "transfers": [
+          {
+            "fungible_info": {
+              "id": "eth",
+              "name": "Ethereum",
+              "symbol": "ETH",
+              "icon": {
+                "url": "https://cdn.zerion.io/eth.png"
+              },
+              "flags": {
+                "verified": true
+              },
+              "implementations": [
+                {
+                  "chain_id": "ethereum",
+                  "address": "",
+                  "decimals": 18
+                }
+              ]
+            },
+            "direction": "out",
+            "quantity": {
+              "int": "79000000000000000000",
+              "decimals": 18,
+              "float": 79,
+              "numeric": "79.000000000000000000"
+            },
+            "value": 136880.14,
+            "price": 1732.6600000000003,
+            "sender": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+            "recipient": "0x3c7779d27348017415a9184acadc0d62052841ab",
+            "act_id": "0"
+          }
+        ],
+        "approvals": [],
+        "flags": {
+          "is_trash": false
+        },
+        "acts": [
+          {
+            "id": "0",
+            "type": "send",
+            "application_metadata": {
+              "contract_address": "0x3c7779d27348017415a9184acadc0d62052841ab"
+            }
+          }
+        ]
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        }
+      }
+    },
+    {
+      "type": "transactions",
+      "id": "fddcf842997a551b9595b5153525952f",
+      "attributes": {
+        "address": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "operation_type": "execute",
+        "hash": "0x15cc37b3693b232e608e6c13f1ff8d5f039d9c05dfa7c4cd6579f674624750c7",
+        "mined_at_block": 24995118,
+        "mined_at": "2026-04-30T19:49:47Z",
+        "sent_from": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "sent_to": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+        "status": "failed",
+        "nonce": 1535,
+        "fee": {
+          "fungible_info": {
+            "id": "eth",
+            "name": "Ethereum",
+            "symbol": "ETH",
+            "icon": {
+              "url": "https://cdn.zerion.io/eth.png"
+            },
+            "flags": {
+              "verified": true
+            },
+            "implementations": [
+              {
+                "chain_id": "ethereum",
+                "address": "",
+                "decimals": 18
+              }
+            ]
+          },
+          "quantity": {
+            "int": "117495682771194",
+            "decimals": 18,
+            "float": 0.0001174956827712,
+            "numeric": "0.000117495682771194"
+          },
+          "price": 2264.4,
+          "value": 0.2660572240671053
+        },
+        "transfers": [],
+        "approvals": [],
+        "application_metadata": {
+          "name": "Uniswap V2",
+          "icon": {
+            "url": "https://protocol-icons.s3.amazonaws.com/icons/uniswap-v2.jpg"
+          },
+          "contract_address": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+          "method": {
+            "id": "0x791ac947",
+            "name": "Swap Exact Tokens For Eth Supporting Fee On Transfer Tokens"
+          }
+        },
+        "flags": {
+          "is_trash": false
+        },
+        "acts": [
+          {
+            "id": "0",
+            "type": "execute",
+            "application_metadata": {
+              "name": "Uniswap V2",
+              "icon": {
+                "url": "https://protocol-icons.s3.amazonaws.com/icons/uniswap-v2.jpg"
+              },
+              "contract_address": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+              "method": {
+                "id": "0x791ac947",
+                "name": "Swap Exact Tokens For Eth Supporting Fee On Transfer Tokens"
+              }
+            }
+          }
+        ]
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        },
+        "dapp": {
+          "data": {
+            "type": "dapps",
+            "id": "uniswap-v2"
+          }
+        }
+      }
+    },
+    {
+      "type": "transactions",
+      "id": "ad4338cdb658553e942eea8ca756f43f",
+      "attributes": {
+        "address": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "operation_type": "trade",
+        "hash": "0x8215ba177dbab4da04ce852f76571e56b02bd01025c11aefe4a31ed7284d5f23",
+        "mined_at_block": 24992751,
+        "mined_at": "2026-04-30T11:53:35Z",
+        "sent_from": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+        "sent_to": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+        "status": "confirmed",
+        "nonce": 1533,
+        "fee": {
+          "fungible_info": {
+            "id": "eth",
+            "name": "Ethereum",
+            "symbol": "ETH",
+            "icon": {
+              "url": "https://cdn.zerion.io/eth.png"
+            },
+            "flags": {
+              "verified": true
+            },
+            "implementations": [
+              {
+                "chain_id": "ethereum",
+                "address": "",
+                "decimals": 18
+              }
+            ]
+          },
+          "quantity": {
+            "int": "144637120087707",
+            "decimals": 18,
+            "float": 0.0001446371200877,
+            "numeric": "0.000144637120087707"
+          },
+          "price": 2258.03,
+          "value": 0.3265949562716292
+        },
+        "transfers": [
+          {
+            "fungible_info": {
+              "id": "eth",
+              "name": "Ethereum",
+              "symbol": "ETH",
+              "icon": {
+                "url": "https://cdn.zerion.io/eth.png"
+              },
+              "flags": {
+                "verified": true
+              },
+              "implementations": [
+                {
+                  "chain_id": "ethereum",
+                  "address": "",
+                  "decimals": 18
+                }
+              ]
+            },
+            "direction": "in",
+            "quantity": {
+              "int": "2420358341838514018",
+              "decimals": 18,
+              "float": 2.420358341838514,
+              "numeric": "2.420358341838514018"
+            },
+            "value": 5465.24174662162,
+            "price": 2258.03,
+            "sender": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+            "recipient": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+            "act_id": "0"
+          },
+          {
+            "fungible_info": {
+              "id": "0x6eb7c4b8f4a3ca01062d5b752dea5c629c5f1b15",
+              "name": "Garfield",
+              "symbol": "GARF",
+              "icon": null,
+              "flags": {
+                "verified": false
+              },
+              "implementations": [
+                {
+                  "chain_id": "ethereum",
+                  "address": "0x6eb7c4b8f4a3ca01062d5b752dea5c629c5f1b15",
+                  "decimals": 18
+                }
+              ]
+            },
+            "direction": "out",
+            "quantity": {
+              "int": "15000000000000000000000000000000",
+              "decimals": 18,
+              "float": 15000000000000,
+              "numeric": "15000000000000.000000000000000000"
+            },
+            "value": 4192.558453881976,
+            "price": 2.7950389692546507e-10,
+            "sender": "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6",
+            "recipient": "0xe2fc84874678a0c0171866cd33bbad8471928c51",
+            "act_id": "0"
+          }
+        ],
+        "approvals": [
+          {
+            "fungible_info": {
+              "id": "0x6eb7c4b8f4a3ca01062d5b752dea5c629c5f1b15",
+              "name": "Garfield",
+              "symbol": "GARF",
+              "icon": null,
+              "flags": {
+                "verified": false
+              },
+              "implementations": [
+                {
+                  "chain_id": "ethereum",
+                  "address": "0x6eb7c4b8f4a3ca01062d5b752dea5c629c5f1b15",
+                  "decimals": 18
+                }
+              ]
+            },
+            "quantity": {
+              "int": "115792089237316195423570985008687907853269984650640564039457584007913129639935",
+              "decimals": 18,
+              "float": 1.157920892373162e59,
+              "numeric": "115792089237316195423570985008687907853269984650640564039457.584007913129639935"
+            },
+            "sender": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+            "act_id": "0"
+          }
+        ],
+        "application_metadata": {
+          "name": "Uniswap V2",
+          "icon": {
+            "url": "https://protocol-icons.s3.amazonaws.com/icons/uniswap-v2.jpg"
+          },
+          "contract_address": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+          "method": {
+            "id": "0x791ac947",
+            "name": "Swap Exact Tokens For Eth Supporting Fee On Transfer Tokens"
+          }
+        },
+        "flags": {
+          "is_trash": false
+        },
+        "acts": [
+          {
+            "id": "0",
+            "type": "trade",
+            "application_metadata": {
+              "name": "Uniswap V2",
+              "icon": {
+                "url": "https://protocol-icons.s3.amazonaws.com/icons/uniswap-v2.jpg"
+              },
+              "contract_address": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+              "method": {
+                "id": "0x791ac947",
+                "name": "Swap Exact Tokens For Eth Supporting Fee On Transfer Tokens"
+              }
+            }
+          }
+        ]
+      },
+      "relationships": {
+        "chain": {
+          "links": {
+            "related": "https://api.zerion.io/v1/chains/ethereum"
+          },
+          "data": {
+            "type": "chains",
+            "id": "ethereum"
+          }
+        },
+        "dapp": {
+          "data": {
+            "type": "dapps",
+            "id": "uniswap-v2"
+          }
+        }
+      }
+    }
+  ]
+}

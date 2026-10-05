@@ -1,0 +1,6 @@
+[env]
+# Destination of TypeScript DTO definitions generated from Rust (ts-rs).
+TS_RS_EXPORT_DIR = { value = "src/ipc/bindings", relative = true }
+# 64-bit integers crossing IPC are timestamps/counters well below 2^53, and
+# serde_json emits them as JSON numbers. Exact amounts are always strings.
+TS_RS_LARGE_INT = "number"

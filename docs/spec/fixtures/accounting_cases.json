@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "description": "Synthetic acceptance vectors. All decimal strings are exact unless an explicit tolerance is provided. These do not represent real wallets or live market prices.",
+  "method": "FIFO per sending account; transfer lot lineage; separately expensed fees; Modified Dietz period return",
+  "cases": [
+    {
+      "id": "A01_simple_unrealized_gain",
+      "kind": "remaining_lots",
+      "lots": [{"asset": "BTC", "quantity": "1", "basis_usd": "20000", "basis_kind": "known"}],
+      "price_usd": "30000",
+      "expected": {"quantity": "1", "value_usd": "30000", "basis_usd": "20000", "unrealized_usd": "10000", "unrealized_percent": "50"}
+    },
+    {
+      "id": "A02_fifo_partial_sale",
+      "kind": "fifo_sale",
+      "lots_oldest_first": [{"quantity": "2", "basis_usd": "4000"}, {"quantity": "1", "basis_usd": "3000"}],
+      "sold_quantity": "1.5",
+      "gross_proceeds_usd": "6000",
+      "price_usd": "4000",
+      "expected": {"disposed_basis_usd": "3000", "realized_usd": "3000", "remaining_quantity": "1.5", "remaining_basis_usd": "4000", "remaining_value_usd": "6000", "unrealized_usd": "2000", "unrealized_percent": "50", "total_accounted_pnl_usd": "5000"}
+    },
+    {
+      "id": "A03_fee_asset_accounting",
+      "kind": "fee",
+      "opening_quantity": "2",
+      "opening_basis_usd": "4000",
+      "fee_quantity": "0.01",
+      "fee_price_usd": "3000",
+      "current_price_usd": "3000",
+      "expected": {"remaining_quantity": "1.99", "remaining_basis_usd": "3980", "remaining_value_usd": "5970", "unrealized_usd": "1990", "fee_asset_realized_usd": "10", "expense_usd": "30", "total_accounted_pnl_usd": "1970"}
+    },
+    {
+      "id": "A04_owned_transfer_with_fee_and_overlap",
+      "kind": "owned_transfer",
+      "opening_sender_quantity": "2",
+      "opening_sender_basis_usd": "4000",
+      "recipient_opening_quantity": "0",
+      "transfer_quantity": "1",
+      "sender_fee_quantity": "0.01",
+      "price_usd": "3000",
+      "groups": {"Cold": ["sender", "recipient"], "Main": ["recipient"]},
+      "selected_groups": ["Cold", "Main"],
+      "expected": {"sender_quantity": "0.99", "sender_basis_usd": "1980", "recipient_quantity": "1", "recipient_basis_usd": "2000", "union_quantity": "1.99", "union_basis_usd": "3980", "union_value_usd": "5970", "union_total_accounted_pnl_usd": "1970", "portfolio_external_transfer_flow_usd": "0", "recipient_scope_inflow_usd": "3000", "fee_charges": 1}
+    },
+    {
+      "id": "A05_partially_known_basis",
+      "kind": "partial_basis",
+      "lots": [{"quantity": "1", "basis_usd": "1000", "basis_kind": "known"}, {"quantity": "1", "basis_usd": null, "basis_kind": "unknown"}],
+      "price_usd": "1500",
+      "expected": {"value_usd": "3000", "whole_position_unrealized_usd": null, "whole_position_unrealized_percent": null, "known_subset_value_usd": "1500", "known_subset_basis_usd": "1000", "known_subset_unrealized_usd": "500", "known_subset_unrealized_percent": "50", "basis_coverage_quantity_percent": "50"}
+    },
+    {
+      "id": "A06_unknown_exchange_receipt",
+      "kind": "unknown_basis_receipt",
+      "quantity": "0.5",
+      "price_usd": "30000",
+      "basis_usd": null,
+      "expected": {"value_usd": "15000", "basis_usd": null, "unrealized_usd": null, "unrealized_percent": null, "recognized_income_usd": "0"}
+    },
+    {
+      "id": "A07_midperiod_deposit",
+      "kind": "modified_dietz",
+      "start_second": 0,
+      "end_second": 100,
+      "beginning_value_usd": "1000",
+      "ending_value_usd": "1650",
+      "external_flows": [{"second": 50, "amount_usd": "500"}],
+      "expected": {"gain_usd": "150", "denominator_usd": "1250", "return_percent": "12"}
+    },
+    {
+      "id": "A08_midperiod_withdrawal",
+      "kind": "modified_dietz",
+      "start_second": 0,
+      "end_second": 100,
+      "beginning_value_usd": "1000",
+      "ending_value_usd": "450",
+      "external_flows": [{"second": 50, "amount_usd": "-500"}],
+      "expected": {"gain_usd": "-50", "denominator_usd": "750", "return_percent": "-6.66666666666666666667", "return_percent_absolute_tolerance": "0.00000000000000000001"}
+    },
+    {
+      "id": "A09_explicit_zero_basis",
+      "kind": "remaining_lots",
+      "lots": [{"asset": "TOKEN", "quantity": "1", "basis_usd": "0", "basis_kind": "known"}],
+      "price_usd": "2",
+      "expected": {"quantity": "1", "value_usd": "2", "basis_usd": "0", "unrealized_usd": "2", "unrealized_percent": null, "reason": "zero_basis"}
+    },
+    {
+      "id": "A10_missing_quote",
+      "kind": "missing_price",
+      "quantity": "10",
+      "basis_usd": "100",
+      "price_usd": null,
+      "expected": {"quantity": "10", "value_usd": null, "unrealized_usd": null, "unrealized_percent": null, "reason": "missing_price"}
+    },
+    {
+      "id": "A11_swap_without_fee",
+      "kind": "swap",
+      "disposed_asset": "ETH",
+      "disposed_quantity": "1",
+      "disposed_basis_usd": "2000",
+      "gross_trade_value_usd": "3000",
+      "received_asset": "USDC",
+      "received_quantity": "3000",
+      "received_current_price_usd": "1",
+      "expected": {"realized_usd": "1000", "new_lot_basis_usd": "3000", "new_lot_value_usd": "3000", "new_lot_unrealized_usd": "0", "portfolio_external_flow_usd": "0", "total_accounted_pnl_usd": "1000"}
+    },
+    {
+      "id": "A12_recognized_reward",
+      "kind": "reward",
+      "quantity": "10",
+      "receipt_price_usd": "2",
+      "current_price_usd": "3",
+      "expected": {"income_usd": "20", "basis_usd": "20", "current_value_usd": "30", "unrealized_usd": "10", "total_accounted_pnl_usd": "30", "external_capital_flow_usd": "0"}
+    },
+    {
+      "id": "A13_nonpositive_dietz_denominator",
+      "kind": "modified_dietz",
+      "start_second": 0,
+      "end_second": 100,
+      "beginning_value_usd": "0",
+      "ending_value_usd": "0",
+      "external_flows": [],
+      "expected": {"gain_usd": "0", "denominator_usd": "0", "return_percent": null, "reason": "nonpositive_denominator"}
+    },
+    {
+      "id": "A14_end_boundary_deposit",
+      "kind": "modified_dietz",
+      "start_second": 0,
+      "end_second": 100,
+      "beginning_value_usd": "1000",
+      "ending_value_usd": "1600",
+      "external_flows": [{"second": 100, "amount_usd": "500"}],
+      "expected": {"gain_usd": "100", "denominator_usd": "1000", "return_percent": "10"}
+    }
+  ]
+}

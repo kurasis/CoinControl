@@ -1,0 +1,437 @@
+//! Shared HTTP transport for provider adapters.
+//!
+//! One `HttpClient` per provider credential. It paces requests, enforces a
+//! request budget (counting retries), retries only what is safe to retry,
+//! caps response sizes, and produces errors that never contain credentials or
+//! full request URLs: messages name the provider and the endpoint only.
+
+use std::sync::Arc;
+use std::sync::Mutex as StdMutex;
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::time::{Duration, Instant};
+
+use reqwest::header::{HeaderMap, HeaderValue, RETRY_AFTER};
+use reqwest::{Method, StatusCode};
+use serde::de::DeserializeOwned;
+use tokio::sync::Mutex;
+use url::Url;
+
+use crate::error::ProviderError;
+
+/// Transport policy for one provider.
+#[derive(Debug, Clone)]
+pub struct HttpConfig {
+    /// Per-attempt timeout covering connect, headers, and body.
+    pub timeout: Duration,
+    /// Responses larger than this are rejected rather than buffered.
+    pub max_body_bytes: usize,
+    /// Minimum spacing between request starts (fair use / rate limits).
+    pub min_interval: Duration,
+    /// Retries after the first attempt for 429, 5xx, timeouts, and resets.
+    pub max_retries: u32,
+    /// Longest `Retry-After` the client will sleep for; longer waits fail fast.
+    pub max_retry_after: Duration,
+    /// Base delay of the exponential backoff without `Retry-After`.
+    pub backoff: Duration,
+}
+
+impl Default for HttpConfig {
+    fn default() -> Self {
+        HttpConfig {
+            timeout: Duration::from_secs(30),
+            max_body_bytes: 16 * 1024 * 1024,
+            min_interval: Duration::from_secs(1),
+            max_retries: 2,
+            max_retry_after: Duration::from_secs(30),
+            backoff: Duration::from_millis(500),
+        }
+    }
+}
+
+/// Request budget shared by every client using the same credential.
+#[derive(Debug, Default)]
+pub struct Budget {
+    limit: Option<u32>,
+    used: AtomicU32,
+}
+
+impl Budget {
+    pub fn unlimited() -> Arc<Self> {
+        Arc::new(Budget::default())
+    }
+
+    pub fn limited(limit: u32) -> Arc<Self> {
+        Arc::new(Budget {
+            limit: Some(limit),
+            used: AtomicU32::new(0),
+        })
+    }
+
+    /// Reserves one request; `false` when the budget is spent.
+    fn try_take(&self) -> bool {
+        let Some(limit) = self.limit else {
+            self.used.fetch_add(1, Ordering::Relaxed);
+            return true;
+        };
+        self.used
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |u| {
+                (u < limit).then_some(u + 1)
+            })
+            .is_ok()
+    }
+
+    pub fn used(&self) -> u32 {
+        self.used.load(Ordering::Relaxed)
+    }
+}
+
+/// Requests sent and the last failure since the counters were last taken.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Usage {
+    pub requests: u32,
+    pub last_error: Option<String>,
+}
+
+pub struct HttpClient {
+    provider: &'static str,
+    client: reqwest::Client,
+    config: HttpConfig,
+    budget: Arc<Budget>,
+    last_start: Mutex<Option<Instant>>,
+    usage: StdMutex<Usage>,
+}
+
+/// A successful (2xx) response body.
+#[derive(Debug)]
+pub struct Body {
+    pub status: StatusCode,
+    pub bytes: Vec<u8>,
+}
+
+impl Body {
+    pub fn json<T: DeserializeOwned>(
+        &self,
+        provider: &'static str,
+        endpoint: &'static str,
+    ) -> Result<T, ProviderError> {
+        serde_json::from_slice(&self.bytes).map_err(|e| ProviderError::InvalidResponse {
+            provider,
+            endpoint,
+            detail: format!("unexpected JSON: {e}"),
+        })
+    }
+}
+
+impl HttpClient {
+    /// `headers` carry authentication; their values are marked sensitive so
+    /// they are redacted from any debug output.
+    pub fn new(
+        provider: &'static str,
+        config: HttpConfig,
+        budget: Arc<Budget>,
+        mut headers: HeaderMap,
+    ) -> Result<Self, ProviderError> {
+        for value in headers.values_mut() {
+            value.set_sensitive(true);
+        }
+        headers
+            .entry(reqwest::header::ACCEPT)
+            .or_insert(HeaderValue::from_static("application/json"));
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .user_agent(concat!("PortfolioDesk/", env!("CARGO_PKG_VERSION")))
+            .timeout(config.timeout)
+            .connect_timeout(config.timeout.min(Duration::from_secs(15)))
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .map_err(|e| ProviderError::Network {
+                provider,
+                endpoint: "client",
+                detail: e.without_url().to_string(),
+            })?;
+        Ok(HttpClient {
+            provider,
+            client,
+            config,
+            budget,
+            last_start: Mutex::new(None),
+            usage: StdMutex::new(Usage::default()),
+        })
+    }
+
+    pub fn provider(&self) -> &'static str {
+        self.provider
+    }
+
+    pub fn budget(&self) -> &Arc<Budget> {
+        &self.budget
+    }
+
+    /// Returns and resets the usage counters (for persisting to `provider_usage`).
+    pub fn take_usage(&self) -> Usage {
+        std::mem::take(&mut *self.usage.lock().expect("usage lock"))
+    }
+
+    fn count_request(&self) {
+        self.usage.lock().expect("usage lock").requests += 1;
+    }
+
+    /// Records the final error of a request (a retried, then successful,
+    /// request is not an error).
+    fn note_failure(&self, error: &ProviderError) {
+        self.usage.lock().expect("usage lock").last_error = Some(error.to_string());
+    }
+
+    pub async fn get(&self, endpoint: &'static str, url: Url) -> Result<Body, ProviderError> {
+        self.send(endpoint, Method::GET, url, None).await
+    }
+
+    pub async fn post_json(
+        &self,
+        endpoint: &'static str,
+        url: Url,
+        body: &serde_json::Value,
+    ) -> Result<Body, ProviderError> {
+        self.send(endpoint, Method::POST, url, Some(body)).await
+    }
+
+    async fn pace(&self) {
+        let mut last = self.last_start.lock().await;
+        if let Some(prev) = *last {
+            let elapsed = prev.elapsed();
+            if elapsed < self.config.min_interval {
+                tokio::time::sleep(self.config.min_interval - elapsed).await;
+            }
+        }
+        *last = Some(Instant::now());
+    }
+
+    async fn send(
+        &self,
+        endpoint: &'static str,
+        method: Method,
+        url: Url,
+        json: Option<&serde_json::Value>,
+    ) -> Result<Body, ProviderError> {
+        let provider = self.provider;
+        let mut attempt = 0u32;
+        loop {
+            if !self.budget.try_take() {
+                let error = ProviderError::BudgetExhausted { provider };
+                self.note_failure(&error);
+                return Err(error);
+            }
+            self.pace().await;
+            let mut request = self.client.request(method.clone(), url.clone());
+            if let Some(body) = json {
+                request = request.json(body);
+            }
+            let outcome = match request.send().await {
+                Ok(response) => self.read(endpoint, response).await,
+                Err(e) => Err(transport_error(provider, endpoint, &e)),
+            };
+            self.count_request();
+            let (error, retry_after) = match outcome {
+                Ok(body) => return Ok(body),
+                Err(failure) => failure,
+            };
+            if !error.is_retryable() || attempt >= self.config.max_retries {
+                self.note_failure(&error);
+                return Err(error);
+            }
+            let wait = match retry_after {
+                Some(wait) if wait > self.config.max_retry_after => {
+                    self.note_failure(&error);
+                    return Err(error);
+                }
+                Some(wait) => wait,
+                None => self.config.backoff * 2u32.saturating_pow(attempt),
+            };
+            tracing::debug!(provider, endpoint, ?wait, "retrying after {error}");
+            tokio::time::sleep(wait).await;
+            attempt += 1;
+        }
+    }
+
+    /// Reads a response with the size cap. Errors carry an optional `Retry-After`.
+    async fn read(
+        &self,
+        endpoint: &'static str,
+        mut response: reqwest::Response,
+    ) -> Result<Body, (ProviderError, Option<Duration>)> {
+        let provider = self.provider;
+        let status = response.status();
+        let retry_after = parse_retry_after(response.headers());
+        if let Some(len) = response.content_length()
+            && len > self.config.max_body_bytes as u64
+        {
+            return Err((ProviderError::TooLarge { provider, endpoint }, None));
+        }
+        let mut bytes = Vec::new();
+        loop {
+            match response.chunk().await {
+                Ok(Some(chunk)) => {
+                    if bytes.len() + chunk.len() > self.config.max_body_bytes {
+                        return Err((ProviderError::TooLarge { provider, endpoint }, None));
+                    }
+                    bytes.extend_from_slice(&chunk);
+                }
+                Ok(None) => break,
+                Err(e) => return Err(transport_error(provider, endpoint, &e)),
+            }
+        }
+        if status.is_success() {
+            return Ok(Body { status, bytes });
+        }
+        let detail = provider_message(&bytes);
+        let error = match status {
+            StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => ProviderError::Auth {
+                provider,
+                endpoint,
+                status: status.as_u16(),
+            },
+            StatusCode::TOO_MANY_REQUESTS => ProviderError::RateLimited {
+                provider,
+                endpoint,
+                retry_after_secs: retry_after.map(|d| d.as_secs()),
+            },
+            StatusCode::NOT_FOUND => ProviderError::NotFound { provider, endpoint },
+            s if s.is_server_error() => ProviderError::Server {
+                provider,
+                endpoint,
+                status: s.as_u16(),
+            },
+            s => ProviderError::Http {
+                provider,
+                endpoint,
+                status: s.as_u16(),
+                detail,
+            },
+        };
+        Err((error, retry_after))
+    }
+}
+
+fn transport_error(
+    provider: &'static str,
+    endpoint: &'static str,
+    e: &reqwest::Error,
+) -> (ProviderError, Option<Duration>) {
+    if e.is_timeout() {
+        return (ProviderError::Timeout { provider, endpoint }, None);
+    }
+    // `without_url` strips the request URL, which may carry a query-string key.
+    let detail = sanitize(&format!("{}", RedactedError(e)));
+    (
+        ProviderError::Network {
+            provider,
+            endpoint,
+            detail,
+        },
+        None,
+    )
+}
+
+struct RedactedError<'a>(&'a reqwest::Error);
+
+impl std::fmt::Display for RedactedError<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut kind = if self.0.is_connect() {
+            "connection failed"
+        } else if self.0.is_body() || self.0.is_decode() {
+            "response interrupted"
+        } else if self.0.is_request() {
+            "request failed"
+        } else {
+            "transport error"
+        };
+        if self.0.is_redirect() {
+            kind = "unexpected redirect";
+        }
+        f.write_str(kind)
+    }
+}
+
+/// Removes anything that looks like a URL or a long token from a message.
+fn sanitize(text: &str) -> String {
+    text.split_whitespace()
+        .map(|w| {
+            let url_like = w.contains("://") || w.contains("api-key") || w.contains("apikey");
+            let token_like =
+                w.len() > 32 && w.chars().all(|c| c.is_ascii_alphanumeric() || c == '-');
+            if url_like || token_like {
+                "<redacted>"
+            } else {
+                w
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// Extracts a short human message from common provider error bodies.
+fn provider_message(bytes: &[u8]) -> String {
+    let Ok(value) = serde_json::from_slice::<serde_json::Value>(bytes) else {
+        return String::new();
+    };
+    let pick = |v: &serde_json::Value| -> Option<String> {
+        for key in ["detail", "description", "message", "title", "error"] {
+            if let Some(s) = v.get(key).and_then(|x| x.as_str()) {
+                return Some(s.to_owned());
+            }
+        }
+        None
+    };
+    let text = value
+        .get("errors")
+        .and_then(|e| e.get(0))
+        .and_then(pick)
+        .or_else(|| value.get("error").and_then(pick))
+        .or_else(|| pick(&value))
+        .unwrap_or_default();
+    let mut text = sanitize(&text);
+    text.truncate(200);
+    text
+}
+
+fn parse_retry_after(headers: &HeaderMap) -> Option<Duration> {
+    let value = headers.get(RETRY_AFTER)?.to_str().ok()?.trim();
+    // Only the delta-seconds form; an HTTP date is treated as "unknown".
+    value.parse::<u64>().ok().map(Duration::from_secs)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_drops_urls_and_long_tokens() {
+        let s = sanitize("error sending request for url (https://x.io/?api-key=abc) ok");
+        assert!(!s.contains("https"), "{s}");
+        assert!(!s.contains("abc"), "{s}");
+        let s = sanitize("token 0123456789abcdef0123456789abcdef0123 rejected");
+        assert_eq!(s, "token <redacted> rejected");
+    }
+
+    #[test]
+    fn budget_counts_and_stops() {
+        let b = Budget::limited(2);
+        assert!(b.try_take());
+        assert!(b.try_take());
+        assert!(!b.try_take());
+        assert_eq!(b.used(), 2);
+    }
+
+    #[test]
+    fn provider_messages_are_extracted() {
+        assert_eq!(
+            provider_message(br#"{"errors":[{"title":"Too many requests","detail":"throttled"}]}"#),
+            "throttled"
+        );
+        assert_eq!(
+            provider_message(br#"{"error":{"code":401,"description":"Invalid API key"}}"#),
+            "Invalid API key"
+        );
+        assert_eq!(provider_message(b"<html>"), "");
+    }
+}

@@ -1,0 +1,28 @@
+# Merge into the implementation repository's .gitignore.
+# Also use an explicit allowlist when creating release archives.
+.env
+.env.*
+!.env.example
+*.local
+secrets/
+*.key
+*.p12
+*.pfx
+*.sqlite
+*.sqlite3
+*.db
+*-wal
+*-shm
+backups/
+private-test-targets.json
+raw-live-responses/
+*.log
+node_modules/
+dist/
+target/
+src-tauri/target/
+test-results/
+playwright-report/
+webdriver-logs/
+# Intentionally commit source, lockfiles, migrations, sanitized fixtures,
+# verified public test targets, and curated sanitized final reports/screenshots.

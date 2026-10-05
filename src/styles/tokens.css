@@ -1,0 +1,67 @@
+/* Design tokens from docs/spec/DESIGN.md §2. Components use only these variables. */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --sidebar-width: 224px;
+  --control-height: 38px;
+  --row-height: 64px;
+  --drawer-width: 480px;
+
+  --font-sans: "Inter", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --text-body: 14px;
+  --text-meta: 12px;
+  --text-title: 24px;
+  --text-balance: 40px;
+
+  --motion: 140ms ease-out;
+}
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-window: #101114;
+  --bg-sidebar: #15161a;
+  --bg-surface: #1b1d22;
+  --bg-hover: #24272e;
+  --border: #343842;
+  --text-primary: #f4f5f7;
+  --text-secondary: #b1b7c4;
+  --accent: #b6a3ff;
+  --accent-fill: rgba(182, 163, 255, 0.14);
+  --on-accent: #101114;
+  --positive: #63d9a4;
+  --negative: #ff8992;
+  --warning: #f0c572;
+  --focus: #b6a3ff;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg-window: #f6f7f9;
+  --bg-sidebar: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-hover: #f0f1f5;
+  --border: #dee1e8;
+  --text-primary: #17191f;
+  --text-secondary: #596171;
+  --accent: #6746ce;
+  --accent-fill: rgba(103, 70, 206, 0.1);
+  --on-accent: #ffffff;
+  --positive: #087849;
+  --negative: #b52d40;
+  --warning: #8a5b00;
+  --focus: #6746ce;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion: 0ms linear;
+  }
+}

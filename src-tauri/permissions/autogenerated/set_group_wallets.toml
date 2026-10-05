@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-group-wallets"
+description = "Enables the set_group_wallets command without any pre-configured scope."
+commands.allow = ["set_group_wallets"]
+
+[[permission]]
+identifier = "deny-set-group-wallets"
+description = "Denies the set_group_wallets command without any pre-configured scope."
+commands.deny = ["set_group_wallets"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-networks"
+description = "Enables the list_networks command without any pre-configured scope."
+commands.allow = ["list_networks"]
+
+[[permission]]
+identifier = "deny-list-networks"
+description = "Denies the list_networks command without any pre-configured scope."
+commands.deny = ["list_networks"]

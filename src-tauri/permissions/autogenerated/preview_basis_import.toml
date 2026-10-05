@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-preview-basis-import"
+description = "Enables the preview_basis_import command without any pre-configured scope."
+commands.allow = ["preview_basis_import"]
+
+[[permission]]
+identifier = "deny-preview-basis-import"
+description = "Denies the preview_basis_import command without any pre-configured scope."
+commands.deny = ["preview_basis_import"]

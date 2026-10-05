@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-portfolio-summary"
+description = "Enables the get_portfolio_summary command without any pre-configured scope."
+commands.allow = ["get_portfolio_summary"]
+
+[[permission]]
+identifier = "deny-get-portfolio-summary"
+description = "Denies the get_portfolio_summary command without any pre-configured scope."
+commands.deny = ["get_portfolio_summary"]

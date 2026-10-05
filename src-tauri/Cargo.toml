@@ -1,0 +1,37 @@
+[package]
+name = "portfolio-desk"
+version = "0.1.0"
+description = "Portfolio Desk desktop shell"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "portfolio_desk_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+portfolio-core = { path = "../crates/portfolio-core" }
+portfolio-store = { path = "../crates/portfolio-store" }
+portfolio-providers = { path = "../crates/portfolio-providers" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+keyring = { version = "3", features = ["windows-native", "apple-native", "linux-native"] }
+zeroize = "1"
+ts-rs = { workspace = true, optional = true }
+
+[features]
+ts = ["dep:ts-rs", "portfolio-store/ts", "portfolio-providers/ts"]
+
+[lints]
+workspace = true

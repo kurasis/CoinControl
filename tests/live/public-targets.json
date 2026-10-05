@@ -1,0 +1,145 @@
+{
+  "description": "Public, non-sensitive mainnet targets for live read-only provider tests (TESTING.md Layer B). None of these belong to the user. Values were checked against public explorers on the verification date.",
+  "verified_at": "2026-10-05",
+  "bitcoin": {
+    "paging_address": {
+      "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+      "note": "Genesis block reward address; receives frequent dust, so it always has more than two confirmed pages. Only two pages are read.",
+      "source": "https://blockstream.info/address/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+    },
+    "known_transaction": {
+      "txid": "a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d",
+      "note": "The 10,000 BTC 'pizza' payment of 2010-05-22. 131 inputs, all from the sender; one output.",
+      "block_height": 57043,
+      "fee_sats": 99000000,
+      "effects": [
+        {
+          "address": "17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ",
+          "principal_sats": 1000000000000,
+          "fee_sats": 0
+        },
+        {
+          "address": "1XPTgDRhN8RFnzniWCddobD9iKZatrvH4",
+          "principal_sats": -1000000000000,
+          "fee_sats": 99000000
+        }
+      ],
+      "source": "https://blockstream.info/tx/a1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d"
+    },
+    "sync_address": {
+      "address": "17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ",
+      "note": "Pizza payment recipient; small history (17 transactions on the verification date), so a full synchronization completes in one page.",
+      "min_transactions": 17,
+      "source": "https://blockstream.info/address/17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ"
+    }
+  },
+  "ethereum": {
+    "address": "0x1Db3439a222C519ab44bb1144fC28167b4Fa6EE6",
+    "note": "Public address labelled 'Vitalik Buterin 2' on Etherscan. Large history; tests read bounded pages and time windows only.",
+    "source": "https://etherscan.io/address/0x1Db3439a222C519ab44bb1144fC28167b4Fa6EE6",
+    "known_transactions": [
+      {
+        "hash": "0x6d688bc397c67c08198373cc0a868af4e9069ed6943342385017c56a3ee3906c",
+        "mined_at": "2026-07-03T15:34:59Z",
+        "operation": "send",
+        "status": "confirmed",
+        "native_leg": "-79",
+        "fee": "0.000006151018965",
+        "fee_paid_by_account": true
+      },
+      {
+        "hash": "0x15cc37b3693b232e608e6c13f1ff8d5f039d9c05dfa7c4cd6579f674624750c7",
+        "mined_at": "2026-04-30T19:49:47Z",
+        "operation": "execute",
+        "status": "failed",
+        "fee": "0.000117495682771194",
+        "fee_paid_by_account": true
+      },
+      {
+        "hash": "0x8215ba177dbab4da04ce852f76571e56b02bd01025c11aefe4a31ed7284d5f23",
+        "mined_at": "2026-04-30T11:53:35Z",
+        "operation": "trade",
+        "status": "confirmed",
+        "legs": 2,
+        "fee_paid_by_account": true
+      }
+    ]
+  },
+  "livecoinwatch": {
+    "codes": ["BTC", "ETH", "USDC"],
+    "missing_code": "NOTAREALCOINXYZ",
+    "history": {
+      "code": "BTC",
+      "start": "2026-09-01T00:00:00Z",
+      "end": "2026-09-04T00:00:00Z"
+    }
+  },
+  "defillama": {
+    "token": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "token_note": "USDC on Ethereum (Circle's official contract)",
+    "historical_at": 1700000000,
+    "missing_token": "ethereum:0x000000000000000000000000000000000000dead"
+  },
+  "evm_networks": {
+    "address": "0x1Db3439a222C519ab44bb1144fC28167b4Fa6EE6",
+    "note": "The Ethereum target address; it also has holdings and activity on every other required EVM network (checked through Zerion on 2026-10-05). Only one bounded page per network is read.",
+    "networks": ["base", "arbitrum", "optimism", "polygon", "bsc"],
+    "polygon_native_note": "Zerion reports native POL under the system contract 0x0000000000000000000000000000000000001010; the adapter must map it to the native asset."
+  },
+  "solana": {
+    "address": "86xCnPeV69n6t3DnyGvkKobf9FdN2H9oiVDdaMpo2MMY",
+    "note": "Public address widely attributed to Solana co-founder Anatoly Yakovenko; holds SOL and many SPL tokens (mostly airdrops). Bounded pages only.",
+    "source": "https://solscan.io/account/86xCnPeV69n6t3DnyGvkKobf9FdN2H9oiVDdaMpo2MMY",
+    "known_transaction": {
+      "hash": "41UWUMm9wAf81STUNBoEguJgdiViSuyPcaTPQwQxyF3J668RrquvH5XCLGCoxSVC8yjzo2YVhn68DhP6s6YaeEjx",
+      "mined_at": "2026-10-04T23:38:29Z",
+      "operation": "receive",
+      "native_leg": "0.001303716",
+      "fee_paid_by_account": false
+    },
+    "known_mint": {
+      "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "note": "USDC mint; case-sensitive identity used for DefiLlama pricing"
+    }
+  },
+  "tron": {
+    "address": "TT2T17KZhoDu47i2E4FWxfG79zdkEWkU9N",
+    "note": "High-activity public address with TRX, staked TRX (Stake 2.0) and TRC-20 holdings. Tests read two bounded pages per category only.",
+    "source": "https://tronscan.org/#/address/TT2T17KZhoDu47i2E4FWxfG79zdkEWkU9N",
+    "known_trc20_send": {
+      "tx_id": "fc476d111024e15f8a9e899253fb34bf5fae713c67e50f57cbed34babe9cb584",
+      "block_timestamp_ms": 1790761893000,
+      "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+      "symbol": "USDT",
+      "value": "-3123513000000",
+      "fee_sun": 13373400,
+      "energy_fee_sun": 13028400,
+      "net_fee_sun": 345000
+    },
+    "known_trx_send": {
+      "tx_id": "1bb453dc024f6227fa98a274ef64d950ecbc5df75b480f4767eacf8edb402232",
+      "block_timestamp_ms": 1790840445000,
+      "amount_sun": "-99999999000000",
+      "fee_sun": 1100000,
+      "note": "Fee is 0.1 TRX bandwidth plus the 1 TRX account-activation fee for a new recipient: only ret.fee has the full amount."
+    }
+  },
+  "ton": {
+    "address": "EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+    "raw": "0:83dfd552e63729b472fcbcc8c45ebcc6691702558b68ec7527e1ba403a0f31a8",
+    "note": "TON Foundation's original public wallet (named on TonAPI). Receives frequent spam transfers and Jetton airdrops; bounded pages only.",
+    "source": "https://tonviewer.com/EQCD39VS5jcptHL8vMjEXrzGaRcCVYto7HUn4bpAOg8xqB2N",
+    "known_event": {
+      "event_id": "5bb48b126c73f892575fe2509cc48d81153a81673b401d5f5db4c46ddc853d35",
+      "timestamp": 1790930264,
+      "action": "JettonTransfer",
+      "jetton_master": "0:749ed6c9ecda14f077203687f24327e609bc959decff92b36166f4097e8d9183",
+      "amount": "1000000000",
+      "fee_nanoton": 3472
+    },
+    "jetton_price": {
+      "master": "0:b113a994b5024a16719f69139328eb759596c38a25f59028b146fecdc3621dfe",
+      "note": "USDT on TON; DefiLlama keys it by the bounceable user-friendly form"
+    }
+  }
+}

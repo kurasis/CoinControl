@@ -1,0 +1,31 @@
+[package]
+name = "portfolio-core"
+version = "0.1.0"
+description = "Pure domain logic for Portfolio Desk: exact arithmetic, identities, accounting."
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+bigdecimal.workspace = true
+num-bigint.workspace = true
+num-traits.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+ts-rs = { workspace = true, optional = true }
+sha3 = "0.10"
+bs58 = { version = "0.5", features = ["check"] }
+base64 = "0.22"
+crc = "3"
+bitcoin = { version = "0.32", default-features = false, features = ["std"] }
+hex = "0.4"
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[features]
+ts = ["dep:ts-rs"]
+
+[lints]
+workspace = true

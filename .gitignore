@@ -1,0 +1,44 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.local
+secrets/
+*.key
+*.p12
+*.pfx
+
+# Local databases and backups
+*.sqlite
+*.sqlite3
+*.db
+*-wal
+*-shm
+backups/
+
+# Live-test material that must never be committed
+private-test-targets.json
+raw-live-responses/
+*.log
+
+# Build output
+node_modules/
+dist/
+target/
+src-tauri/target/
+src-tauri/gen/schemas/
+test-results/
+playwright-report/
+webdriver-logs/
+coverage/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Intentionally commit source, lockfiles, migrations, sanitized fixtures,
+# verified public test targets, and curated sanitized final reports/screenshots.
+*.tsbuildinfo
