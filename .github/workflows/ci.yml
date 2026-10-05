@@ -194,26 +194,7 @@ jobs:
         run: cargo install tauri-driver --version 2.0.5 --locked
       - name: Install matching WebView2 Edge WebDriver
         shell: pwsh
-        run: |
-          function Find-WebViewRuntime {
-            @("${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe", "$env:ProgramFiles\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe", "$env:LOCALAPPDATA\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe") | ForEach-Object { Get-Item $_ -ErrorAction SilentlyContinue } | Sort-Object { [version]$_.VersionInfo.ProductVersion } -Descending | Select-Object -First 1
-          }
-          $runtime = Find-WebViewRuntime
-          if (-not $runtime) {
-            $bootstrap = Join-Path $env:RUNNER_TEMP "WebView2Setup.exe"
-            Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile $bootstrap
-            $setup = Start-Process $bootstrap -ArgumentList @('/silent', '/install') -Wait -PassThru
-            if ($setup.ExitCode -ne 0) { throw "WebView2 setup failed: $($setup.ExitCode)" }
-            $runtime = Find-WebViewRuntime
-          }
-          if (-not $runtime) { throw "Microsoft WebView2 runtime is unavailable" }
-          $version = $runtime.VersionInfo.ProductVersion
-          Write-Host "Matching Edge WebDriver to WebView2 runtime $version"
-          $zip = Join-Path $env:RUNNER_TEMP "edgedriver.zip"
-          $dir = Join-Path $env:RUNNER_TEMP "edgedriver"
-          Invoke-WebRequest "https://msedgedriver.microsoft.com/$version/edgedriver_win64.zip" -OutFile $zip
-          Expand-Archive $zip -DestinationPath $dir
-          "EDGE_WEBDRIVER_PATH=$dir\msedgedriver.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+        run: ./scripts/setup-webview-driver.ps1
       - name: Native scenarios through real IPC and SQLite
         env:
           RUN_LIVE_API_TESTS: "1"
@@ -224,6 +205,45 @@ jobs:
         with:
           name: windows-native-evidence
           path: target/native-report/
+          if-no-files-found: error
+
+  windows-native-load:
+    name: Production native startup and 100000-leg UI/import
+    needs: windows-installer
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      ACCEPTANCE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install Rust toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/download-artifact@v4
+        with:
+          name: portfolio-desk-windows-nsis-unsigned
+          path: target/native-load-installer
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-release-evidence
+          path: target/native-load-production
+      - name: Install pinned Tauri WebDriver
+        run: cargo install tauri-driver --version 2.0.5 --locked
+      - name: Install matching WebView2 Edge WebDriver
+        shell: pwsh
+        run: ./scripts/setup-webview-driver.ps1
+      - name: Installed production startup, large UI and CSV cancellation/replay
+        shell: pwsh
+        run: ./scripts/native-load-windows.ps1
+      - name: Production native load evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-load-evidence
+          path: target/native-load-report/
           if-no-files-found: error
 
   performance:

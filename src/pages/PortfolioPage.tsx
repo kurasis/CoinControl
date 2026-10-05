@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { api, type ChartRange, type Scope } from "../ipc/client";
 import { useApp } from "../app/AppContext";
 import { useAccountLabels, useNetworkNames } from "../app/hooks";
+import { useFirstUsefulPaint } from "../app/useFirstUsefulPaint";
 import { Page } from "../components/Layout";
 import { Usd } from "../components/Amount";
 import { PortfolioChart, chartQuery } from "../components/PortfolioChart";
@@ -23,6 +24,9 @@ export function PortfolioPage() {
   const { t } = useTranslation();
   const { scope, profile } = useApp();
   const wallets = useQuery({ queryKey: ["wallets"], queryFn: api.listWallets });
+  useFirstUsefulPaint(
+    wallets.isSuccess && wallets.data.length === 0 && profile !== undefined && profile !== "demo",
+  );
 
   if (wallets.isSuccess && wallets.data.length === 0 && profile !== "demo") {
     return (
@@ -41,7 +45,7 @@ export function PortfolioPage() {
 /** Shared portfolio body used by the portfolio, wallet and group views. */
 export function PortfolioView({ scope }: { scope: Scope }) {
   const { t } = useTranslation();
-  const { locale, timeZone, privacy } = useApp();
+  const { locale, timeZone, privacy, settings, profile } = useApp();
   const [range, setRange] = useState<ChartRange>("1m");
   const [dates, setDates] = useState({ start: "", end: "" });
   const [window, setWindow] = useState<{ start: number; end: number }>();
@@ -72,6 +76,7 @@ export function PortfolioView({ scope }: { scope: Scope }) {
   const chart = useQuery(chartQuery(scope, range, window));
   const s = summary.data;
   const a = s?.accounting;
+  useFirstUsefulPaint(s !== undefined && settings !== undefined && profile !== undefined);
 
   return (
     <>

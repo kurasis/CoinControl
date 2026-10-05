@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./i18n";
@@ -7,6 +7,8 @@ import i18n from "./i18n";
 import { App } from "./App";
 import { resetMock } from "./ipc/mock";
 import { api } from "./ipc/client";
+import type { ImportPreview } from "./ipc/bindings/ImportPreview";
+import type { ImportResult } from "./ipc/bindings/ImportResult";
 
 function renderApp() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -21,6 +23,72 @@ beforeEach(async () => {
   resetMock();
   window.location.hash = "#/";
   await i18n.changeLanguage("en");
+});
+
+afterEach(() => vi.restoreAllMocks());
+
+describe("pending CSV lifecycle", () => {
+  const content =
+    "external_row_id,network_id,account_address,quantity,total_basis_usd\nr1,ethereum,0xabc,1.2,2400\n";
+
+  for (const exit of ["close", "navigate"] as const) {
+    it(`discards a preview that finishes after ${exit}`, async () => {
+      const user = userEvent.setup();
+      await api.switchProfile("demo");
+      const original = api.previewBasisImport;
+      let finish!: (p: ImportPreview) => void;
+      const preview = vi
+        .spyOn(api, "previewBasisImport")
+        .mockImplementationOnce(() => new Promise((resolve) => (finish = resolve)));
+      const discard = vi.spyOn(api, "discardBasisImport");
+      window.location.hash = "#/review";
+      renderApp();
+      await user.click(await screen.findByRole("button", { name: "Import cost basis CSV" }));
+      const dialog = await screen.findByRole("dialog", { name: "Import cost basis from CSV" });
+      await user.upload(
+        within(dialog).getByLabelText("CSV file"),
+        new File([content], "pending.csv", { type: "text/csv" }),
+      );
+      await waitFor(() => expect(preview).toHaveBeenCalledOnce());
+      if (exit === "close") await user.click(within(dialog).getByRole("button", { name: "Close" }));
+      else await user.click(screen.getByRole("link", { name: "Activity" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      const completed = await original("pending.csv", content);
+      await act(async () => finish(completed));
+      await waitFor(() => expect(discard).toHaveBeenCalledWith(completed.batch_id));
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  }
+
+  it("keeps an atomic commit visible until it finishes", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    const original = api.commitBasisImport;
+    let finish!: (p: ImportResult) => void;
+    const commit = vi
+      .spyOn(api, "commitBasisImport")
+      .mockImplementationOnce(() => new Promise((resolve) => (finish = resolve)));
+    window.location.hash = "#/review";
+    renderApp();
+    await user.click(await screen.findByRole("button", { name: "Import cost basis CSV" }));
+    const dialog = await screen.findByRole("dialog", { name: "Import cost basis from CSV" });
+    await user.upload(
+      within(dialog).getByLabelText("CSV file"),
+      new File([content], "commit.csv", { type: "text/csv" }),
+    );
+    await user.click(await within(dialog).findByRole("button", { name: "Apply 1 row" }));
+    await waitFor(() => expect(commit).toHaveBeenCalledOnce());
+    expect(within(dialog).getByRole("button", { name: "Close" })).toBeDisabled();
+    expect(within(dialog).getByLabelText("CSV file")).toBeDisabled();
+    await user.keyboard("{Escape}");
+    expect(dialog).toBeInTheDocument();
+    const completed = await original(commit.mock.calls[0]![0]);
+    await act(async () => finish(completed));
+    expect(await within(dialog).findByText(/Applied 1 row/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(within(dialog).getByRole("button", { name: "Close" })).toBeEnabled(),
+    );
+  });
 });
 
 describe("first launch", () => {

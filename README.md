@@ -306,6 +306,20 @@ Native acceptance adds the two synthetic addresses and overlapping groups throug
 
 The [0.1.1 acceptance evidence](docs/reports/upgrade-and-native-2026-10-05/README.md) records 19 native checks, 10 populated production upgrade/install/uninstall checks, 61 release inspections and 40 inspected screenshots, with exact tested commits and remaining release gates. Zerion HTTP 429 continues to block three separate live suites; native public-BTC acceptance does not require that provider.
 
+The `windows-native-load` CI job installs the current production NSIS artifact and verifies its EXE against release inspection. An external fixture prepares 50 accounts, 500 assets and 100,000 normalized movements in the disposable runner's real profile; an application-scoped firewall rule blocks synthetic provider queries. Three fresh application processes measure Windows process start to the renderer's `portfolio-first-useful` mark (cached balance and navigation after two animation frames). The target is ≤2 seconds; browser attachment time is excluded, OS disk caches are not flushed, and the first sample has a fresh WebView2 folder. The production binary accepts no test data-directory override: driver attachment uses Microsoft's external [WebView2 runtime environment options](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2environment) and [WebDriver attachment](https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/webdriver).
+
+That job also navigates paginated activity, closes a pending CSV preview with feedback ≤1 second, checks late staging was discarded, then applies one basis decision through the actual file input and normal UI. It records renderer frame gaps during preview/replay, exact history/decision counts after restart, timings, memory scope and native screenshots in `windows-native-load-evidence`. This is one CSV decision over existing large history, rather than a 100,000-record provider import. Closing preview leaves accounting unchanged; an already started atomic commit remains visible until it completes. These Windows assertions require a completed runner job; adding them does not constitute passing evidence.
+
+For a network-free backend check on another OS, use a new scratch profile:
+
+```bash
+cargo run -p portfolio-store --example performance --release -- \
+  --native-fixture /tmp/coincontrol-large/profiles/real.sqlite \
+  /tmp/coincontrol-large/evidence --verify-import
+```
+
+The optional verifier checks preview/discard, commit/replay, duplicate rejection and a timer pinned to the preview's async executor thread. Its `LOCAL_IMPORT_REPORT.json` is Store evidence; it does not measure native painting or startup. It leaves one committed decision in the scratch profile. CI prepares its clean native fixture without `--verify-import`. Both modes refuse to overwrite an existing profile.
+
 ## Local load measurement
 
 `npm run test:performance` creates an isolated synthetic SQLite profile with 50 accounts, 500 token identities and 100,000 normalized legs. No addresses are queried. It measures fixture loading, full accounting replay, 1,000 idempotent ingestion overlaps, cached store reopening/first summary, 25 calls per view (summary, holdings, account holdings, paginated activity and chart), and peak process memory. Reports include p50/p95, first/max query latency, release/debug mode, commit and machine details; p95 >= 300 ms fails the command. CI executes the same workload on Linux and Windows.
