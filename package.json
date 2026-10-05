@@ -17,6 +17,7 @@
     "test:offline": "node scripts/test-offline.mjs",
     "test:live": "node scripts/test-live.mjs",
     "test:e2e:windows": "node scripts/test-e2e-windows.mjs",
+    "test:performance": "node scripts/test-performance.mjs",
     "build:windows": "tauri build --bundles nsis",
     "verify:release": "node scripts/verify-release.mjs",
     "lint": "eslint .",

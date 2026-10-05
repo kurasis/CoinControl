@@ -232,6 +232,14 @@ impl Store {
 
     /// Current holdings in scope, aggregated per chain-specific asset.
     pub async fn list_holdings(&self, scope: &Scope) -> Result<Vec<HoldingRow>> {
+        self.cached_view(
+            format!("holdings:{scope:?}"),
+            self.list_holdings_uncached(scope),
+        )
+        .await
+    }
+
+    async fn list_holdings_uncached(&self, scope: &Scope) -> Result<Vec<HoldingRow>> {
         let accounts = self.resolve_scope(scope).await?;
         let (positions, _) = self.positions(&accounts).await?;
         Ok(positions.into_iter().map(|p| p.row).collect())
@@ -325,6 +333,14 @@ impl Store {
     }
 
     pub async fn portfolio_summary(&self, scope: &Scope) -> Result<PortfolioSummary> {
+        self.cached_view(
+            format!("summary:{scope:?}"),
+            self.portfolio_summary_uncached(scope),
+        )
+        .await
+    }
+
+    async fn portfolio_summary_uncached(&self, scope: &Scope) -> Result<PortfolioSummary> {
         let accounts = self.resolve_scope(scope).await?;
         let (positions, excluded_spam) = self.positions(&accounts).await?;
         let valued: Vec<Dec> = positions
@@ -565,6 +581,19 @@ impl Store {
     }
 
     pub async fn get_chart_window(
+        &self,
+        scope: &Scope,
+        range: ChartRange,
+        window: Option<(i64, i64)>,
+    ) -> Result<ChartSeries> {
+        self.cached_view(
+            format!("chart:{scope:?}:{range:?}:{window:?}"),
+            self.get_chart_window_uncached(scope, range, window),
+        )
+        .await
+    }
+
+    async fn get_chart_window_uncached(
         &self,
         scope: &Scope,
         range: ChartRange,

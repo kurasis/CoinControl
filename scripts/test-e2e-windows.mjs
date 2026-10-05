@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { createHash } from "node:crypto";
+import { DatabaseSync } from "node:sqlite";
 
 const output = "target/native-report";
 mkdirSync(output, { recursive: true });
@@ -38,7 +39,13 @@ if (!existsSync(application) || !application.includes("native-e2e")) {
   process.exit(1);
 }
 report.applicationSha256 = createHash("sha256").update(readFileSync(application)).digest("hex");
-const dataDir = mkdtempSync(join(tmpdir(), "coincontrol-native-"));
+let dataDir = mkdtempSync(join(tmpdir(), "coincontrol-native-"));
+const liveBtc = process.argv.includes("--live-btc");
+if (liveBtc && process.env.RUN_LIVE_API_TESTS !== "1") {
+  record("Native live opt-in", "BLOCKED", "--live-btc requires RUN_LIVE_API_TESTS=1");
+  save();
+  process.exit(1);
+}
 const port = Number(process.env.E2E_DRIVER_PORT ?? 4444);
 const base = `http://127.0.0.1:${port}`;
 const driverEnvironment = { ...process.env, COINCONTROL_E2E_DATA_DIR: dataDir };
@@ -118,7 +125,7 @@ async function select(css, value) {
 }
 async function input(css, value) {
   await execute(
-    "const e=document.querySelector(arguments[0]);if(!e)throw Error('missing input');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,arguments[1]);e.dispatchEvent(new Event('input',{bubbles:true}));return true;",
+    "const e=document.querySelector(arguments[0]);if(!e)throw Error('missing input');const prototype=e.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(prototype,'value').set.call(e,arguments[1]);e.dispatchEvent(new Event('input',{bubbles:true}));return true;",
     [css, value],
   );
 }
@@ -134,6 +141,7 @@ async function open() {
   nativeApp = spawn(application, [], {
     env: {
       ...driverEnvironment,
+      COINCONTROL_E2E_DATA_DIR: dataDir,
       TAURI_WEBVIEW_AUTOMATION: "true",
       COINCONTROL_E2E_DEBUG_PORT: String(debugPort),
       WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${debugPort}`,
@@ -182,6 +190,86 @@ async function open() {
 async function screenshot(name) {
   const b64 = await request(`/session/${session}/screenshot`);
   writeFileSync(join(output, name + ".png"), Buffer.from(b64, "base64"));
+}
+async function restart() {
+  await request(`/session/${session}`, "DELETE");
+  session = undefined;
+  closeApplication();
+  await delay(1000);
+  await open();
+}
+async function saveNativeFile(button, destination) {
+  const helper = spawn(
+    "powershell.exe",
+    [
+      "-NoProfile",
+      "-File",
+      resolve("scripts/native-save-dialog.ps1"),
+      "-ApplicationPid",
+      String(nativeApp.pid),
+      "-Destination",
+      destination,
+    ],
+    { stdio: ["ignore", "pipe", "pipe"] },
+  );
+  let log = "";
+  for (const stream of [helper.stdout, helper.stderr])
+    stream.on("data", (chunk) => {
+      log += chunk.toString();
+    });
+  const finished = new Promise((resolve) => {
+    helper.on("error", () => resolve({ code: -1 }));
+    helper.on("exit", (code) => resolve({ code }));
+  });
+  await clickText(button);
+  const { code } = await finished;
+  if (code !== 0) throw new Error(`Native Save dialog failed: ${log.slice(-1000)}`);
+  await until(() => existsSync(destination));
+  await until(async () => (await body()).includes("File saved."));
+}
+function readProfile(sql, profile = "real") {
+  const db = new DatabaseSync(join(dataDir, "profiles", `${profile}.sqlite`), { readOnly: true });
+  try {
+    return db.prepare(sql).all();
+  } finally {
+    db.close();
+  }
+}
+function networkRule(remove = false) {
+  const result = spawnSync(
+    "powershell.exe",
+    [
+      "-NoProfile",
+      "-Command",
+      remove
+        ? "Remove-NetFirewallRule -Name $env:COINCONTROL_FIREWALL_RULE -ErrorAction SilentlyContinue"
+        : "New-NetFirewallRule -Name $env:COINCONTROL_FIREWALL_RULE -DisplayName 'CoinControl isolated native offline check' -Direction Outbound -Program $env:COINCONTROL_FIREWALL_APP -Action Block -Profile Any -ErrorAction Stop | Out-Null",
+    ],
+    {
+      encoding: "utf8",
+      env: {
+        ...driverEnvironment,
+        COINCONTROL_FIREWALL_RULE: `CoinControl-native-${process.pid}`,
+        COINCONTROL_FIREWALL_APP: application,
+      },
+    },
+  );
+  if (result.status !== 0)
+    throw new Error("Unable to configure the application-scoped offline firewall rule");
+}
+function btcSnapshot() {
+  return readProfile(
+    "SELECT asset_id, raw_quantity FROM balance_observations WHERE id IN (SELECT MAX(id) FROM balance_observations GROUP BY account_id,asset_id) ORDER BY asset_id",
+  );
+}
+async function waitSync() {
+  await until(
+    () =>
+      execute(
+        "return [...document.querySelectorAll('button')].some(e=>e.textContent.trim()==='Sync now' && !e.disabled);",
+      ),
+    180000,
+  );
 }
 try {
   await until(async () => {
@@ -325,18 +413,242 @@ try {
   await until(async () => (await body()).includes("•••••"));
   await screenshot("privacy");
   record("Privacy masks portfolio values", "PASS");
-  // Store recovery and CSV edge cases are covered by file-backed Rust integration tests.
-  for (const scenario of [
-    "Live native synchronization",
-    "Native file dialog backup/restore",
-    "Installer upgrade and uninstall",
-    "Offline reconnect",
-  ])
-    record(
-      scenario,
-      "BLOCKED",
-      "Requires the separate live/installer acceptance run; this deterministic suite does not claim it",
+  await clickText("Show balances and addresses");
+  // A dummy OS credential remains configured while exporting, proving exclusion.
+  await route("/settings/sources");
+  await until(() => execute("return Boolean(document.querySelector('#key-zerion'));"));
+  await input("#key-zerion", "native-credential-sentinel-no-api-use");
+  await execute(
+    "document.querySelector('#key-zerion').closest('form').requestSubmit();return true;",
+  );
+  await until(() =>
+    execute(
+      "return document.querySelector('#zerion-name').closest('article').querySelector('.chip').textContent.trim()==='Configured';",
+    ),
+  );
+  await route("/settings/data");
+  const archive = join(tmpdir(), `coincontrol-recovery-${process.pid}.ccbackup`);
+  await saveNativeFile("Save backup", archive);
+  const manifest = JSON.parse(readFileSync(archive, "utf8"));
+  if (
+    Buffer.from(manifest.database_base64, "base64").includes(
+      Buffer.from("native-credential-sentinel-no-api-use"),
+    )
+  )
+    throw new Error("OS credential leaked into backup payload");
+  const baseline = {};
+  const csvButtons = {
+    holdings: "Export holdings CSV",
+    activity: "Export activity CSV",
+    lots: "Export lots CSV",
+    decisions: "Export decisions CSV",
+  };
+  for (const [kind, button] of Object.entries(csvButtons)) {
+    const path = join(tmpdir(), `coincontrol-before-${process.pid}-${kind}.csv`);
+    await saveNativeFile(button, path);
+    baseline[kind] = readFileSync(path, "utf8");
+    if (baseline[kind].trim().split(/\r?\n/).length < 2) throw new Error(`Empty ${kind} export`);
+  }
+  const groups = readProfile(
+    "SELECT g.id, g.label, x.wallet_id FROM groups g LEFT JOIN group_wallets x ON x.group_id=g.id ORDER BY g.id,x.wallet_id",
+    "demo",
+  );
+  await screenshot("backup-export");
+  record("Native Save dialogs export backup and four populated CSV files; OS key absent", "PASS");
+  // Remove the temporary secure entry before changing its isolated namespace.
+  await route("/settings/sources");
+  await execute(
+    "[...document.querySelector('#zerion-name').closest('article').querySelectorAll('button')].find(e=>e.textContent.trim()==='Remove').click();return true;",
+  );
+  await until(() =>
+    execute(
+      "return document.querySelector('#zerion-name').closest('article').querySelector('.chip').textContent.trim()==='Not configured';",
+    ),
+  );
+  const originalDirectory = dataDir;
+  dataDir = mkdtempSync(join(tmpdir(), "coincontrol-native-restored-"));
+  await restart();
+  await route("/settings");
+  await until(() => execute("return Boolean(document.querySelector('#language'));"));
+  await select("#language", "en");
+  await route("/settings/data");
+  await clickText("Explore demo portfolio");
+  const file = await request(`/session/${session}/element`, "POST", {
+    using: "css selector",
+    value: 'input[type="file"][accept=".ccbackup"]',
+  });
+  await request(
+    `/session/${session}/element/${file["element-6066-11e4-a52e-4f735466cecf"]}/value`,
+    "POST",
+    { text: archive },
+  );
+  await clickText("Restore this profile");
+  await until(async () =>
+    (await body()).includes("Portfolio restored. Provider keys were not imported."),
+  );
+  for (const [kind, button] of Object.entries(csvButtons)) {
+    const path = join(tmpdir(), `coincontrol-after-${process.pid}-${kind}.csv`);
+    await saveNativeFile(button, path);
+    if (readFileSync(path, "utf8") !== baseline[kind])
+      throw new Error(`Restored ${kind} differs from exported source`);
+  }
+  if (
+    JSON.stringify(
+      readProfile(
+        "SELECT g.id,g.label,x.wallet_id FROM groups g LEFT JOIN group_wallets x ON x.group_id=g.id ORDER BY g.id,x.wallet_id",
+        "demo",
+      ),
+    ) !== JSON.stringify(groups)
+  )
+    throw new Error("Restored groups or overlapping membership differ");
+  await route("/settings/sources");
+  await until(() =>
+    execute(
+      "return document.querySelector('#zerion-name')?.closest('article').querySelector('.chip').textContent.trim()==='Not configured';",
+    ),
+  );
+  const safetyDirectory = join(dataDir, "profiles", "safety-backups");
+  if (!existsSync(safetyDirectory)) throw new Error("Restore did not create a safety snapshot");
+  record(
+    "Restore in a fresh installation preserves exact holdings/history/lots/audit CSV and groups; keys absent",
+    "PASS",
+    "Fresh demo destination is automatically seeded by the app before restoring its matching demo archive",
+  );
+  await screenshot("backup-restored");
+  // No external request is made unless this separate public-address path is opted in.
+  if (liveBtc) {
+    await route("/settings/data");
+    await clickText("Leave demo");
+    await route("/wallets?add=1");
+    await until(() => execute("return Boolean(document.querySelector('textarea'));"));
+    const target = JSON.parse(readFileSync("tests/live/public-targets.json", "utf8")).bitcoin
+      .sync_address.address;
+    await input('input[placeholder="e.g. Cold storage"]', "Native public BTC");
+    await input("textarea", target);
+    await until(() =>
+      execute(
+        "return !document.querySelector('form[aria-labelledby=add-heading] button[type=submit]').disabled;",
+      ),
     );
+    await execute(
+      "document.querySelector('form[aria-labelledby=add-heading]').requestSubmit();return true;",
+    );
+    await until(() =>
+      execute("return Boolean(document.querySelector('a[href^=\"#/accounts/\"]'));"),
+    );
+    await until(async () => (await body()).includes("Syncing…"), 15000);
+    const cancelStarted = Date.now();
+    await clickText("Cancel synchronization");
+    await until(
+      async () =>
+        (await body()).includes("Stopping at a safe checkpoint…") ||
+        (await execute(
+          "return [...document.querySelectorAll('button')].some(e=>e.textContent.trim()==='Sync now' && !e.disabled);",
+        )),
+      1000,
+    );
+    report.cancellationFeedbackMs = Date.now() - cancelStarted;
+    await waitSync();
+    await restart();
+    await route("/wallets");
+    await delay(3500); // allow the normal startup scheduler to enter its sweep
+    await waitSync();
+    const countSql = "SELECT COUNT(*) AS count FROM account_transactions";
+    if (readProfile(countSql)[0].count < 17) {
+      await clickText("Sync now");
+      await waitSync();
+    }
+    const count = readProfile(countSql)[0].count;
+    if (count < 17) throw new Error("Public BTC history did not import its known bounded history");
+    if (!(await body()).includes("History complete"))
+      throw new Error("BTC history coverage did not finish");
+    const snapshot = btcSnapshot();
+    if (!snapshot.length) throw new Error("No live BTC balance observation persisted");
+    await screenshot("live-bitcoin-wallet");
+    await route("/");
+    await until(() => execute("return Boolean(document.querySelector('.balance'));"));
+    await execute("document.querySelector('a[href^=\"#/assets/\"]').click();return true;");
+    await until(() => execute("return Boolean(document.querySelector('.metrics'));"));
+    await route("/wallets");
+    await execute("document.querySelector('a[href^=\"#/accounts/\"]').click();return true;");
+    await until(() => execute("return Boolean(document.querySelector('.balance'));"));
+    await clickText("Activity");
+    await until(() =>
+      execute(
+        "return Boolean(document.querySelector('button[aria-label^=\"Open details for\"]'));",
+      ),
+    );
+    await execute(
+      "document.querySelector('button[aria-label^=\"Open details for\"]').click();return true;",
+    );
+    await until(() => execute("return Boolean(document.querySelector('.drawer .facts'));"));
+    await screenshot("live-bitcoin-detail");
+    record(
+      "Native public BTC import, cancellation/restart/resume and Portfolio/Asset/Account/Activity navigation",
+      "PASS",
+      `${count} transactions; cancellation feedback ${report.cancellationFeedbackMs} ms`,
+    );
+    await route("/wallets");
+    try {
+      networkRule();
+      await clickText("Sync now");
+      await until(
+        () => readProfile("SELECT id FROM balance_observations WHERE status='stale'").length > 0,
+        150000,
+      );
+      // The failed balance read establishes the offline condition. Stop the
+      // remaining price backfill at its checkpoint to conserve the live budget.
+      await execute(
+        "const button=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()==='Cancel synchronization');if(button&&!button.disabled)button.click();return true;",
+      );
+      await waitSync();
+      if (JSON.stringify(btcSnapshot()) !== JSON.stringify(snapshot))
+        throw new Error("Offline failure replaced cached quantities");
+      if (!readProfile("SELECT id FROM balance_observations WHERE status='stale'").length)
+        throw new Error("Offline failure did not mark observations stale");
+      await route("/");
+      await until(async () => (await body()).toLowerCase().includes("stale"));
+      await screenshot("offline-cached-bitcoin");
+    } finally {
+      networkRule(true);
+    }
+    await route("/wallets");
+    await clickText("Sync now");
+    await waitSync();
+    if (readProfile(countSql)[0].count !== count) throw new Error("Reconnect duplicated history");
+    if (
+      readProfile("SELECT COUNT(*) AS count FROM balance_observations WHERE status='fresh'")[0]
+        .count === 0
+    )
+      throw new Error("Reconnect did not refresh the balance");
+    const errors = readProfile(
+      "SELECT json_extract(retry_state,'$.last_error') AS error FROM sync_checkpoints WHERE json_extract(retry_state,'$.last_error') IS NOT NULL",
+    );
+    if (errors.length) throw new Error("Reconnect retained a synchronization error");
+    report.providerUsage = readProfile(
+      "SELECT provider,SUM(requests) AS requests FROM provider_usage GROUP BY provider",
+    );
+    if (report.providerUsage.some((row) => row.requests > 50))
+      throw new Error("Native public provider budget exceeded 50 requests");
+    await screenshot("reconnected-bitcoin");
+    record(
+      "OS-enforced offline failure retains cached amounts and stale UI; reconnect refreshes without duplicates",
+      "PASS",
+    );
+  } else {
+    record(
+      "Live native synchronization and offline reconnect",
+      "BLOCKED",
+      "Run --live-btc with RUN_LIVE_API_TESTS=1; public reads only",
+    );
+  }
+  // This job drives a distinct binary; production installer acceptance is separate.
+  record(
+    "Installer upgrade and uninstall",
+    "SKIPPED_NOT_IN_SCOPE",
+    "Executed independently by windows-installer job",
+  );
+  report.originalIsolatedProfile = originalDirectory;
 } catch (e) {
   const processes = spawnSync(
     "powershell.exe",

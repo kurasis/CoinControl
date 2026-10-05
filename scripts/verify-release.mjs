@@ -63,6 +63,7 @@ check(
 const sentinels = [
   "CC_RELEASE_SENTINEL_SECRET_74fcbf7c",
   "COINCONTROL_E2E_DATA_DIR",
+  "COINCONTROL_E2E_DEBUG_PORT",
   "(browser preview: nothing is stored)",
 ];
 const artifacts = files("target/release/bundle/nsis").filter((p) => p.endsWith(".exe"));

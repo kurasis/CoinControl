@@ -90,9 +90,33 @@ async fn remaining_today(store: &Store, provider: &str, limit: u32) -> u32 {
 }
 
 async fn build_providers(store: &Store, secrets: &dyn SecretStore) -> Providers {
+    // Native live acceptance uses public BTC reads only, with one persisted
+    // ceiling across restarts/sweeps. Production has its normal daily budgets.
+    #[cfg(feature = "native-e2e")]
+    let public_budget = |provider| remaining_today(store, provider, 50);
     let mut providers = Providers {
-        esplora: Esplora::new(esplora::DEFAULT_BASE, Budget::unlimited()).ok(),
-        defillama: DefiLlama::new(defillama::DEFAULT_BASE, Budget::unlimited()).ok(),
+        esplora: Esplora::new(esplora::DEFAULT_BASE, {
+            #[cfg(feature = "native-e2e")]
+            {
+                Budget::limited(public_budget(esplora::PROVIDER).await)
+            }
+            #[cfg(not(feature = "native-e2e"))]
+            {
+                Budget::unlimited()
+            }
+        })
+        .ok(),
+        defillama: DefiLlama::new(defillama::DEFAULT_BASE, {
+            #[cfg(feature = "native-e2e")]
+            {
+                Budget::limited(public_budget(defillama::PROVIDER).await)
+            }
+            #[cfg(not(feature = "native-e2e"))]
+            {
+                Budget::unlimited()
+            }
+        })
+        .ok(),
         ..Providers::default()
     };
     if let Some(key) = credential(secrets, zerion::PROVIDER, "ZERION_API_KEY") {
