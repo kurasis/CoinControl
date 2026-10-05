@@ -43,12 +43,24 @@ export function PortfolioView({ scope }: { scope: Scope }) {
   const { t } = useTranslation();
   const { locale, timeZone, privacy } = useApp();
   const [range, setRange] = useState<ChartRange>("1m");
+  const [dates, setDates] = useState({ start: "", end: "" });
+  const [window, setWindow] = useState<{ start: number; end: number }>();
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
+  const validDates = Boolean(
+    dates.start &&
+    dates.end &&
+    dates.start <= dates.end &&
+    dates.end <= today &&
+    dates.start >= "1970-01-01",
+  );
   const networkNames = useNetworkNames();
   const accountLabels = useAccountLabels(privacy);
   const summary = useQuery({
     queryKey: ["summary", scope],
     queryFn: () => api.portfolioSummary(scope),
   });
+  const policies = useQuery({ queryKey: ["asset-policies"], queryFn: api.listAssetPolicies });
+  const [showHidden, setShowHidden] = useState(false);
   const holdings = useQuery({
     queryKey: ["holdings", scope],
     queryFn: () => api.listHoldings(scope),
@@ -57,7 +69,7 @@ export function PortfolioView({ scope }: { scope: Scope }) {
     queryKey: ["activity", scope, "preview"],
     queryFn: () => api.listActivity(scope, null, 5),
   });
-  const chart = useQuery(chartQuery(scope, range));
+  const chart = useQuery(chartQuery(scope, range, window));
   const s = summary.data;
   const a = s?.accounting;
 
@@ -147,12 +159,72 @@ export function PortfolioView({ scope }: { scope: Scope }) {
         </Metric>
       </section>
 
-      <PortfolioChart scope={scope} range={range} onRangeChange={setRange} />
+      <form
+        className="row"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (validDates)
+            setWindow({
+              start: Date.parse(dates.start + "T00:00:00Z") / 1000,
+              end: Math.min(
+                Date.parse(dates.end + "T23:59:59Z") / 1000,
+                Math.floor(Date.now() / 1000),
+              ),
+            });
+        }}
+      >
+        <label>
+          {t("ops.fromUtc")}
+          <input
+            className="input"
+            type="date"
+            value={dates.start}
+            onChange={(e) => setDates({ ...dates, start: e.target.value })}
+          />
+        </label>
+        <label>
+          {t("ops.toUtc")}
+          <input
+            className="input"
+            type="date"
+            value={dates.end}
+            onChange={(e) => setDates({ ...dates, end: e.target.value })}
+          />
+        </label>
+        <button className="btn" disabled={!validDates}>
+          {t("ops.customRange")}
+        </button>
+      </form>
+      <PortfolioChart
+        scope={scope}
+        range={range}
+        window={window}
+        onRangeChange={(r) => {
+          setRange(r);
+          setWindow(undefined);
+        }}
+      />
 
       {holdings.isLoading ? (
         <div className="card skeleton skeleton-table" />
       ) : (
-        <AssetTable rows={holdings.data ?? []} networkNames={networkNames} />
+        <>
+          <label className="row-inline">
+            <input
+              type="checkbox"
+              checked={showHidden}
+              onChange={(e) => setShowHidden(e.target.checked)}
+            />
+            {t("ops.showHidden")}
+          </label>
+          <AssetTable
+            rows={(holdings.data ?? []).filter(
+              (h) =>
+                showHidden || !policies.data?.some((p) => p.asset_id === h.asset_id && p.hidden),
+            )}
+            networkNames={networkNames}
+          />
+        </>
       )}
 
       <section className="card" aria-labelledby="recent-heading">

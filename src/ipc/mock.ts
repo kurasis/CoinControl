@@ -543,13 +543,32 @@ export async function mockInvoke(
 ): Promise<unknown> {
   await new Promise((r) => setTimeout(r, 30));
   switch (cmd) {
+    case "get_sync_progress":
+      return {
+        running: false,
+        cancel_requested: false,
+        details: {
+          active_account: null,
+          completed_accounts: 0,
+          total_accounts: 0,
+          pages_fetched: 0,
+          phase: "idle",
+        },
+      };
+    case "cancel_sync":
+      return null;
+    case "test_provider":
+      return null;
+    case "export_backup":
+    case "export_csv":
+      throw { code: "preview", message: "File export requires the desktop application." };
     case "app_info":
       return {
         product_name: "Portfolio Desk",
         version: "0.1.0",
         profile: current.profile,
-        schema_version: 3,
-        accounting_engine_version: 2,
+        schema_version: 6,
+        accounting_engine_version: 3,
         data_directory: "(browser preview: nothing is stored)",
       };
     case "switch_profile":
@@ -592,6 +611,31 @@ export async function mockInvoke(
         ...w,
         account_count: current.accounts.filter((a) => a.wallet_id === w.id).length,
       }));
+    case "add_accounts": {
+      const addresses = args.addresses as string[];
+      const canonical = addresses.map((a) => a.trim().toLowerCase());
+      if (
+        new Set(canonical).size !== canonical.length ||
+        canonical.some((a) =>
+          current.accounts.some((x) => x.network === args.network && x.canonical_address === a),
+        )
+      )
+        throw err("account_exists", "duplicate address");
+      return Promise.all(
+        addresses.map((address) => mockInvoke("add_account", { ...args, address })),
+      );
+    }
+    case "list_asset_policies":
+      return current.holdings.map((h) => ({
+        asset_id: h.asset_id,
+        symbol: h.symbol,
+        name: h.name,
+        verification: h.verification,
+        hidden: false,
+        exclude_override: null,
+      }));
+    case "set_asset_policy":
+      throw err("unavailable", "Token decisions are available in the desktop application.");
     case "add_account": {
       const address = String(args.address).trim();
       const dup = current.accounts.find(
@@ -653,7 +697,11 @@ export async function mockInvoke(
       };
     }
     case "get_chart": {
-      const points = chart(args.range as ChartRange);
+      const points = chart(args.range as ChartRange).filter(
+        (p) =>
+          (args.start == null || p.t >= Number(args.start)) &&
+          (args.end == null || p.t <= Number(args.end)),
+      );
       return {
         range: args.range,
         interval_seconds: 3600,
@@ -667,7 +715,13 @@ export async function mockInvoke(
       const rows = current.activity.filter(
         (r) =>
           (!filter?.asset_id || r.legs.some((l) => l.asset_id === filter.asset_id)) &&
-          (!filter?.unresolved_only || r.unresolved),
+          (!filter?.unresolved_only || r.unresolved) &&
+          (!filter?.account_id || r.account_id === filter.account_id) &&
+          (!filter?.network || r.network === filter.network) &&
+          (!filter?.operation || r.operation === filter.operation) &&
+          (!filter?.status || r.status === filter.status) &&
+          (filter?.start == null || r.occurred_at >= filter.start) &&
+          (filter?.end == null || r.occurred_at <= filter.end),
       );
       return { rows, next_cursor: null };
     }

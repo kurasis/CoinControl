@@ -18,6 +18,7 @@ use tokio::sync::Mutex;
 
 pub mod accounting;
 mod activity;
+mod asset_policy;
 pub mod demo;
 pub mod dto;
 mod error;
@@ -25,6 +26,7 @@ pub mod import;
 pub mod ingest;
 mod portfolio;
 pub mod prices;
+mod recovery;
 mod review;
 mod settings;
 mod wallets;

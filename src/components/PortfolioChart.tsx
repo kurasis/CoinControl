@@ -9,8 +9,15 @@ import { SeriesChart } from "./SeriesChart";
 
 export const RANGES: ChartRange[] = ["24h", "7d", "1m", "3m", "1y", "all"];
 
-export function chartQuery(scope: Scope, range: ChartRange) {
-  return { queryKey: ["chart", scope, range], queryFn: () => api.chart(scope, range) };
+export function chartQuery(
+  scope: Scope,
+  range: ChartRange,
+  window?: { start: number; end: number },
+) {
+  return {
+    queryKey: ["chart", scope, range, window],
+    queryFn: () => api.chart(scope, range, window),
+  };
 }
 
 export function toSeries(points: ChartPoint[]) {
@@ -45,14 +52,16 @@ export function PortfolioChart({
   scope,
   range,
   onRangeChange,
+  window,
 }: {
   scope: Scope;
   range: ChartRange;
+  window?: { start: number; end: number };
   onRangeChange: (r: ChartRange) => void;
 }) {
   const { t } = useTranslation();
   const { locale, timeZone } = useApp();
-  const chart = useQuery(chartQuery(scope, range));
+  const chart = useQuery(chartQuery(scope, range, window));
   const points = useMemo(() => toSeries(chart.data?.points ?? []), [chart.data]);
   const hasData = points.some((p) => p.value !== null);
   const anyEstimated = points.some((p) => p.estimated);

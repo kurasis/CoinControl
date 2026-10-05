@@ -181,6 +181,8 @@ struct TxFee {
 
 #[derive(Debug, Clone, Deserialize)]
 struct Transfer {
+    sender: Option<String>,
+    recipient: Option<String>,
     fungible_info: Option<FungibleInfo>,
     nft_info: Option<serde_json::Value>,
     direction: String,
@@ -510,6 +512,13 @@ fn normalize_tx(
                 }
             };
             legs.push(LegSpec {
+                counterparty: (if direction == Direction::Out {
+                    t.recipient.as_deref()
+                } else {
+                    t.sender.as_deref()
+                })
+                .and_then(|a| portfolio_core::address::normalize_address(network, a).ok())
+                .map(|a| a.canonical),
                 unresolved: direction == Direction::In,
                 asset,
                 signed_raw: signed,

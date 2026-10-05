@@ -55,6 +55,13 @@ fn raw(asset: &AssetSpec, q: &str) -> BigInt {
 fn leg(asset: AssetSpec, q: &str, op: &str) -> LegSpec {
     let signed = raw(&asset, q);
     LegSpec {
+        counterparty: if op == "send" {
+            Some(ADDR_B.into())
+        } else if op == "receive" {
+            Some(ADDR_A.into())
+        } else {
+            None
+        },
         direction: if q.starts_with('-') {
             Direction::Out
         } else {
@@ -953,6 +960,7 @@ async fn activity_rows_carry_historical_value_and_review_state() {
             &ActivityFilter {
                 asset_id: None,
                 unresolved_only: true,
+                ..Default::default()
             },
             None,
             50,
@@ -1013,4 +1021,217 @@ async fn demo_profile_shows_known_estimated_and_missing_basis() {
             .iter()
             .any(|i| i.reason == "unclassified_outgoing")
     );
+}
+
+#[tokio::test]
+async fn movement_identity_survives_reordering_and_never_recycles() {
+    let w = world().await;
+    let mut record = tx(
+        "0xidentity",
+        T0,
+        "receive",
+        vec![leg(eth(), "1", "receive"), leg(usdc(), "5", "receive")],
+        None,
+    );
+    w.store.ingest_transaction(&w.a, &record).await.unwrap();
+    let original = leg_id("0xidentity", &w.a, 0);
+    w.store
+        .save_leg_override(
+            &original,
+            &LegOverride {
+                basis_lots: Some(vec![basis("1", Some("123"), T0)]),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+    record.legs.reverse();
+    w.store.ingest_transaction(&w.a, &record).await.unwrap();
+    w.store.replay_accounting().await.unwrap();
+    let detail = w.store.leg_detail(&original).await.unwrap();
+    assert_eq!(detail.asset_id, eth().id());
+    assert_eq!(detail.basis_usd.as_deref(), Some("123"));
+    record.legs.retain(|l| l.asset.id() != eth().id());
+    w.store.ingest_transaction(&w.a, &record).await.unwrap();
+    record.legs.push(leg(eth(), "2", "receive"));
+    w.store.ingest_transaction(&w.a, &record).await.unwrap();
+    w.store.replay_accounting().await.unwrap();
+    assert!(w.store.leg_detail(&original).await.is_err());
+    assert!(
+        w.store
+            .list_review_items(&Scope::All, None)
+            .await
+            .unwrap()
+            .reconciliation
+            .iter()
+            .any(|r| r.kind == "orphaned_override")
+    );
+}
+
+#[tokio::test]
+async fn chain_position_orders_a_receipt_before_a_same_second_sale() {
+    let store = Store::open_in_memory(ProfileKind::Test, Arc::new(FixedClock(NOW)))
+        .await
+        .unwrap();
+    let wallet = store.create_wallet("Order").await.unwrap();
+    let account = store
+        .add_account(&wallet.id, NetworkId::Ethereum, ADDR_A, None)
+        .await
+        .unwrap();
+    // Lexical hash order would put the sale first. Chain index must win.
+    let mut buy = tx(
+        "0xffff",
+        T0,
+        "receive",
+        vec![leg(eth(), "1", "receive")],
+        None,
+    );
+    buy.position = Some("2".into());
+    let mut sale = tx("0x0000", T0, "send", vec![leg(eth(), "-1", "send")], None);
+    sale.position = Some("10".into());
+    store.ingest_transaction(&account.id, &sale).await.unwrap();
+    store.ingest_transaction(&account.id, &buy).await.unwrap();
+    store
+        .save_leg_override(
+            &leg_id("0xffff", &account.id, 0),
+            &LegOverride {
+                basis_lots: Some(vec![basis("1", Some("100"), T0)]),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .save_leg_override(
+            &leg_id("0x0000", &account.id, 0),
+            &LegOverride {
+                classification: Some(LegClassification::Sale),
+                proceeds_usd: Some("150".into()),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+    let report = store.replay_accounting().await.unwrap();
+    assert_eq!(report.reconciliation_items, 0);
+    let summary = store.portfolio_summary(&Scope::All).await.unwrap();
+    assert_eq!(summary.accounting.realized.known_usd, "50");
+}
+
+#[tokio::test]
+async fn hidden_assets_keep_totals_but_accounting_exclusion_is_reversible() {
+    let w = world().await;
+    w.store.replay_accounting().await.unwrap();
+    let before = w.store.portfolio_summary(&Scope::All).await.unwrap();
+    w.store
+        .set_asset_policy("ethereum:native", true, None)
+        .await
+        .unwrap();
+    w.store.replay_accounting().await.unwrap();
+    assert_eq!(
+        w.store.portfolio_summary(&Scope::All).await.unwrap(),
+        before
+    );
+    assert!(
+        w.store
+            .list_asset_policies()
+            .await
+            .unwrap()
+            .iter()
+            .any(|p| p.asset_id == "ethereum:native" && p.hidden)
+    );
+    w.store
+        .set_asset_policy("ethereum:native", false, Some(true))
+        .await
+        .unwrap();
+    w.store.replay_accounting().await.unwrap();
+    assert!(w.store.list_holdings(&Scope::All).await.unwrap().is_empty());
+    assert!(
+        !w.store
+            .list_activity(&Scope::All, &Default::default(), None, 200)
+            .await
+            .unwrap()
+            .rows
+            .is_empty()
+    );
+    w.store
+        .set_asset_policy("ethereum:native", false, None)
+        .await
+        .unwrap();
+    w.store.replay_accounting().await.unwrap();
+    assert_eq!(
+        w.store.portfolio_summary(&Scope::All).await.unwrap(),
+        before
+    );
+}
+
+#[tokio::test]
+async fn custom_dates_have_exact_endpoints_and_filters_cover_only_the_selected_account() {
+    let w = world().await;
+    w.store.replay_accounting().await.unwrap();
+    let custom = w
+        .store
+        .get_chart_window(&Scope::All, ChartRange::All, Some((T1 + 123, T2 - 321)))
+        .await
+        .unwrap();
+    assert_eq!(custom.points.first().unwrap().t, T1 + 123);
+    assert_eq!(custom.points.last().unwrap().t, T2 - 321);
+    assert!(custom.points.len() <= 1000);
+    assert_eq!(custom.performance.as_ref().unwrap().start, T1 + 123);
+    assert!(
+        w.store
+            .get_chart_window(&Scope::All, ChartRange::All, Some((T2, T1)))
+            .await
+            .is_err()
+    );
+    let filter = ActivityFilter {
+        account_id: Some(w.b.clone()),
+        network: Some(NetworkId::Ethereum),
+        operation: Some("send".into()),
+        status: Some("confirmed".into()),
+        start: Some(T2),
+        end: Some(T2),
+        ..Default::default()
+    };
+    let rows = w
+        .store
+        .list_activity(&Scope::All, &filter, None, 1)
+        .await
+        .unwrap()
+        .rows;
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].account_id, w.b);
+    assert_eq!(rows[0].occurred_at, T2);
+}
+
+#[tokio::test]
+async fn cooccurrence_without_matching_payment_edges_never_moves_owned_basis() {
+    let w = world().await;
+    let mut sent = leg(eth(), "-1", "send");
+    sent.counterparty = Some("0x0000000000000000000000000000000000000001".into());
+    let mut received = leg(eth(), "1", "receive");
+    received.counterparty = Some("0x0000000000000000000000000000000000000002".into());
+    w.store
+        .ingest_transaction(&w.a, &tx("0x02", T1, "send", vec![sent], Some("0.01")))
+        .await
+        .unwrap();
+    w.store
+        .ingest_transaction(&w.b, &tx("0x02", T1, "receive", vec![received], None))
+        .await
+        .unwrap();
+    w.store.replay_accounting().await.unwrap();
+    let rows = w
+        .store
+        .list_activity(&Scope::All, &Default::default(), None, 200)
+        .await
+        .unwrap()
+        .rows;
+    for row in rows.iter().filter(|r| r.transaction_id == "ethereum:0x02") {
+        assert!(
+            row.legs
+                .iter()
+                .all(|l| l.treatment.as_deref() != Some("own_transfer_in")
+                    && l.treatment.as_deref() != Some("own_transfer_out"))
+        );
+    }
 }

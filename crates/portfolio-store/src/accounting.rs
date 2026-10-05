@@ -169,6 +169,8 @@ pub(crate) struct AssetInfo {
 
 #[derive(Debug, Clone)]
 struct LegRow {
+    address: String,
+    counterparty: Option<String>,
     id: String,
     tx_id: String,
     account_id: String,
@@ -272,6 +274,7 @@ impl PriceBook {
 }
 
 pub(crate) struct Inputs {
+    transaction_order: BTreeMap<String, u64>,
     owned: BTreeSet<String>,
     assets: BTreeMap<String, AssetInfo>,
     legs: Vec<LegRow>,
@@ -456,7 +459,7 @@ pub(crate) fn compute(inputs: &Inputs) -> Computation {
         *entry = (*entry).max(lot.cutoff_at);
     }
     for (id, lot) in &inputs.openings {
-        if !inputs.owned.contains(&lot.account_id) {
+        if !inputs.owned.contains(&lot.account_id) || inputs.is_spam(&lot.asset_id) {
             continue;
         }
         let Ok(quantity) = parse_dec(&lot.quantity) else {
@@ -505,7 +508,9 @@ pub(crate) fn compute(inputs: &Inputs) -> Computation {
     let mut overlap: BTreeMap<(String, String), u32> = BTreeMap::new();
     let mut active: Vec<&LegRow> = Vec::new();
     for leg in &inputs.legs {
-        if before_opening(&leg.account_id, &leg.asset_id, leg.at) {
+        if inputs.is_spam(&leg.asset_id) {
+            notes.insert(leg.id.clone(), note(leg, "excluded_spam"));
+        } else if before_opening(&leg.account_id, &leg.asset_id, leg.at) {
             *overlap
                 .entry((leg.account_id.clone(), leg.asset_id.clone()))
                 .or_default() += 1;
@@ -654,6 +659,9 @@ pub(crate) fn compute(inputs: &Inputs) -> Computation {
             &mut flows,
         );
         for fee in fees_by_tx.get(&key).map(Vec::as_slice).unwrap_or(&[]) {
+            if inputs.is_spam(&fee.asset_id) {
+                continue;
+            }
             let (value, estimated) =
                 inputs.leg_value(&fee.id, &fee.asset_id, &fee.quantity, fee.at);
             events.push(Event {
@@ -688,6 +696,13 @@ pub(crate) fn compute(inputs: &Inputs) -> Computation {
         }
     }
 
+    // Respect the provider's chain position within the same timestamp. Event
+    // identifiers only break ties inside one transaction, not across blocks.
+    for event in &mut events {
+        if let Some((tx, _)) = event.id.split_once('|') {
+            event.order.seq = inputs.transaction_order.get(tx).copied().unwrap_or(0);
+        }
+    }
     let event_count = events.len();
     let ledger = Ledger::replay(&events);
     for gap in ledger.gaps() {
@@ -731,6 +746,7 @@ fn note(leg: &LegRow, treatment: &'static str) -> LegNote {
 /// One netted movement of one account and asset inside a transaction.
 struct Movement<'a> {
     leg: &'a LegRow,
+    direct_edge: bool,
     /// Positive amount still to be interpreted.
     remaining: Dec,
     counterparty: Option<String>,
@@ -780,6 +796,10 @@ fn process_tx(
         let Some(rep) = representative else { continue };
         let m = Movement {
             leg: rep,
+            direct_edge: group.iter().all(|l| {
+                l.counterparty == rep.counterparty
+                    && (l.quantity > Dec::zero()) == (net > Dec::zero())
+            }),
             remaining: net.abs(),
             counterparty: None,
         };
@@ -796,9 +816,21 @@ fn process_tx(
         let Some(receivers) = ins.get_mut(asset) else {
             continue;
         };
+        // A shared transaction hash proves co-occurrence, not the payment
+        // edges of a multi-party transaction. Never invent FIFO lot routes.
+        if senders.len() != 1 || receivers.len() != 1 {
+            continue;
+        }
         let (mut i, mut j) = (0usize, 0usize);
         while i < senders.len() && j < receivers.len() {
             let (s, r) = (&senders[i], &receivers[j]);
+            if !s.direct_edge
+                || !r.direct_edge
+                || s.leg.counterparty.as_deref() != Some(r.leg.address.as_str())
+                || r.leg.counterparty.as_deref() != Some(s.leg.address.as_str())
+            {
+                break;
+            }
             if s.leg.account_id == r.leg.account_id {
                 j += 1;
                 continue;
@@ -1421,13 +1453,39 @@ impl Store {
     }
 
     pub(crate) async fn load_inputs(&self) -> Result<Inputs> {
+        let mut ordered = Vec::new();
+        for row in sqlx::query(
+            "SELECT id, network_id, occurred_at, block_height, position FROM chain_transactions",
+        )
+        .fetch_all(&self.pool)
+        .await?
+        {
+            let position: Option<String> = row.get("position");
+            ordered.push((
+                row.get::<i64, _>("occurred_at"),
+                row.get::<String, _>("network_id"),
+                row.get::<Option<i64>, _>("block_height")
+                    .unwrap_or(i64::MAX),
+                position
+                    .as_deref()
+                    .and_then(|p| p.parse::<u64>().ok())
+                    .unwrap_or(u64::MAX),
+                row.get::<String, _>("id"),
+            ));
+        }
+        ordered.sort();
+        let transaction_order = ordered
+            .into_iter()
+            .enumerate()
+            .map(|(i, (_, _, _, _, id))| (id, i as u64 + 1))
+            .collect();
         let owned: BTreeSet<String> = sqlx::query_scalar("SELECT id FROM accounts")
             .fetch_all(&self.pool)
             .await?
             .into_iter()
             .collect();
         let mut assets = BTreeMap::new();
-        for r in sqlx::query("SELECT id, decimals, verification FROM assets")
+        for r in sqlx::query("SELECT a.id,a.decimals,CASE WHEN p.exclude_override=1 THEN 'spam' WHEN p.exclude_override=0 AND a.verification='spam' THEN 'unverified' ELSE a.verification END AS verification FROM assets a LEFT JOIN asset_preferences p ON p.asset_id=a.id")
             .fetch_all(&self.pool)
             .await?
         {
@@ -1450,8 +1508,8 @@ impl Store {
         // ones only through their actually paid fee.
         let mut legs = Vec::new();
         for r in sqlx::query(
-            "SELECT l.id, l.transaction_id, l.account_id, l.asset_id, l.signed_raw_quantity, t.occurred_at
-             FROM activity_legs l JOIN chain_transactions t ON t.id = l.transaction_id
+            "SELECT l.id, l.transaction_id, l.account_id, l.asset_id, l.signed_raw_quantity, t.occurred_at,a.canonical_address,json_extract(l.evidence,'$.counterparty') AS counterparty
+             FROM activity_legs l JOIN chain_transactions t ON t.id = l.transaction_id JOIN accounts a ON a.id=l.account_id
              WHERE t.status IN ('confirmed', 'final')
              ORDER BY t.occurred_at, l.transaction_id, l.id",
         )
@@ -1464,6 +1522,8 @@ impl Store {
                 continue;
             }
             legs.push(LegRow {
+                address:r.get("canonical_address"),
+                counterparty:r.get("counterparty"),
                 id: r.get("id"),
                 tx_id: r.get("transaction_id"),
                 account_id: r.get("account_id"),
@@ -1526,6 +1586,7 @@ impl Store {
         }
         prices.finish();
         Ok(Inputs {
+            transaction_order,
             owned,
             assets,
             legs,
@@ -1613,11 +1674,14 @@ impl Store {
 
     /// Rebuilds every derived accounting table from evidence, prices and decisions.
     pub async fn replay_accounting(&self) -> Result<ReplayReport> {
-        let inputs = self.load_inputs().await?;
-        let c = compute(&inputs);
-        let mismatches = self.balance_mismatches(&c.ledger).await?;
-
+        // Hold the same write gate from evidence loading through commit. A
+        // sync/decision cannot be acknowledged by a replay that did not see it.
         let _guard = self.write_lock.lock().await;
+        let inputs = self.load_inputs().await?;
+        let (c, inputs) = tokio::task::spawn_blocking(move || (compute(&inputs), inputs))
+            .await
+            .map_err(|e| StoreError::Corrupt(format!("accounting worker: {e}")))?;
+        let mismatches = self.balance_mismatches(&c.ledger).await?;
         let mut tx = self.pool.begin().await?;
         for statement in [
             "DELETE FROM lot_consumptions",
@@ -1808,12 +1872,12 @@ impl Store {
                 .or_insert_with(Dec::zero) += &lot.quantity;
         }
         let rows = sqlx::query(
-            "SELECT b.account_id, b.asset_id, b.raw_quantity, s.decimals, s.verification,
+            "SELECT b.account_id, b.asset_id, b.raw_quantity, s.decimals, CASE WHEN p.exclude_override=1 THEN 'spam' WHEN p.exclude_override=0 AND s.verification='spam' THEN 'unverified' ELSE s.verification END AS verification,
                     (SELECT c.coverage FROM sync_checkpoints c WHERE c.account_id = b.account_id AND c.category = 'history') AS coverage,
                     (SELECT COUNT(*) FROM account_transactions x JOIN chain_transactions t ON t.id = x.transaction_id
                      WHERE x.account_id = b.account_id AND t.status = 'pending') AS pending,
                     (SELECT COUNT(*) FROM account_transactions x WHERE x.account_id = b.account_id) AS txs
-             FROM balance_observations b JOIN assets s ON s.id = b.asset_id
+             FROM balance_observations b JOIN assets s ON s.id = b.asset_id LEFT JOIN asset_preferences p ON p.asset_id=s.id
              WHERE b.status IN ('fresh', 'stale') AND b.id = (
                  SELECT b2.id FROM balance_observations b2
                  WHERE b2.account_id = b.account_id AND b2.asset_id = b.asset_id

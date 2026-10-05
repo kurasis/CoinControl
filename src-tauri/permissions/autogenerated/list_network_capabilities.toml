@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-network-capabilities"
+description = "Enables the list_network_capabilities command without any pre-configured scope."
+commands.allow = ["list_network_capabilities"]
+
+[[permission]]
+identifier = "deny-list-network-capabilities"
+description = "Denies the list_network_capabilities command without any pre-configured scope."
+commands.deny = ["list_network_capabilities"]

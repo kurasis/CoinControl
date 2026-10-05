@@ -56,6 +56,31 @@ impl Store {
             ids.push_bind(id);
         }
         ids.push_unseparated(")");
+        if let Some(account) = &filter.account_id {
+            query.push(" AND x.account_id = ").push_bind(account);
+        }
+        if let Some(network) = filter.network {
+            query
+                .push(" AND t.network_id = ")
+                .push_bind(network.as_str());
+        }
+        if let Some(operation) = &filter.operation {
+            query.push(" AND x.operation = ").push_bind(operation);
+        }
+        if let Some(status) = &filter.status {
+            query.push(" AND t.status = ").push_bind(status);
+        }
+        if let Some(start) = filter.start {
+            query.push(" AND t.occurred_at >= ").push_bind(start);
+        }
+        if let Some(end) = filter.end {
+            query.push(" AND t.occurred_at <= ").push_bind(end);
+        }
+        if filter.start.zip(filter.end).is_some_and(|(a, b)| a > b) {
+            return Err(StoreError::Invalid(
+                "activity date range is reversed".into(),
+            ));
+        }
         if let Some(asset) = &filter.asset_id {
             query
                 .push(

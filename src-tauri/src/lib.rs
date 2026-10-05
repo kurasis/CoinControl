@@ -61,8 +61,14 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            let profiles_dir = app.path().app_data_dir()?.join("profiles");
+            let data_dir = app.path().app_data_dir()?;
+            #[cfg(feature = "native-e2e")]
+            let data_dir = std::env::var_os("COINCONTROL_E2E_DATA_DIR")
+                .map(PathBuf::from)
+                .unwrap_or(data_dir);
+            let profiles_dir = data_dir.join("profiles");
             std::fs::create_dir_all(&profiles_dir)?;
             let store =
                 tauri::async_runtime::block_on(open_profile(&profiles_dir, ProfileKind::Real))
@@ -87,6 +93,9 @@ pub fn run() {
             commands::create_wallet,
             commands::list_wallets,
             commands::rename_wallet,
+            commands::add_accounts,
+            commands::list_asset_policies,
+            commands::set_asset_policy,
             commands::add_account,
             commands::list_accounts,
             commands::set_account_archived,
@@ -113,6 +122,13 @@ pub fn run() {
             commands::remove_provider_key,
             commands::sync_now,
             commands::list_sync_status,
+            commands::cancel_sync,
+            commands::get_sync_progress,
+            commands::test_provider,
+            commands::export_backup,
+            commands::inspect_backup,
+            commands::restore_backup,
+            commands::export_csv,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Portfolio Desk");

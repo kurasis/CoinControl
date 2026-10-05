@@ -277,6 +277,18 @@ pub struct ActivityFilter {
     /// Only movements that need review or are not fully decoded.
     #[serde(default)]
     pub unresolved_only: bool,
+    #[serde(default)]
+    pub account_id: Option<String>,
+    #[serde(default)]
+    pub network: Option<NetworkId>,
+    #[serde(default)]
+    pub operation: Option<String>,
+    #[serde(default)]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub start: Option<i64>,
+    #[serde(default)]
+    pub end: Option<i64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -498,4 +510,16 @@ pub struct LegDetail {
     pub current: Option<crate::LegOverride>,
     pub history: Vec<OverrideVersion>,
     pub pair_candidates: Vec<PairCandidate>,
+}
+
+/// Visibility is independent from accounting inclusion. None follows provider spam classification.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(TS), ts(export))]
+pub struct AssetPolicy {
+    pub asset_id: String,
+    pub symbol: Option<String>,
+    pub name: Option<String>,
+    pub verification: String,
+    pub hidden: bool,
+    pub exclude_override: Option<bool>,
 }

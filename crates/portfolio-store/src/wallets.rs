@@ -106,7 +106,31 @@ impl Store {
         address: &str,
         label: Option<&str>,
     ) -> Result<Account> {
-        let normalized = normalize_address(network, address)?;
+        Ok(self
+            .add_accounts(wallet_id, network, &[address.to_owned()], label)
+            .await?
+            .remove(0))
+    }
+
+    /// Validate the whole paste before atomically adding its addresses.
+    pub async fn add_accounts(
+        &self,
+        wallet_id: &str,
+        network: NetworkId,
+        addresses: &[String],
+        label: Option<&str>,
+    ) -> Result<Vec<Account>> {
+        if addresses.is_empty() || addresses.len() > 50 {
+            return Err(StoreError::Invalid("add between 1 and 50 addresses".into()));
+        }
+        let normalized = addresses
+            .iter()
+            .map(|a| normalize_address(network, a))
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        let mut seen = std::collections::BTreeSet::new();
+        if normalized.iter().any(|a| !seen.insert(&a.canonical)) {
+            return Err(StoreError::Invalid("duplicate address in batch".into()));
+        }
         let label = label.map(clean_label).transpose()?;
         let _guard = self.write_lock.lock().await;
         let mut tx = self.pool.begin().await?;
@@ -120,32 +144,34 @@ impl Store {
             return Err(StoreError::NotFound("wallet"));
         }
 
-        let existing = sqlx::query(
-            "SELECT a.id, w.label FROM accounts a JOIN wallets w ON w.id = a.wallet_id
+        let mut accounts = Vec::new();
+        for normalized in normalized {
+            let existing = sqlx::query(
+                "SELECT a.id, w.label FROM accounts a JOIN wallets w ON w.id = a.wallet_id
              WHERE a.network_id = ? AND a.canonical_address = ?",
-        )
-        .bind(network.as_str())
-        .bind(&normalized.canonical)
-        .fetch_optional(&mut *tx)
-        .await?;
-        if let Some(row) = existing {
-            return Err(StoreError::AccountExists {
-                account_id: row.get(0),
-                wallet_label: row.get(1),
-            });
-        }
+            )
+            .bind(network.as_str())
+            .bind(&normalized.canonical)
+            .fetch_optional(&mut *tx)
+            .await?;
+            if let Some(row) = existing {
+                return Err(StoreError::AccountExists {
+                    account_id: row.get(0),
+                    wallet_label: row.get(1),
+                });
+            }
 
-        let account = Account {
-            id: new_id(),
-            wallet_id: wallet_id.to_owned(),
-            network,
-            canonical_address: normalized.canonical,
-            display_address: normalized.display,
-            label,
-            archived: false,
-            created_at: self.now(),
-        };
-        sqlx::query(
+            let account = Account {
+                id: new_id(),
+                wallet_id: wallet_id.to_owned(),
+                network,
+                canonical_address: normalized.canonical,
+                display_address: normalized.display,
+                label: label.clone(),
+                archived: false,
+                created_at: self.now(),
+            };
+            sqlx::query(
             "INSERT INTO accounts (id, wallet_id, network_id, canonical_address, display_address, label, archived, created_at)
              VALUES (?, ?, ?, ?, ?, ?, 0, ?)",
         )
@@ -158,9 +184,11 @@ impl Store {
         .bind(account.created_at)
         .execute(&mut *tx)
         .await?;
+            accounts.push(account);
+        }
         crate::ingest::mark_dirty_in(&mut tx).await?;
         tx.commit().await?;
-        Ok(account)
+        Ok(accounts)
     }
 
     pub async fn list_accounts(&self, wallet_id: Option<&str>) -> Result<Vec<Account>> {

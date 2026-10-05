@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 use std::sync::Mutex as StdMutex;
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::{Duration, Instant};
 
 use reqwest::header::{HeaderMap, HeaderValue, RETRY_AFTER};
@@ -53,6 +53,8 @@ impl Default for HttpConfig {
 pub struct Budget {
     limit: Option<u32>,
     used: AtomicU32,
+    stopped: AtomicBool,
+    last_start: Mutex<Option<Instant>>,
 }
 
 impl Budget {
@@ -64,11 +66,16 @@ impl Budget {
         Arc::new(Budget {
             limit: Some(limit),
             used: AtomicU32::new(0),
+            stopped: AtomicBool::new(false),
+            last_start: Mutex::new(None),
         })
     }
 
     /// Reserves one request; `false` when the budget is spent.
     fn try_take(&self) -> bool {
+        if self.stopped.load(Ordering::Relaxed) {
+            return false;
+        }
         let Some(limit) = self.limit else {
             self.used.fetch_add(1, Ordering::Relaxed);
             return true;
@@ -97,7 +104,6 @@ pub struct HttpClient {
     client: reqwest::Client,
     config: HttpConfig,
     budget: Arc<Budget>,
-    last_start: Mutex<Option<Instant>>,
     usage: StdMutex<Usage>,
 }
 
@@ -154,7 +160,6 @@ impl HttpClient {
             client,
             config,
             budget,
-            last_start: Mutex::new(None),
             usage: StdMutex::new(Usage::default()),
         })
     }
@@ -196,7 +201,7 @@ impl HttpClient {
     }
 
     async fn pace(&self) {
-        let mut last = self.last_start.lock().await;
+        let mut last = self.budget.last_start.lock().await;
         if let Some(prev) = *last {
             let elapsed = prev.elapsed();
             if elapsed < self.config.min_interval {
@@ -222,6 +227,9 @@ impl HttpClient {
                 return Err(error);
             }
             self.pace().await;
+            if self.budget.stopped.load(Ordering::Relaxed) {
+                return Err(ProviderError::BudgetExhausted { provider });
+            }
             let mut request = self.client.request(method.clone(), url.clone());
             if let Some(body) = json {
                 request = request.json(body);
@@ -236,11 +244,17 @@ impl HttpClient {
                 Err(failure) => failure,
             };
             if !error.is_retryable() || attempt >= self.config.max_retries {
+                if error.stops_provider() {
+                    self.budget.stopped.store(true, Ordering::Relaxed);
+                }
                 self.note_failure(&error);
                 return Err(error);
             }
             let wait = match retry_after {
                 Some(wait) if wait > self.config.max_retry_after => {
+                    if error.stops_provider() {
+                        self.budget.stopped.store(true, Ordering::Relaxed);
+                    }
                     self.note_failure(&error);
                     return Err(error);
                 }

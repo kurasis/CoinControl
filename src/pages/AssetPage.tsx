@@ -175,7 +175,9 @@ export function AssetPage() {
                 {d.accounts.map((a) => (
                   <tr key={a.account_id}>
                     <td>
-                      {accountLabels.get(a.account_id) ?? "—"}
+                      <Link to={`/accounts/${a.account_id}`}>
+                        {accountLabels.get(a.account_id) ?? "—"}
+                      </Link>
                       {a.balance_status !== "fresh" && (
                         <span className="meta warning">
                           {" "}

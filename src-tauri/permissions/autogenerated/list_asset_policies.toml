@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-asset-policies"
+description = "Enables the list_asset_policies command without any pre-configured scope."
+commands.allow = ["list_asset_policies"]
+
+[[permission]]
+identifier = "deny-list-asset-policies"
+description = "Denies the list_asset_policies command without any pre-configured scope."
+commands.deny = ["list_asset_policies"]

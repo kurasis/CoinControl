@@ -7,10 +7,14 @@ const COMMANDS: &[&str] = &[
     "get_settings",
     "update_settings",
     "list_networks",
+    "list_network_capabilities",
     "validate_address",
     "create_wallet",
     "list_wallets",
     "rename_wallet",
+    "add_accounts",
+    "list_asset_policies",
+    "set_asset_policy",
     "add_account",
     "list_accounts",
     "set_account_archived",
@@ -37,6 +41,13 @@ const COMMANDS: &[&str] = &[
     "remove_provider_key",
     "sync_now",
     "list_sync_status",
+    "cancel_sync",
+    "get_sync_progress",
+    "test_provider",
+    "export_backup",
+    "inspect_backup",
+    "restore_backup",
+    "export_csv",
 ];
 
 fn main() {

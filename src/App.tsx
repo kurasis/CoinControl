@@ -5,6 +5,7 @@ import { ActivityPage } from "./pages/ActivityPage";
 import { AssetPage } from "./pages/AssetPage";
 import { PortfolioPage } from "./pages/PortfolioPage";
 import { ReviewPage } from "./pages/ReviewPage";
+import { AccountPage } from "./pages/AccountPage";
 import { GroupPage } from "./pages/ScopedPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { WalletsPage } from "./pages/WalletsPage";
@@ -17,6 +18,7 @@ export function App() {
           <Route element={<Layout />}>
             <Route index element={<PortfolioPage />} />
             <Route path="wallets" element={<WalletsPage />} />
+            <Route path="accounts/:id" element={<AccountPage />} />
             <Route path="activity" element={<ActivityPage />} />
             <Route path="assets/:assetId" element={<AssetPage />} />
             <Route path="review" element={<ReviewPage />} />

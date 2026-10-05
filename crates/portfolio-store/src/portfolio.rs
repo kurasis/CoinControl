@@ -146,7 +146,7 @@ fn partial(sum: &portfolio_core::accounting::PartialSum) -> PartialUsd {
 impl Store {
     pub(crate) async fn asset_meta(&self) -> Result<BTreeMap<String, AssetMeta>> {
         let rows = sqlx::query(
-            "SELECT id, network_id, asset_kind, canonical_identifier, symbol, name, decimals, verification FROM assets",
+            "SELECT a.id, a.network_id, a.asset_kind, a.canonical_identifier, a.symbol, a.name, a.decimals, CASE WHEN p.exclude_override=1 THEN 'spam' WHEN p.exclude_override=0 AND a.verification='spam' THEN 'unverified' ELSE a.verification END AS verification FROM assets a LEFT JOIN asset_preferences p ON p.asset_id=a.id",
         )
         .fetch_all(&self.pool)
         .await?;
@@ -561,8 +561,20 @@ impl Store {
     /// Historical holdings value of the scope: historical quantity times
     /// historical price, with the period performance of the interval.
     pub async fn get_chart(&self, scope: &Scope, range: ChartRange) -> Result<ChartSeries> {
+        self.get_chart_window(scope, range, None).await
+    }
+
+    pub async fn get_chart_window(
+        &self,
+        scope: &Scope,
+        range: ChartRange,
+        window: Option<(i64, i64)>,
+    ) -> Result<ChartSeries> {
+        if window.is_some_and(|(start, end)| start < 0 || start >= end || end > self.now()) {
+            return Err(StoreError::Invalid("invalid custom chart interval".into()));
+        }
         let accounts = self.resolve_scope(scope).await?;
-        let mut series = self.holdings_series(&accounts, None, range).await?;
+        let mut series = self.holdings_series(&accounts, None, range, window).await?;
         series.performance = self.period_performance(&accounts, &series).await?;
         Ok(series)
     }
@@ -576,7 +588,7 @@ impl Store {
     ) -> Result<AssetChart> {
         let accounts = self.resolve_scope(scope).await?;
         let holdings = self
-            .holdings_series(&accounts, Some(asset_id), range)
+            .holdings_series(&accounts, Some(asset_id), range, None)
             .await?;
         let now = self.now();
         let (interval, start) = grid_params(range, now, None);
@@ -782,6 +794,7 @@ impl Store {
         accounts: &BTreeSet<String>,
         asset_filter: Option<&str>,
         range: ChartRange,
+        window: Option<(i64, i64)>,
     ) -> Result<ChartSeries> {
         let assets = self.asset_meta().await?;
         let now = self.now();
@@ -792,11 +805,31 @@ impl Store {
             .values()
             .filter_map(|s| s.first().map(|p| p.0))
             .min();
-        let (interval, start) = grid_params(range, now, earliest);
+        let (interval, start, end) = match window {
+            Some((start, end)) => (
+                ((end - start) / (MAX_CHART_POINTS - 1) + 1).max(HOUR),
+                start,
+                end,
+            ),
+            None => {
+                let (interval, start) = grid_params(range, now, earliest);
+                (interval, start, now)
+            }
+        };
         let held: BTreeSet<String> = quantities.keys().map(|(_, a)| a.clone()).collect();
         let book = self.price_book(&held, start - DAY).await?;
 
-        let points = grid(start, interval, now)
+        let mut times = grid(start, interval, end);
+        if window.is_some() {
+            times.retain(|t| *t >= start && *t <= end);
+            if times.first() != Some(&start) {
+                times.insert(0, start);
+            }
+            if times.last() != Some(&end) {
+                times.push(end);
+            }
+        }
+        let points = times
             .into_iter()
             .map(|t| {
                 let mut total = Dec::zero();

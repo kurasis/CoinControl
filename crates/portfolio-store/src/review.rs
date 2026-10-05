@@ -373,6 +373,7 @@ impl Store {
         leg_id: &str,
         payload: &LegOverride,
     ) -> Result<ReplayReport> {
+        let guard = self.write_lock.lock().await;
         let leg = self
             .leg_facts(leg_id)
             .await?
@@ -395,11 +396,11 @@ impl Store {
             }
         }
         {
-            let _guard = self.write_lock.lock().await;
             let mut tx = self.pool.begin().await?;
             insert_override(&mut tx, "leg", leg_id, payload, "manual", self.now()).await?;
             tx.commit().await?;
         }
+        drop(guard);
         self.replay_accounting().await
     }
 

@@ -139,6 +139,8 @@ impl FeeAttribution {
 /// One asset movement of one owned account, excluding the network fee.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LegSpec {
+    /// Canonical public address of the other party, only when directly evidenced.
+    pub counterparty: Option<String>,
     pub asset: AssetSpec,
     /// Smallest units; positive = received, negative = sent.
     pub signed_raw: BigInt,
@@ -147,6 +149,13 @@ pub struct LegSpec {
     pub decoding: Decoding,
     /// Needs user review before its accounting meaning is known.
     pub unresolved: bool,
+}
+
+impl LegSpec {
+    pub fn with_counterparty(mut self, address: Option<String>) -> Self {
+        self.counterparty = address;
+        self
+    }
 }
 
 /// The part of a transaction fee borne by the synchronized account.
@@ -329,6 +338,7 @@ impl Store {
     pub async fn upsert_asset(&self, asset: &AssetSpec) -> Result<String> {
         let _guard = self.write_lock.lock().await;
         let mut tx = self.pool.begin().await?;
+
         let id = upsert_asset_in(&mut tx, asset, self.now()).await?;
         tx.commit().await?;
         Ok(id)
@@ -462,6 +472,53 @@ impl Store {
         let _guard = self.write_lock.lock().await;
         let mut tx = self.pool.begin().await?;
 
+        // Match economic facts, not response array positions. Preserve legacy
+        // IDs where the facts still agree, so existing decisions stay attached.
+        let prefix = match part {
+            None => format!("{tx_id}:{account_id}"),
+            Some(p) => format!("{tx_id}:{account_id}:{p}"),
+        };
+        let previous = sqlx::query(
+            "SELECT id, asset_id, signed_raw_quantity, direction, leg_type,json_extract(evidence,'$.counterparty') AS counterparty FROM activity_legs
+             WHERE transaction_id = ? AND account_id = ?
+             AND COALESCE(json_extract(evidence, '$.part'), '') = ? ORDER BY id",
+        )
+        .bind(&tx_id)
+        .bind(account_id)
+        .bind(part.unwrap_or(""))
+        .fetch_all(&mut *tx)
+        .await?;
+        let mut next_index: i64 =
+            sqlx::query_scalar("SELECT next_index FROM movement_slots WHERE prefix = ?")
+                .bind(&prefix)
+                .fetch_optional(&mut *tx)
+                .await?
+                .unwrap_or(0);
+        for old in &previous {
+            if let Some(index) = old
+                .get::<String, _>("id")
+                .strip_prefix(&format!("{prefix}:"))
+                .and_then(|i| i.parse::<i64>().ok())
+            {
+                next_index = next_index.max(index + 1);
+            }
+        }
+        // Also reserve removed legacy IDs that still have user decisions.
+        let decided: Vec<String> = sqlx::query_scalar(
+            "SELECT target_id FROM accounting_overrides WHERE target_kind = 'leg' AND target_id >= ? AND target_id < ?",
+        ).bind(format!("{prefix}:")).bind(format!("{prefix};"))
+        .fetch_all(&mut *tx)
+        .await?;
+        for id in decided {
+            if let Some(index) = id
+                .strip_prefix(&format!("{prefix}:"))
+                .and_then(|s| s.parse::<i64>().ok())
+            {
+                next_index = next_index.max(index + 1);
+            }
+        }
+        let mut reused = BTreeSet::new();
+
         if part.is_none() {
             // A final/failed/confirmed record is never downgraded to pending by a
             // late mempool observation.
@@ -575,20 +632,43 @@ impl Store {
             .await?;
         }
 
-        let (id_prefix, evidence) = match part {
+        let (id_prefix, base_evidence) = match part {
             None => (format!("{tx_id}:{account_id}"), "{}".to_owned()),
             Some(p) => (
                 format!("{tx_id}:{account_id}:{p}"),
                 serde_json::json!({ "part": p }).to_string(),
             ),
         };
-        for (index, leg) in spec.legs.iter().enumerate() {
+        for leg in &spec.legs {
             let asset_id = upsert_asset_in(&mut tx, &leg.asset, now).await?;
+            let existing = previous.iter().find(|old| {
+                !reused.contains(&old.get::<String, _>("id"))
+                    && old.get::<String, _>("asset_id") == asset_id
+                    && old.get::<String, _>("signed_raw_quantity") == leg.signed_raw.to_string()
+                    && old.get::<String, _>("direction") == leg.direction.as_str()
+                    && old.get::<String, _>("leg_type") == leg.leg_type
+                    && old
+                        .get::<Option<String>, _>("counterparty")
+                        .is_none_or(|p| Some(p) == leg.counterparty)
+            });
+            let leg_id = match existing {
+                Some(old) => old.get::<String, _>("id"),
+                None => {
+                    let id = format!("{id_prefix}:{next_index}");
+                    next_index += 1;
+                    id
+                }
+            };
+            let mut evidence: serde_json::Value =
+                serde_json::from_str(&base_evidence).expect("internal evidence JSON");
+            evidence["counterparty"] = serde_json::json!(leg.counterparty);
+            let evidence = evidence.to_string();
+            reused.insert(leg_id.clone());
             sqlx::query(
                 "INSERT INTO activity_legs (id, transaction_id, account_id, asset_id, signed_raw_quantity, direction, leg_type, decoding, unresolved, evidence)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             )
-            .bind(format!("{id_prefix}:{index}"))
+            .bind(leg_id)
             .bind(&tx_id)
             .bind(account_id)
             .bind(&asset_id)
@@ -616,6 +696,14 @@ impl Store {
             .execute(&mut *tx)
             .await?;
         }
+        sqlx::query(
+            "INSERT INTO movement_slots (prefix, next_index) VALUES (?, ?)
+            ON CONFLICT(prefix) DO UPDATE SET next_index = excluded.next_index",
+        )
+        .bind(&prefix)
+        .bind(next_index)
+        .execute(&mut *tx)
+        .await?;
         mark_dirty_in(&mut tx).await?;
         tx.commit().await?;
         Ok(known.is_none())
@@ -687,6 +775,34 @@ impl Store {
         .bind(account_id)
         .fetch_all(&self.pool)
         .await?)
+    }
+
+    /// Bounded confirmed tail for authoritative reorg checks.
+    pub async fn recent_confirmed_transactions(
+        &self,
+        account_id: &str,
+        min_height: i64,
+        limit: u32,
+    ) -> Result<Vec<String>> {
+        Ok(sqlx::query_scalar("SELECT t.canonical_tx_id FROM account_transactions x JOIN chain_transactions t ON t.id=x.transaction_id WHERE x.account_id=? AND t.status='confirmed' AND t.block_height>=? ORDER BY t.block_height DESC,t.id LIMIT ?")
+            .bind(account_id).bind(min_height).bind(i64::from(limit)).fetch_all(&self.pool).await?)
+    }
+
+    /// Only call after an authoritative transaction lookup, never on a timeout
+    /// or because a paginated address listing omitted the transaction.
+    pub async fn invalidate_confirmation(
+        &self,
+        network: NetworkId,
+        hash: &str,
+        pending: bool,
+    ) -> Result<()> {
+        let _guard = self.write_lock.lock().await;
+        let mut tx = self.pool.begin().await?;
+        sqlx::query("UPDATE chain_transactions SET status=?,block_height=NULL,position=NULL WHERE network_id=? AND canonical_tx_id=?")
+            .bind(if pending {"pending"} else {"reorged"}).bind(network.as_str()).bind(hash).execute(&mut *tx).await?;
+        mark_dirty_in(&mut tx).await?;
+        tx.commit().await?;
+        Ok(())
     }
 
     /// A pending transaction that disappeared (replaced or dropped) is kept as
