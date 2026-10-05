@@ -104,8 +104,8 @@ impl Store {
     }
 
     /// Restore rows atomically into the existing schema. Readers see the old
-    /// transaction or the new one, never a half-replaced database. Returns a
-    /// safety snapshot persisted before applying a restore.
+    /// transaction or the new one, never a half-replaced database. A safety
+    /// snapshot is persisted before applying a restore.
     pub async fn restore_backup(&self, text: &str, safety_path: &Path) -> Result<()> {
         self.inspect_backup(text).await?;
         let (_, bytes) = decode(text)?;

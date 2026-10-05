@@ -33,7 +33,7 @@ ts-rs = { workspace = true, optional = true }
 
 [features]
 # Only the separately built native automation binary accepts an isolated data directory.
-native-e2e = []
+native-e2e = ["tauri/custom-protocol"]
 ts = ["dep:ts-rs", "portfolio-store/ts", "portfolio-providers/ts"]
 
 [lints]

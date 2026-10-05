@@ -1,6 +1,6 @@
 // Native WebDriver suite. DOM interactions use the real packaged UI and Rust IPC.
 // It never installs a test server or an IPC bypass in the application.
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -91,7 +91,7 @@ const route = async (path) => {
 async function clickText(text) {
   await until(() =>
     execute(
-      "const el=[...document.querySelectorAll('button,a,label')].find(e=>e.textContent.trim()===arguments[0]); if(!el || el.disabled)return false;el.click();return true;",
+      "const el=[...document.querySelectorAll('button,a,label')].find(e=>e.textContent.trim()===arguments[0] || e.getAttribute('aria-label')===arguments[0]); if(!el || el.disabled)return false;el.click();return true;",
       [text],
     ),
   );
@@ -174,10 +174,52 @@ try {
   const movement = await execute(
     "return document.querySelector('button[aria-label^=\"Open details for\"]').getAttribute('aria-label');",
   );
-  // Reopen the edited movement by its audit note when possible after a restart.
+  await route("/settings/sources");
+  await until(() => execute("return Boolean(document.querySelector('#key-zerion'));"));
+  await input("#key-zerion", "native-credential-sentinel-no-api-use");
+  await execute(
+    "document.querySelector('#key-zerion').closest('form').requestSubmit();return true;",
+  );
+  await until(() =>
+    execute(
+      "return document.querySelector('#zerion-name').closest('article').querySelector('.chip').textContent.trim()==='Configured';",
+    ),
+  );
+  if (!(await execute("return document.querySelector('#key-zerion').value==='';")))
+    throw new Error("Credential input did not clear after save");
+  record("Credential saved in isolated Windows Credential Manager entry", "PASS");
+  // Reopen the edited movement and check secure storage after a restart.
   await request(`/session/${session}`, "DELETE");
   session = undefined;
   await open();
+  await route("/settings/sources");
+  await until(() =>
+    execute(
+      "return document.querySelector('#zerion-name')?.closest('article').querySelector('.chip').textContent.trim()==='Configured';",
+    ),
+  );
+  if (!(await execute("return document.querySelector('#key-zerion').value==='';")))
+    throw new Error("Stored credential was returned to the renderer");
+  await execute(
+    "const card=document.querySelector('#zerion-name').closest('article');[...card.querySelectorAll('button')].find(e=>e.textContent.trim()==='Remove').click();return true;",
+  );
+  await until(() =>
+    execute(
+      "return document.querySelector('#zerion-name').closest('article').querySelector('.chip').textContent.trim()==='Not configured';",
+    ),
+  );
+  record("OS credential persists across restart and can be removed without echoing it", "PASS");
+  for (const name of ["real.sqlite", "demo.sqlite"]) {
+    const path = join(dataDir, "profiles", name);
+    for (const suffix of ["", "-wal", "-shm"]) {
+      if (
+        existsSync(path + suffix) &&
+        readFileSync(path + suffix).includes(Buffer.from("native-credential-sentinel-no-api-use"))
+      )
+        throw new Error("Credential persisted in SQLite rather than OS storage");
+    }
+  }
+  record("SQLite databases and WAL exclude credentials", "PASS");
   await route("/settings/data");
   await clickText("Explore demo portfolio");
   await route("/activity");
@@ -222,7 +264,6 @@ try {
   // Store recovery and CSV edge cases are covered by file-backed Rust integration tests.
   for (const scenario of [
     "Live native synchronization",
-    "OS credential entry and restart",
     "Native file dialog backup/restore",
     "Installer upgrade and uninstall",
     "Offline reconnect",
@@ -233,6 +274,11 @@ try {
       "Requires the separate live/installer acceptance run; this deterministic suite does not claim it",
     );
 } catch (e) {
+  try {
+    await screenshot("failure");
+  } catch {
+    /* A closed process may have no screenshot. */
+  }
   record("Native scenario execution", "FAIL", e instanceof Error ? e.message : "Unknown failure");
 } finally {
   if (session) {

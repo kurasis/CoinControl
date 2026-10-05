@@ -289,7 +289,7 @@ async fn authentication_failure_stops_every_client_sharing_the_credential_budget
     ));
     assert!(matches!(
         second.quotes(&["ETH"]).await,
-        Err(ProviderError::BudgetExhausted { .. })
+        Err(ProviderError::Auth { status: 403, .. })
     ));
     assert_eq!(budget.used(), 1);
 }

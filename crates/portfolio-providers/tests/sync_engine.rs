@@ -390,7 +390,8 @@ async fn auth_failure_keeps_last_balance_as_stale_and_reports() {
     );
     // The provider is stopped for the rest of the run: no further requests.
     let before = server.received_requests().await.unwrap().len();
-    engine.sync_account(&account).await;
+    let stopped = engine.sync_account(&account).await;
+    assert!(stopped.error.unwrap().contains("credential rejected"));
     assert_eq!(server.received_requests().await.unwrap().len(), before);
     let status = store.sync_status().await.unwrap();
     assert!(status[0].last_error.is_some());

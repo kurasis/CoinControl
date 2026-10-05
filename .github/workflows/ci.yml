@@ -172,6 +172,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ". -> target/native-e2e"
+          cache-on-failure: true
       - run: npm ci
       - run: npm run build
       - name: Build isolated native automation binary

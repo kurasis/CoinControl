@@ -188,7 +188,7 @@ pub struct SyncEngine {
     providers: Providers,
     options: SyncOptions,
     /// Providers stopped for the rest of this run (auth failure, budget, throttling).
-    stopped: Mutex<BTreeMap<&'static str, String>>,
+    stopped: Mutex<BTreeMap<&'static str, ProviderError>>,
     btc_tip: tokio::sync::Mutex<Option<i64>>,
 }
 
@@ -245,7 +245,7 @@ impl SyncEngine {
 
     fn check_stopped(&self, provider: &'static str) -> Result<(), ProviderError> {
         match self.stopped.lock().expect("stopped lock").get(provider) {
-            Some(_) => Err(ProviderError::BudgetExhausted { provider }),
+            Some(error) => Err(error.clone()),
             None => Ok(()),
         }
     }
@@ -257,7 +257,7 @@ impl SyncEngine {
             self.stopped
                 .lock()
                 .expect("stopped lock")
-                .insert(provider, e.to_string());
+                .insert(provider, e.clone());
         }
     }
 
