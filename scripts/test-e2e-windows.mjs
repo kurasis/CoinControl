@@ -69,6 +69,9 @@ driver.on("error", (e) => {
   driverError = e;
 });
 let session;
+let nativeApp;
+let applicationLog = "";
+const debugPort = port + 2;
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 async function request(path, method = "GET", body) {
   const response = await fetch(base + path, {
@@ -119,9 +122,55 @@ async function input(css, value) {
     [css, value],
   );
 }
+function closeApplication() {
+  if (nativeApp) {
+    spawnSync("taskkill.exe", ["/PID", String(nativeApp.pid), "/T", "/F"], { stdio: "ignore" });
+    nativeApp = undefined;
+  }
+}
 async function open() {
+  // Microsoft supports attaching WebDriver to an explicitly started WebView2.
+  // This avoids the driver's DevToolsActivePort launch-file handshake.
+  nativeApp = spawn(application, [], {
+    env: {
+      ...driverEnvironment,
+      TAURI_WEBVIEW_AUTOMATION: "true",
+      WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${debugPort}`,
+      WEBVIEW2_USER_DATA_FOLDER: join(dataDir, "webview"),
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let startupError;
+  nativeApp.on("error", (e) => {
+    startupError = e.message;
+  });
+  nativeApp.on("exit", (code) => {
+    startupError = `Application exited (${code}): ${applicationLog.slice(-1500)}`;
+  });
+  for (const stream of [nativeApp.stdout, nativeApp.stderr])
+    stream.on("data", (chunk) => {
+      applicationLog = (applicationLog + chunk.toString()).slice(-100000);
+      writeFileSync(join(output, "application.log"), applicationLog);
+    });
+  await until(async () => {
+    if (startupError) throw new Error(startupError);
+    try {
+      const response = await fetch(`http://127.0.0.1:${debugPort}/json/version`, {
+        signal: AbortSignal.timeout(2000),
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }, 45000);
   const s = await request("/session", "POST", {
-    capabilities: { alwaysMatch: { browserName: "wry", "tauri:options": { application } } },
+    capabilities: {
+      alwaysMatch: {
+        browserName: "webview2",
+        "ms:edgeChromium": true,
+        "ms:edgeOptions": { debuggerAddress: `127.0.0.1:${debugPort}` },
+      },
+    },
   });
   session = s.sessionId;
   await until(() => execute("return Boolean(document.querySelector('h1'));"));
@@ -145,7 +194,7 @@ try {
   }, 20000);
   record("WebDriver intermediary and native driver ready", "PASS");
   await open();
-  record("Launch through tauri-driver and native IPC", "PASS");
+  record("Attach WebDriver to the native application and real IPC", "PASS");
   await route("/settings");
   await until(() => execute("return Boolean(document.querySelector('#language'));"));
   await select("#language", "en");
@@ -203,6 +252,8 @@ try {
   // Reopen the edited movement and check secure storage after a restart.
   await request(`/session/${session}`, "DELETE");
   session = undefined;
+  closeApplication();
+  await delay(1000);
   await open();
   await route("/settings/sources");
   await until(() =>
@@ -267,7 +318,7 @@ try {
   await select("#language", "en");
   await clickText("Light");
   await until(() => execute("return document.documentElement.dataset.theme==='light';"));
-  record("Language and theme persisted through native settings", "PASS");
+  record("Language and theme change through native settings", "PASS");
   await route("/");
   await clickText("Hide balances and addresses");
   await until(async () => (await body()).includes("•••••"));
@@ -310,6 +361,7 @@ try {
       /* Preserve report even if process exited. */
     }
   }
+  closeApplication();
   driver.kill();
   save();
 }
