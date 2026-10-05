@@ -205,6 +205,9 @@ async function open() {
   if ((await body()).includes("Browser preview")) throw new Error("Browser mock detected");
 }
 async function screenshot(name) {
+  // Scrolling updates DOM geometry before WebView2 presents its next frame.
+  // Let the compositor and the UI's <=180 ms transitions finish first.
+  await delay(250);
   const b64 = await request(`/session/${session}/screenshot`);
   writeFileSync(join(output, name + ".png"), Buffer.from(b64, "base64"));
 }
