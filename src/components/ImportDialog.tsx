@@ -30,12 +30,16 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const closedRef = useRef(false);
+  const previewRef = useRef<ImportPreview | null>(null);
+  const committingRef = useRef(false);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [applied, setApplied] = useState<number | null>(null);
   const [file, setFile] = useState<{ name: string; content: string } | null>(null);
 
   useEffect(() => {
+    closedRef.current = false;
     const opener = document.activeElement as HTMLElement | null;
     closeRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
@@ -43,14 +47,20 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
     };
     window.addEventListener("keydown", onKey);
     return () => {
+      closedRef.current = true;
+      if (previewRef.current)
+        void api.discardBasisImport(previewRef.current.batch_id).catch(() => undefined);
+      previewRef.current = null;
       window.removeEventListener("keydown", onKey);
       opener?.focus?.();
     };
-    // close only reads the latest preview through the setter below.
+    // close reads the latest lifecycle state through refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fail = (e: unknown) => setError(isCommandError(e) ? e.message : t("errors.generic"));
+  const fail = (e: unknown) => {
+    if (!closedRef.current) setError(isCommandError(e) ? e.message : t("errors.generic"));
+  };
 
   const load = useMutation({
     mutationFn: async (input: { file: File } | { mapping: Record<string, string> }) => {
@@ -58,6 +68,7 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
         if (input.file.size > MAX_BYTES)
           throw { code: "invalid_input", message: t("import.tooLarge") };
         const next = { name: input.file.name, content: await input.file.text() };
+        if (closedRef.current) throw new DOMException("Import closed", "AbortError");
         setFile(next);
         return api.previewBasisImport(next.name, next.content);
       }
@@ -66,6 +77,13 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
       return api.previewBasisImport(file.name, file.content, input.mapping);
     },
     onSuccess: (p) => {
+      if (closedRef.current) {
+        void api.discardBasisImport(p.batch_id).catch(() => undefined);
+        return;
+      }
+      if (previewRef.current && previewRef.current.batch_id !== p.batch_id)
+        void api.discardBasisImport(previewRef.current.batch_id).catch(() => undefined);
+      previewRef.current = p;
       setError(null);
       setApplied(null);
       setPreview(p);
@@ -73,20 +91,31 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
     onError: fail,
   });
   const commit = useMutation({
-    mutationFn: (batchId: string) => api.commitBasisImport(batchId),
+    mutationFn: async (batchId: string) => {
+      committingRef.current = true;
+      try {
+        return await api.commitBasisImport(batchId);
+      } finally {
+        committingRef.current = false;
+      }
+    },
     onSuccess: async (r) => {
-      setPreview(null);
-      setApplied(r.applied_rows);
+      previewRef.current = null;
+      if (!closedRef.current) {
+        setPreview(null);
+        setApplied(r.applied_rows);
+      }
       await queryClient.invalidateQueries();
     },
     onError: fail,
   });
 
   function close() {
-    setPreview((p) => {
-      if (p) void api.discardBasisImport(p.batch_id).catch(() => undefined);
-      return null;
-    });
+    if (committingRef.current || closedRef.current) return;
+    closedRef.current = true;
+    if (previewRef.current)
+      void api.discardBasisImport(previewRef.current.batch_id).catch(() => undefined);
+    previewRef.current = null;
     onClose();
   }
 
@@ -102,7 +131,12 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
         <header className="drawer-head">
           <h2 id="import-title">{t("import.title")}</h2>
           <div className="toolbar-spacer" />
-          <button ref={closeRef} className="btn btn-ghost" onClick={close}>
+          <button
+            ref={closeRef}
+            className="btn btn-ghost"
+            onClick={close}
+            disabled={commit.isPending}
+          >
             {t("common.close")}
           </button>
         </header>
@@ -113,6 +147,7 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
             <input
               type="file"
               accept=".csv,text/csv"
+              disabled={load.isPending || commit.isPending}
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) load.mutate({ file: f });
@@ -141,6 +176,7 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
               onCommit={() => commit.mutate(preview.batch_id)}
               onDiscard={() => {
                 void api.discardBasisImport(preview.batch_id);
+                previewRef.current = null;
                 setPreview(null);
               }}
             />

@@ -1,0 +1,27 @@
+{
+  "sourceSha": "9e1a2f2ccb301e63ad74864591b624bbc979afe4",
+  "localOS": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "rust": "1.97.0",
+  "node": "24.19.0",
+  "buildMode": "release (large Store harness); debug (offline Rust tests)",
+  "ciRun": 37366717592,
+  "ciStatusAtCapture": "queued",
+  "windowsNativeStatus": "NOT_EXECUTED",
+  "precedingMainRun": 37362067121,
+  "precedingMainRunnerAnnotation": "The job was not acquired by Runner of type hosted even after multiple attempts",
+  "localChecks": {
+    "check": "PASS",
+    "offlineRust": {
+      "deterministic": 131,
+      "liveOptOutFunctions": 8
+    },
+    "vitest": 23,
+    "frontendBuild": "PASS",
+    "sourceReleaseInspection": "PASS",
+    "largeStoreCsv": "PASS"
+  },
+  "limits": [
+    "Local Store verification is not Windows renderer/startup evidence.",
+    "CI results after capture must be read from the linked run."
+  ]
+}

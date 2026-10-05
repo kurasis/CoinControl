@@ -1,0 +1,25 @@
+{
+  "applied_rows": 1,
+  "async_loop_timer": {
+    "max_gap_ms": 215.330842,
+    "samples": 209,
+    "target_ms": 1000
+  },
+  "cancelled_preview_discarded": true,
+  "commit_replay_ms": 13538.062394,
+  "dataset": {
+    "accounts": 50,
+    "activity_legs": 100000,
+    "assets": 500
+  },
+  "decisions": 1,
+  "duplicate_file_rejected": true,
+  "limits": [
+    "Production Store APIs; this is not native renderer/startup evidence.",
+    "One CSV decision over 100000 existing normalized legs; not 100000 provider imports."
+  ],
+  "mode": "offline-large-store-csv",
+  "movements": 100000,
+  "result": "PASS",
+  "two_previews_and_discard_ms": 4292.828999
+}

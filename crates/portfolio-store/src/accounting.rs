@@ -1637,8 +1637,11 @@ impl Store {
         extra_legs: &BTreeMap<String, LegOverride>,
         extra_openings: &[(String, OpeningLot)],
     ) -> Result<(RecalcSummary, RecalcSummary)> {
-        let mut inputs = self.load_inputs().await?;
-        let before = summarize(&compute(&inputs));
+        let inputs = self.load_inputs().await?;
+        let (before, mut inputs) =
+            tokio::task::spawn_blocking(move || (summarize(&compute(&inputs)), inputs))
+                .await
+                .map_err(|e| StoreError::Corrupt(format!("accounting preview worker: {e}")))?;
         for (k, v) in extra_legs {
             inputs.leg_overrides.insert(k.clone(), v.clone());
         }
@@ -1668,7 +1671,9 @@ impl Store {
             }
             inputs.prices.finish();
         }
-        let after = summarize(&compute(&inputs));
+        let after = tokio::task::spawn_blocking(move || summarize(&compute(&inputs)))
+            .await
+            .map_err(|e| StoreError::Corrupt(format!("accounting preview worker: {e}")))?;
         Ok((before, after))
     }
 
