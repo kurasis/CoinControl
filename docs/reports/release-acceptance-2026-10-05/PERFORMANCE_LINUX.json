@@ -1,0 +1,73 @@
+{
+  "arch": "x86_64",
+  "build_mode": "release",
+  "cached_open_and_summary_ms": 453.495892,
+  "dataset": {
+    "accounts": 50,
+    "activity_legs": 100000,
+    "assets": 500
+  },
+  "fixture_load_ms": 1980.200736,
+  "limits": [
+    "Fixture load is direct normalized SQL, not 100000 provider requests or CSV rows.",
+    "Startup measures store reopen plus first summary; native process/render startup is separate.",
+    "Cancellation is measured by native synchronization scenarios, not this store harness.",
+    "No network requests; synthetic account addresses are never queried."
+  ],
+  "logical_cpus": 4,
+  "mode": "offline-store-load",
+  "os": "linux",
+  "overlap_ingest": {
+    "ms": 867.5781569999999,
+    "transactions": 1000
+  },
+  "peak_process_memory_bytes": 871178240,
+  "queries": {
+    "account": {
+      "first_ms": 19.089313999999998,
+      "max_ms": 19.089313999999998,
+      "p50_ms": 0.14186400000000002,
+      "p95_ms": 0.17194,
+      "samples": 25
+    },
+    "activity": {
+      "first_ms": 12.224848999999999,
+      "max_ms": 12.373866000000001,
+      "p50_ms": 11.289275,
+      "p95_ms": 12.224848999999999,
+      "samples": 25
+    },
+    "chart": {
+      "first_ms": 339.622566,
+      "max_ms": 339.622566,
+      "p50_ms": 0.152373,
+      "p95_ms": 0.16099,
+      "samples": 25
+    },
+    "holdings": {
+      "first_ms": 357.584917,
+      "max_ms": 357.584917,
+      "p50_ms": 1.092568,
+      "p95_ms": 1.1261109999999999,
+      "samples": 25
+    },
+    "summary": {
+      "first_ms": 0.08879500000000001,
+      "max_ms": 0.13900800000000002,
+      "p50_ms": 0.128899,
+      "p95_ms": 0.13843699999999998,
+      "samples": 25
+    }
+  },
+  "query_p95_target_ms": 300,
+  "replay_ms": 19839.369465,
+  "result": "PASS",
+  "at": "2026-10-05T17:53:15.995Z",
+  "commit": "054029a0289688d315ceb999c34a035012a1f031",
+  "hardware": {
+    "cpu": "AMD EPYC 7763 64-Core Processor",
+    "logicalCpus": 4,
+    "totalMemoryBytes": 16766414848,
+    "osVersion": "6.17.0-1022-azure"
+  }
+}

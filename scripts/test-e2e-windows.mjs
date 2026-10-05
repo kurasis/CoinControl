@@ -473,7 +473,7 @@ try {
   );
   await screenshot("backup-export");
   record("Native Save dialogs export backup and four populated CSV files; OS key absent", "PASS");
-  // Remove the temporary secure entry before changing its isolated namespace.
+  // Remove the temporary secure entry before opening the fresh installation.
   await route("/settings/sources");
   await execute(
     "[...document.querySelector('#zerion-name').closest('article').querySelectorAll('button')].find(e=>e.textContent.trim()==='Remove').click();return true;",
@@ -491,6 +491,7 @@ try {
   await select("#language", "en");
   await route("/settings/data");
   await clickText("Explore demo portfolio");
+  await until(async () => (await body()).includes("Demo data. Not your portfolio."));
   const file = await request(`/session/${session}/element`, "POST", {
     using: "css selector",
     value: 'input[type="file"][accept=".ccbackup"]',
