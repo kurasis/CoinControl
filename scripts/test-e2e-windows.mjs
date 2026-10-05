@@ -2,7 +2,7 @@
 // It never installs a test server or an IPC bypass in the application.
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { tmpdir, release, arch } from "node:os";
 import { join, resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
@@ -10,6 +10,12 @@ import { DatabaseSync } from "node:sqlite";
 const output = "target/native-report";
 mkdirSync(output, { recursive: true });
 const report = { mode: "native-windows", at: new Date().toISOString(), checks: [] };
+report.environment = {
+  os: process.platform,
+  osVersion: release(),
+  arch: arch(),
+  node: process.version,
+};
 function record(name, result, detail = "") {
   report.checks.push({ name, result, detail });
   console.log(`${result} ${name}${detail ? `: ${detail}` : ""}`);
@@ -65,6 +71,16 @@ const driver = spawn(
     stdio: ["ignore", "pipe", "pipe"],
   },
 );
+for (const [name, command] of [
+  ["tauriDriver", process.env.TAURI_DRIVER_PATH ?? "tauri-driver"],
+  ["webViewMatchingDriver", process.env.EDGE_WEBDRIVER_PATH],
+]) {
+  if (command)
+    report.environment[name] = spawnSync(command, ["--version"], {
+      encoding: "utf8",
+      env: driverEnvironment,
+    }).stdout.trim();
+}
 let driverLog = "";
 for (const stream of [driver.stdout, driver.stderr])
   stream.on("data", (chunk) => {
@@ -203,6 +219,7 @@ async function saveNativeFile(button, destination) {
     "powershell.exe",
     [
       "-NoProfile",
+      "-STA",
       "-File",
       resolve("scripts/native-save-dialog.ps1"),
       "-ApplicationPid",
@@ -374,6 +391,7 @@ try {
   record("SQLite databases and WAL exclude credentials", "PASS");
   await route("/settings/data");
   await clickText("Explore demo portfolio");
+  await until(async () => (await body()).includes("Demo data. Not your portfolio."));
   await route("/activity");
   await until(() =>
     execute(
@@ -548,6 +566,8 @@ try {
       1000,
     );
     report.cancellationFeedbackMs = Date.now() - cancelStarted;
+    if (report.cancellationFeedbackMs > 1000)
+      throw new Error("Cancellation acknowledgement exceeded one second");
     await waitSync();
     await restart();
     await route("/wallets");
@@ -572,7 +592,9 @@ try {
     await route("/wallets");
     await execute("document.querySelector('a[href^=\"#/accounts/\"]').click();return true;");
     await until(() => execute("return Boolean(document.querySelector('.balance'));"));
-    await clickText("Activity");
+    await execute(
+      "document.querySelector('a[href^=\"#/activity?account=\"]').click();return true;",
+    );
     await until(() =>
       execute(
         "return Boolean(document.querySelector('button[aria-label^=\"Open details for\"]'));",

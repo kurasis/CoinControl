@@ -17,11 +17,15 @@ do {
   Start-Sleep -Milliseconds 100
 } while ((Get-Date) -lt $deadline)
 if (-not $dialog) { throw 'Application-owned native Save dialog did not open' }
+# Windows exposes the common dialog before its Shell controls are populated.
+# Its filename edit's AutomationId varies across Windows/WebView2 images.
 $filename = $null
-foreach ($id in @('1001', '1148')) {
-  $idCondition = [System.Windows.Automation.PropertyCondition]::new($automation::AutomationIdProperty, $id)
-  $elements = $dialog.FindAll($scope::Descendants, $idCondition)
+$deadline = (Get-Date).AddSeconds(20)
+do {
+  $elements = $dialog.FindAll($scope::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
   foreach ($element in $elements) {
+    if ($element.Current.ControlType -ne [System.Windows.Automation.ControlType]::Edit) { continue }
+    if ($element.Current.AutomationId -notin @('1001', '1148') -and $element.Current.Name -notmatch '^File name') { continue }
     $valuePattern = $null
     if ($element.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$valuePattern)) {
       $filename = $valuePattern
@@ -29,8 +33,35 @@ foreach ($id in @('1001', '1148')) {
     }
   }
   if ($filename) { break }
+  Start-Sleep -Milliseconds 100
+} while ((Get-Date) -lt $deadline)
+if (-not $filename) {
+  # Only names/IDs/types in the application-owned dialog; never control values.
+  $elements | ForEach-Object { @{ id=$_.Current.AutomationId; name=$_.Current.Name; type=$_.Current.ControlType.ProgrammaticName } } |
+    ConvertTo-Json -Depth 3 | Set-Content 'target/native-report/save-dialog-controls.json'
+  # Some hosted desktop images omit ValuePattern on the Shell filename edit.
+  # Use the common dialog's documented keyboard accelerator, scoped to its HWND.
+  Add-Type -AssemblyName System.Windows.Forms
+  Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class CoinControlNativeDialog {
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
+  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
 }
-if (-not $filename) { throw 'Native Save filename control with ValuePattern is unavailable' }
+'@
+  $handle = [IntPtr]$dialog.Current.NativeWindowHandle
+  [CoinControlNativeDialog]::SetForegroundWindow($handle) | Out-Null
+  Start-Sleep -Milliseconds 200
+  if ([CoinControlNativeDialog]::GetForegroundWindow() -ne $handle) { throw 'Native Save dialog could not acquire keyboard focus' }
+  [System.Windows.Forms.Clipboard]::SetText($Destination)
+  [System.Windows.Forms.SendKeys]::SendWait('%n')
+  [System.Windows.Forms.SendKeys]::SendWait('^a')
+  [System.Windows.Forms.SendKeys]::SendWait('^v')
+  [System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+  Write-Output 'Native Save dialog accepted the destination through scoped keyboard input'
+  exit 0
+}
 $filename.SetValue($Destination)
 $saveCondition = [System.Windows.Automation.PropertyCondition]::new($automation::AutomationIdProperty, '1')
 $save = $dialog.FindFirst($scope::Descendants, $saveCondition)

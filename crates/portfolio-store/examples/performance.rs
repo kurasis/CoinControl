@@ -224,6 +224,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let account_scope = Scope::Accounts {
         ids: vec![accounts[0].id.clone()],
     };
+    let first_page = store
+        .list_activity(&Scope::All, &ActivityFilter::default(), None, 50)
+        .await?;
+    let next_page = store
+        .list_activity(
+            &Scope::All,
+            &ActivityFilter::default(),
+            first_page.next_cursor.as_deref(),
+            50,
+        )
+        .await?;
+    for (offset, page) in [(0, &first_page), (50, &next_page)] {
+        assert_eq!(page.rows.len(), 50);
+        for (i, row) in page.rows.iter().enumerate() {
+            assert_eq!(
+                row.transaction_id,
+                format!("ethereum:load-{:06}", 99_999 - offset - i)
+            );
+        }
+    }
     let mut timings = serde_json::Map::new();
     for name in ["summary", "holdings", "account", "activity", "chart"] {
         let mut samples = Vec::new();

@@ -46,11 +46,23 @@ impl Store {
         // Keyset pagination over (occurred_at DESC, transaction id DESC, account DESC).
         let mut query = QueryBuilder::<Sqlite>::new(
             "SELECT t.id AS tx_id, t.network_id, t.occurred_at, t.status, x.account_id,
-                    x.operation, x.decoding
-             FROM account_transactions x
-             JOIN chain_transactions t ON t.id = x.transaction_id
-             WHERE x.account_id IN (",
+                    x.operation, x.decoding ",
         );
+        if accounts.len() > 5 && filter.asset_id.is_none() && !filter.unresolved_only {
+            // Drive broad scopes from the time index and stop after one page.
+            // CROSS JOIN fixes loop order; otherwise SQLite chooses all account
+            // rows first and sorts the complete portfolio before applying LIMIT.
+            query.push(
+                "FROM chain_transactions t INDEXED BY chain_tx_global_order
+                CROSS JOIN account_transactions x ON x.transaction_id=t.id ",
+            );
+        } else {
+            // A small scope / selective asset filter can use account-first lookup.
+            query.push(
+                "FROM account_transactions x JOIN chain_transactions t ON t.id=x.transaction_id ",
+            );
+        }
+        query.push("WHERE x.account_id IN (");
         let mut ids = query.separated(", ");
         for id in &accounts {
             ids.push_bind(id);
