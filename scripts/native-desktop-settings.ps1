@@ -36,7 +36,9 @@ if ($serverCommand) {
   if ($Action -eq 'prepare') {
     # Prefer space for 200% scaling, but retain the validated viewport matrix
     # when a hosted adapter cannot support a larger physical framebuffer.
-    $candidates = @(@(3840,2160), @(2560,1600), @(2560,1440), @(2048,1536), @(1920,1080))
+    # UXGA keeps the 1440x900 client matrix inside the work area while
+    # using fewer framebuffer pixels than 1920x1080 with more vertical room.
+    $candidates = @(@(3840,2160), @(2560,1600), @(2560,1440), @(2048,1536), @(1920,1200), @(1600,1200), @(1920,1080))
   }
   $result.serverCoreAttempts = @()
   foreach ($candidate in $candidates) {
