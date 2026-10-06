@@ -1,8 +1,28 @@
 # Verification report — 2026-10-06
 
-Development version **0.1.4** adds Helius and Alchemy desktop synchronization and is delivered through [PR #11](https://github.com/kurasis/CoinControl/pull/11). Exact initial source: [9f782af5aee62a644735c062e0280b7345716afa](https://github.com/kurasis/CoinControl/commit/9f782af5aee62a644735c062e0280b7345716afa), [CI 37439865917](https://github.com/kurasis/CoinControl/actions/runs/37439865917): **five jobs passed; live API and installed production startup jobs failed**. This is a development build, not a verified release. Provider credentials were confirmed by actual authenticated Actions tests without disclosing their values.
+Development version **0.1.4** is delivered on main through [provider PR #11](https://github.com/kurasis/CoinControl/pull/11) and [startup correction PR #12](https://github.com/kurasis/CoinControl/pull/12). Exact final tested code: [54e82df306aa19c1408a9fbc6f66761db27222c5](https://github.com/kurasis/CoinControl/commit/54e82df306aa19c1408a9fbc6f66761db27222c5), [CI 37442084560](https://github.com/kurasis/CoinControl/actions/runs/37442084560): **six jobs passed; only the live API job failed because four Alchemy mainnets returned 403 and Zerion returned 429**. Credential availability is established through authenticated reads. This is a development build; full release acceptance remains blocked by those API gates and physical Windows 11 verification. Evidence follow-up commits change documentation only.
 
-## Executed verification on the initial integration source
+## Final verification
+
+| Scope                                                            | Result                                                                                   |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Static/type/lint/Clippy, offline tests, frontend build, bindings | PASS; 153 deterministic Rust / 34 frontend tests; ten live functions opt out locally     |
+| Browser with mock IPC                                            | PASS; 24 combinations; separate from native verification                                 |
+| Native Windows and real 125/150/200% scale                       | 24 PASS; independent installer scope is checked separately                               |
+| Production upgrade/restart/uninstall / EXE and NSIS inspection   | 10 / 64 PASS                                                                             |
+| Release Store load on Linux and Windows                          | PASS; 50 accounts, 500 assets, 100000 legs; cached p95 <300 ms                           |
+| Installed production startup / large UI / CSV                    | **12 PASS / 0 FAIL**; first normal 1730.1 ms; offline 870.8 / 738.7 / 1273.9 ms          |
+| Helius / Alchemy Ethereum live                                   | PASS; real read-only balances/history; independent exact Ethereum principal/fee evidence |
+| Alchemy four other mainnets / Zerion-dependent suites            | FAIL / external BLOCKED; 403 / 429 respectively                                          |
+| Physical Windows 11                                              | BLOCKED; not established by hosted Windows Server                                        |
+
+[Final sanitized reports, inspected screenshot and exact provenance](docs/reports/rpc-providers-2026-10-06/final/README.md). All four production launches retain the original ≤2000 ms gate and startup marks. Final cancellation was 24 ms; one CSV decision replayed all 100000 existing legs in 30751 ms; maximum renderer frame gap 265.6 ms passed the original responsiveness check. Store reopen/summary measured 173.44 ms on Linux and 296.87 ms on Windows. These measurements have distinct scopes; the synthetic dataset is not 100000 API downloads or CSV rows.
+
+## Initial integration verification (historical failure)
+
+Initial source [9f782af5aee62a644735c062e0280b7345716afa](https://github.com/kurasis/CoinControl/commit/9f782af5aee62a644735c062e0280b7345716afa), [CI 37439865917](https://github.com/kurasis/CoinControl/actions/runs/37439865917), had five passing jobs, the same external API failures and one production startup failure. Its exact results remain below rather than being relabeled as final evidence.
+
+### Initial results
 
 | Scope                                                     | Result                                                                                                 |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -40,7 +60,7 @@ Initial integration source first normal-network launch: **2124.4 ms**. Three off
 
 Remaining large-data checks passed: cancellation 20 ms, maximum rendering gap 250.0 ms, and one basis CSV decision committed/replayed 100000 existing legs in 33439 ms. The dataset is synthetic normalized SQL evidence, not 100000 API downloads or CSV rows. Memory measurements cover the main process and exclude child WebViews. Useful screen means real balance/navigation after two frames, not completion of every chart or row.
 
-The corrective implementation groups identical remaining lot values in SQLite and multiplies their counts using Rust arbitrary-precision decimals. Summary/holdings no longer reconstruct every FIFO identity and acquisition timestamp. SQL floating-point SUM is never used, and detailed lot/audit views retain the individual records. The regression covers duplicate lots, amounts above 2^53, fine decimal basis, unknown/estimated/zero basis, missing/zero prices, mismatched observations and account scope. The unchanged Windows startup gate must be rerun on this correction before claiming success.
+The corrective implementation groups identical remaining lot values in SQLite and multiplies their counts using Rust arbitrary-precision decimals. Summary/holdings no longer reconstruct every FIFO identity and acquisition timestamp. SQL floating-point SUM is never used, and detailed lot/audit views retain the individual records. The regression covers duplicate lots, amounts above 2^53, fine decimal basis, unknown/estimated/zero basis, missing/zero prices, mismatched observations and account scope. The unchanged Windows startup gate passed on corrected source 54e82df; all 12 checks and original failure evidence are preserved.
 
 ## Evidence history and release gates
 
@@ -48,4 +68,4 @@ The corrective implementation groups identical remaining lot values in SQLite an
 
 Earlier source-specific evidence: [CI recovery](docs/reports/ci-recovery-2026-10-06/README.md), [responsive UI](docs/reports/responsive-ui-2026-10-05/README.md), [native upgrade](docs/reports/upgrade-and-native-2026-10-05/README.md), [release follow-up](docs/reports/release-acceptance-2026-10-05/README.md), [imported report](docs/reports/IMPORTED_TEST_REPORT.md).
 
-Full release acceptance requires the current production startup gate, Alchemy network access, Zerion quota and physical Windows 11 verification. No release tag, physical Windows 11 pass or complete blockchain coverage is claimed.
+The current production startup gate passed. Full release acceptance still requires Alchemy network access, Zerion quota and physical Windows 11 verification. No release tag, physical Windows 11 pass or complete blockchain coverage is claimed.

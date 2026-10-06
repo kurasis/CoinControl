@@ -1,0 +1,31 @@
+# Final integration and startup verification — 0.1.4
+
+Exact source [54e82df306aa19c1408a9fbc6f66761db27222c5](https://github.com/kurasis/CoinControl/commit/54e82df306aa19c1408a9fbc6f66761db27222c5), [main CI 37442084560](https://github.com/kurasis/CoinControl/actions/runs/37442084560), [merged startup correction PR #12](https://github.com/kurasis/CoinControl/pull/12). **Six jobs passed; only the live API job failed** because four Alchemy mainnets returned 403 and Zerion returned 429. No source changes were made after this run; the evidence follow-up changes documentation only.
+
+| Verification                                              | Result / report                                                                                              |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Checks, offline tests, frontend build, generated bindings | PASS; 153 deterministic Rust / 34 frontend tests; ten live opt-out functions                                 |
+| Browser with mock IPC                                     | PASS; 24 combinations; [BROWSER_LAYOUT_REPORT.json](BROWSER_LAYOUT_REPORT.json)                              |
+| Native Windows scenarios and actual display scaling       | 24 PASS; [NATIVE_REPORT.json](NATIVE_REPORT.json); its one installer scope skip is executed separately below |
+| Production upgrade/restart/uninstall                      | 10 PASS; [INSTALLER_REPORT.json](INSTALLER_REPORT.json)                                                      |
+| Production EXE/NSIS inspection                            | 64 PASS; [RELEASE_REPORT.json](RELEASE_REPORT.json)                                                          |
+| Installed production startup / large UI / CSV             | **12 PASS / 0 FAIL**; [NATIVE_LOAD_REPORT.json](NATIVE_LOAD_REPORT.json)                                     |
+| Release Store load, Linux / Windows                       | PASS; [Linux](LINUX_PERFORMANCE_REPORT.json), [Windows](WINDOWS_PERFORMANCE_REPORT.json)                     |
+| Helius Solana                                             | PASS; [helius.json](helius.json)                                                                             |
+| Alchemy Ethereum                                          | PASS; native balance, USDC, index pagination and independent known 79 ETH payment/exact receipt fee          |
+| Alchemy Base / Arbitrum / Optimism / Polygon              | FAIL / access BLOCKED; each returns 403; [alchemy.json](alchemy.json)                                        |
+| Other independent live providers                          | PASS; Esplora, Live Coin Watch, DefiLlama, TronGrid, TonAPI                                                  |
+| Zerion-dependent suites                                   | FAIL / quota BLOCKED; HTTP 429; [LIVE_REPORT.md](LIVE_REPORT.md)                                             |
+| Physical Windows 11                                       | BLOCKED; hosted Windows Server evidence does not close this gate                                             |
+
+First normal-network production launch: **1730.1 ms**. Three offline fresh processes: **870.8 / 738.7 / 1273.9 ms**. All four satisfy the original **≤2000 ms** gate, with unchanged startup marks and no excluded normal launch. First normal and first offline browser folders are fresh; subsequent offline folders are retained. OS/runtime caches are not reset. Useful screen is actual cached balance/navigation after two frames, not completion of all charts and rows.
+
+Compact valuation groups identical stored quantity/basis strings in SQLite and uses exact decimal multiplication in Rust. It avoids reconstructing every FIFO lot identity for summary/holdings; individual audit/detail lots are unchanged. Initial normal cache priming finished at 515 ms and native WebView creation at 1057 ms; [sanitized fixed phase labels](STARTUP_PHASES.json). Store reopen plus first summary measured 173.44 ms on Linux and 296.87 ms on Windows; these are separate Store measurements, not native application startup.
+
+The native fixture contains 50 accounts, 500 assets and 100000 normalized legs, not API downloads or 100000 CSV rows. Cancellation feedback was 24 ms; one CSV basis decision committed/replayed all existing legs in 30751 ms. Maximum measured renderer gap was 265.6 ms; the original responsiveness check passed. Exact history/decision counts survived restart. Main-process memory excludes child WebViews. [Inspected native cached portfolio screenshot](load-portfolio.png) displays the actual synthetic $50000 balance with stale/unknown-basis notices. Full other screenshots remain in source-specific Actions artifacts.
+
+Production and native runtime provenance: [production runtime](PRODUCTION_WEBVIEW_RUNTIME_REPORT.json), [native runtime](WEBVIEW_RUNTIME_REPORT.json), [owned-account fixture](OWNED_FIXTURE_REPORT.json), [source/run provenance](PROVENANCE.json). Reports preserve original timings and counts; no raw process command lines, credentials or authenticated URLs are published.
+
+Live has six passing / four failing suites. Shared [usage](usage.json): Alchemy 12, Helius 5, Zerion 3, Esplora 13, Live Coin Watch 5, DefiLlama 10, TronGrid 33, TonAPI 11; all ≤50 requests/provider. [Estimated credits](estimated-credits.json): Alchemy 4270 CU, Helius 23 credits. Helius supported 814 positive-decimal identities and two pages of 20 related-account transactions. NFT/unclassified zero-decimal scope and program/rent effects remain partial. Ethereum success does not prove access to the other mainnets. Desktop production keys must be stored separately through Settings → Data sources.
+
+The initial 2124.4 ms startup failure remains in [parent evidence](../README.md); it was corrected rather than removed or given a relaxed limit. Release acceptance still needs Alchemy access to all selected mainnets, Zerion quota and physical Windows 11 verification. No release tag or full release pass is claimed. [Complete verification report](../../../../TEST_REPORT.md).

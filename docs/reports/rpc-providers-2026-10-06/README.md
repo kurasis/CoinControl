@@ -1,4 +1,6 @@
-# Helius / Alchemy live evidence — 0.1.4
+# Initial Helius / Alchemy live evidence — 0.1.4
+
+Latest corrected source and all completed CI results: [final evidence](final/README.md). This directory preserves the initial integration source, including its startup failure.
 
 Exact source [9f782af5aee62a644735c062e0280b7345716afa](https://github.com/kurasis/CoinControl/commit/9f782af5aee62a644735c062e0280b7345716afa),
 [main CI 37439865917](https://github.com/kurasis/CoinControl/actions/runs/37439865917),

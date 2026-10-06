@@ -25,5 +25,6 @@
     "unchangedGateMs": 2000,
     "report": "INITIAL_NATIVE_LOAD_REPORT.json",
     "note": "Historical failure preserved before compact valuation fix."
-  }
+  },
+  "correctedSourceEvidence": "final/PROVENANCE.json"
 }
