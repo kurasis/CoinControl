@@ -123,13 +123,16 @@ export async function verifyNativePages(ui, { name, capture }, report) {
     const geometry =
       await ui.execute(`const p=document.querySelector('[role=dialog]'),b=p.querySelector('.drawer-body');
 const r=p.getBoundingClientRect(),h=p.querySelector('.drawer-head').getBoundingClientRect();
-return {width:r.width,height:r.height,bodyOverflow:b.scrollWidth>b.clientWidth+2,closeReachable:h.bottom<=innerHeight+2 && h.right<=innerWidth+2};`);
+const viewportWidth=visualViewport?.width??innerWidth,viewportHeight=visualViewport?.height??innerHeight;
+return {width:r.width,height:r.height,viewportWidth,viewportHeight,bodyOverflow:b.scrollWidth>b.clientWidth+2,closeReachable:h.bottom<=viewportHeight+2 && h.right<=viewportWidth+2};`);
     if (
       geometry.bodyOverflow ||
       !geometry.closeReachable ||
-      geometry.width > (await ui.execute("return innerWidth;"))
+      // innerWidth is integer-rounded; a physical viewport / 150% DPI can be
+      // fractional CSS pixels. Compare actual viewport geometry to the panel.
+      geometry.width > geometry.viewportWidth + 0.05
     )
-      throw new Error(`Panel overflow: ${name}/${panel}`);
+      throw new Error(`Panel overflow: ${name}/${panel}: ${JSON.stringify(geometry)}`);
     await ui.execute(
       `const p=document.querySelector('[role=dialog]');window.__panelTabStops=[...p.querySelectorAll('button,a[href],input,select,textarea,summary,[tabindex]')].filter(e=>e.tabIndex>=0&&!e.matches(':disabled')&&e.checkVisibility());window.__panelTabStops.at(-1).focus();return true;`,
     );
