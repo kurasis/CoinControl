@@ -4,6 +4,12 @@ This report distinguishes current local verification from imported historical ev
 
 The implementation covers accounting/replay fixes, recovery and exports, operational UI and Windows CI automation. Full release acceptance remains **BLOCKED** while native startup/load/import and display-scaling gates are unresolved. Historical failures and passes below belong to their exact sources.
 
+## Accessible chart observations (0.1.3, local validation)
+
+Every chart has a keyboard-operated observations table with localized dates, exact-string USD formatting, explicit missing/estimated/partial data and 50-row pagination. Private portfolio values are masked in this table as soon as privacy changes; public market prices remain visible. ECharts honors reduced motion and updates when that preference changes. Shared Chromium/native assertions check Enter/Space disclosure, bounded rows, overflow and privacy. The frontend matches clean browser source `880c0c994812d90884ce7e59850568a40b1dc2cf`; later test-script changes scope native column assertions to visible tables.
+
+Local check/offline/build and source/frontend inspection passed: **133 deterministic Rust / 31 frontend tests** (plus eight live opt-out functions). Real Chromium passed **24 combinations, 264 page checks, 48 panel checks and 96 chart-data keyboard/layout checks**, including dynamic privacy and public prices. [Reports and inspected screenshots](docs/reports/accessible-charts-2026-10-06/README.md) are browser/mock IPC evidence. Windows execution of 0.1.3 remains pending.
+
 ## CI recovery and current executed baseline
 
 [Main CI 37373466945, attempt 2](https://github.com/kurasis/CoinControl/actions/runs/37373466945/attempts/2) executed source `5a9f8f62db894b6f269d099bc48518dd80fd2830`: five jobs PASS, two FAIL. Linux checks/offline/browser acceptance, all eight live suites (six providers plus vertical-slice/network integration), both cached Store load jobs and the production 0.1.2 installer passed. The installer has 10 passing checks; release inspection has 61. The native suite has 19 PASS checks, one BLOCKED display-scale check caused by the invalid UI Automation `GetCurrentSelection` call, and one installer item skipped within that separate suite. Production-native startup/load/import did not execute: its installed-EXE hash preflight failed; an attempted cleanup of a firewall rule not yet created also failed. The earlier Zerion HTTP 429 was not reproduced in this run.

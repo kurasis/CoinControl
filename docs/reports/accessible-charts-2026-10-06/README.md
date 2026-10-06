@@ -1,0 +1,11 @@
+# Accessible chart observations (0.1.3)
+
+Local browser source: [880c0c994812d90884ce7e59850568a40b1dc2cf](https://github.com/kurasis/CoinControl/commit/880c0c994812d90884ce7e59850568a40b1dc2cf), clean at capture. Later changes scope native asset/activity assertions to visible tables/column headers; frontend/version files are identical to this tested source.
+
+Every portfolio/account/group and asset chart provides a native HTML disclosure with a semantic table: localized date/time, exact-string USD formatting, missing observations and estimated/partial labels. Pages contain at most 50 observations. Privacy masks portfolio/holding values immediately, including table text, while public market prices remain available. A changed time range resets the disclosure/page through its observation-range identity. ECharts respects reduced-motion settings, including subsequent changes.
+
+Local validation: check, build, source/frontend release inspection, 133 deterministic Rust plus eight opt-out live functions, and **31 frontend tests** passed. Four new component tests cover decimals beyond the JS integer range, zero versus missing data, dynamic privacy/public-price behavior, keyboard pagination to the final observation and Russian localization. jsdom does not simulate native summary-key default actions; actual Enter/Space expansion/collapse was checked in Chromium.
+
+`BROWSER_LAYOUT_REPORT.json`: Linux Chromium, browser/mock IPC only; **24** size/language/theme scenarios, **264** page checks, **48** modal keyboard/layout checks and **96** chart-data keyboard/overflow/row-bound checks passed. Privacy checks found 31 masked portfolio observations and 50 public market prices. The independent 10,000-row variable-height table reached its last row, kept focus and mounted eight final rows. Two narrow Russian/dark screenshots were inspected and are explicitly browser evidence.
+
+The same chart assertions are implemented in the separate Windows native suite, but these 0.1.3 native assertions have not executed at capture. This report does not establish Windows DPI, production native startup/import or physical Windows 11 acceptance. See the current CI results and `TEST_REPORT.md` for those gates.

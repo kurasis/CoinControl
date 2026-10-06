@@ -1,0 +1,5732 @@
+{
+  "mode": "browser-preview",
+  "note": "Chromium with mock demo IPC; no Windows, native IPC, physical monitor or OS DPI assertion.",
+  "scenarios": [
+    {
+      "width": 1440,
+      "height": 900,
+      "language": "en",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "language": "en",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "language": "ru",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "language": "ru",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "language": "en",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "language": "en",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "language": "ru",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "language": "ru",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 1024,
+      "height": 720,
+      "language": "en",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 1024,
+      "height": 720,
+      "language": "en",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 1024,
+      "height": 720,
+      "language": "ru",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 1024,
+      "height": 720,
+      "language": "ru",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 800,
+      "height": 480,
+      "language": "en",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 800,
+      "height": 480,
+      "language": "en",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 800,
+      "height": 480,
+      "language": "ru",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 800,
+      "height": 480,
+      "language": "ru",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 672,
+      "height": 440,
+      "language": "en",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 672,
+      "height": 440,
+      "language": "en",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 672,
+      "height": 440,
+      "language": "ru",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 672,
+      "height": 440,
+      "language": "ru",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 504,
+      "height": 340,
+      "language": "en",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 504,
+      "height": 340,
+      "language": "en",
+      "theme": "light",
+      "result": "PASS"
+    },
+    {
+      "width": 504,
+      "height": 340,
+      "language": "ru",
+      "theme": "dark",
+      "result": "PASS"
+    },
+    {
+      "width": 504,
+      "height": 340,
+      "language": "ru",
+      "theme": "light",
+      "result": "PASS"
+    }
+  ],
+  "checks": [
+    {
+      "name": "10000 variable-height rows: bounded DOM, last row, retained focus, keyboard End",
+      "result": "PASS"
+    },
+    {
+      "name": "11 pages and 2 modal panels across 24 size/language/theme combinations",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "linux",
+    "osVersion": "6.18.44",
+    "arch": "x64",
+    "node": "v24.19.0",
+    "chromium": "153.0.8010.12"
+  },
+  "sourceSha": "880c0c994812d90884ce7e59850568a40b1dc2cf",
+  "sourceDirty": false,
+  "pageLayouts": [
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/wallets",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/activity",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/review",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/settings",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/settings/sources",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/settings/networks",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/settings/data",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/accounts/a-btc",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "path": "#/groups/g-long",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/wallets",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/activity",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/review",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/settings",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/settings/sources",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/settings/networks",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/settings/data",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/accounts/a-btc",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "path": "#/groups/g-long",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/wallets",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/activity",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/review",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/settings",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/settings/sources",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/settings/networks",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/settings/data",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/accounts/a-btc",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "path": "#/groups/g-long",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/wallets",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/activity",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/review",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/settings",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/settings/sources",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/settings/networks",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/settings/data",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/accounts/a-btc",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "path": "#/groups/g-long",
+      "width": 1440,
+      "height": 900,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/wallets",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/activity",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/review",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/settings",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/settings/sources",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/settings/networks",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/settings/data",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/accounts/a-btc",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "path": "#/groups/g-long",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/wallets",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/activity",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/review",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/settings",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/settings/sources",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/settings/networks",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/settings/data",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/accounts/a-btc",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "path": "#/groups/g-long",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/wallets",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/activity",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/review",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/settings",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/settings/sources",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/settings/networks",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/settings/data",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/accounts/a-btc",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "path": "#/groups/g-long",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/wallets",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/activity",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/review",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/settings",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/settings/sources",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/settings/networks",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/settings/data",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/accounts/a-btc",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "path": "#/groups/g-long",
+      "width": 1280,
+      "height": 800,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/wallets",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/activity",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/review",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/settings",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/settings/sources",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/settings/networks",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/settings/data",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/accounts/a-btc",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "path": "#/groups/g-long",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/wallets",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/activity",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/review",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/settings",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/settings/sources",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/settings/networks",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/settings/data",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/accounts/a-btc",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "path": "#/groups/g-long",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/wallets",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/activity",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/review",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/settings",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/settings/sources",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/settings/networks",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/settings/data",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/accounts/a-btc",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "path": "#/groups/g-long",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/wallets",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/activity",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/review",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/settings",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/settings/sources",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/settings/networks",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/settings/data",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/accounts/a-btc",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "path": "#/groups/g-long",
+      "width": 1024,
+      "height": 720,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/wallets",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/activity",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/review",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/settings",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/settings/sources",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/settings/networks",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/settings/data",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/accounts/a-btc",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "path": "#/groups/g-long",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/wallets",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/activity",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/review",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/settings",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/settings/sources",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/settings/networks",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/settings/data",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/accounts/a-btc",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "path": "#/groups/g-long",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/wallets",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/activity",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/review",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/settings",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/settings/sources",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/settings/networks",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/settings/data",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/accounts/a-btc",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "path": "#/groups/g-long",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/wallets",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/activity",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/review",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/settings",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/settings/sources",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/settings/networks",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/settings/data",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/accounts/a-btc",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "path": "#/groups/g-long",
+      "width": 800,
+      "height": 480,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/wallets",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/activity",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/review",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/settings",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/settings/sources",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/settings/networks",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/settings/data",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/accounts/a-btc",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "path": "#/groups/g-long",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/wallets",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/activity",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/review",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/settings",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/settings/sources",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/settings/networks",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/settings/data",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/accounts/a-btc",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "path": "#/groups/g-long",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/wallets",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/activity",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/review",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/settings",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/settings/sources",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/settings/networks",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/settings/data",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/accounts/a-btc",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "path": "#/groups/g-long",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/wallets",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/activity",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/review",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/settings",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/settings/sources",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/settings/networks",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/settings/data",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/accounts/a-btc",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "path": "#/groups/g-long",
+      "width": 672,
+      "height": 440,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/wallets",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/activity",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/review",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/settings",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/settings/sources",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/settings/networks",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/settings/data",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/accounts/a-btc",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "path": "#/groups/g-long",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/wallets",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/activity",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/review",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/settings",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/settings/sources",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/settings/networks",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/settings/data",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/accounts/a-btc",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "path": "#/groups/g-long",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/wallets",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/activity",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/review",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/settings",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/settings/sources",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/settings/networks",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/settings/data",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/accounts/a-btc",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "path": "#/groups/g-long",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/wallets",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/activity",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/review",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/settings",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/settings/sources",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/settings/networks",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/settings/data",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": []
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/accounts/a-btc",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/assets/bitcoin%3Anative",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "path": "#/groups/g-long",
+      "width": 504,
+      "height": 340,
+      "pixelRatio": 1,
+      "mainOverflow": false,
+      "sideNavigationReachable": true,
+      "controlsReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ]
+    }
+  ],
+  "chartData": [
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Price observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "route": "/",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "route": "/accounts/a-btc",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "rows": 50,
+      "label": "Точки графика «Цена»",
+      "overflow": false,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "route": "/groups/g-long",
+      "chart": 0,
+      "rows": 31,
+      "label": "Точки графика «Стоимость портфеля»",
+      "overflow": false,
+      "keyboard": "PASS"
+    }
+  ],
+  "panelLayouts": [
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "panel": "import",
+      "width": 880,
+      "height": 900,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 900,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "panel": "import",
+      "width": 880,
+      "height": 900,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-en-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 900,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "panel": "import",
+      "width": 880,
+      "height": 900,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 900,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "panel": "import",
+      "width": 880,
+      "height": 900,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1440x900-ru-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 900,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "panel": "import",
+      "width": 880,
+      "height": 800,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 800,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "panel": "import",
+      "width": 880,
+      "height": 800,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-en-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 800,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "panel": "import",
+      "width": 880,
+      "height": 800,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 800,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "panel": "import",
+      "width": 880,
+      "height": 800,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1280x800-ru-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 800,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "panel": "import",
+      "width": 880,
+      "height": 720,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 720,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "panel": "import",
+      "width": 880,
+      "height": 720,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-en-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 720,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "panel": "import",
+      "width": 880,
+      "height": 720,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 720,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "panel": "import",
+      "width": 880,
+      "height": 720,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-1024x720-ru-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 720,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "panel": "import",
+      "width": 800,
+      "height": 480,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 480,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "panel": "import",
+      "width": 800,
+      "height": 480,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-en-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 480,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "panel": "import",
+      "width": 800,
+      "height": 480,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 480,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "panel": "import",
+      "width": 800,
+      "height": 480,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-800x480-ru-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 480,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "panel": "import",
+      "width": 672,
+      "height": 440,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 440,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "panel": "import",
+      "width": 672,
+      "height": 440,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-en-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 440,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "panel": "import",
+      "width": 672,
+      "height": 440,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 440,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "panel": "import",
+      "width": 672,
+      "height": 440,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-672x440-ru-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 440,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "panel": "import",
+      "width": 504,
+      "height": 340,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 340,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "panel": "import",
+      "width": 504,
+      "height": 340,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-en-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 340,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "panel": "import",
+      "width": 504,
+      "height": 340,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-dark",
+      "panel": "leg",
+      "width": 480,
+      "height": 340,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "panel": "import",
+      "width": 504,
+      "height": 340,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "browser-504x340-ru-light",
+      "panel": "leg",
+      "width": 480,
+      "height": 340,
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "keyboard": "PASS"
+    }
+  ],
+  "chartPrivacy": {
+    "result": "PASS",
+    "privateObservations": 31,
+    "publicPrices": 50
+  },
+  "longTable": {
+    "logicalRows": 10000,
+    "mountedFinalRows": 8,
+    "variableHeight": true,
+    "scrollToLast": "PASS",
+    "focusRetained": "PASS",
+    "keyboardEnd": "PASS"
+  }
+}

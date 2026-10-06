@@ -30,6 +30,8 @@ provider.
 
 ## Synchronization (stage B)
 
+Charts include **View chart data**, a keyboard-accessible table of the same observations with date/time, USD values and missing/estimated/partial coverage. Tables use 50-row pages, honor English/Russian settings and mask private values. Public market prices remain visible in privacy mode. Chart animation follows the operating system's reduced-motion preference.
+
 | Network / data      | Source                                   | Key                     |
 | ------------------- | ---------------------------------------- | ----------------------- |
 | Bitcoin             | Blockstream Esplora (public)             | none                    |
