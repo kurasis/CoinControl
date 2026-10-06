@@ -24,6 +24,7 @@ const report = {
     cpu: cpus()[0]?.model,
     logicalCpus: cpus().length,
     totalMemoryBytes: totalmem(),
+    webviewPolicyHive: process.env.E2E_WEBVIEW2_POLICY ?? null,
   },
   limits: [
     "Synthetic 50-account/500-asset/100000-leg normalized SQL fixture; not a production provider import.",
@@ -32,7 +33,7 @@ const report = {
     "Initial normal-network startup is measured and gated before the three offline samples; its browser folder is preserved separately; OS runtime/certificate caches are not reset.",
     "First useful paint means cached balance and navigation, after two animation frames; not all charts/rows finished.",
     "Closing a pending CSV preview acknowledges cancellation immediately; background calculation can finish before its staging is discarded.",
-    "Production binary uses external documented per-app WebView2 policy/environment options for driver attachment; original policy values are restored; no native-e2e feature.",
+    "Production binary uses documented per-app HKLM WebView2 options on the elevated disposable CI host (Runtime 150+ ignores environment/HKCU); original policy values are restored; no native-e2e feature.",
   ],
 };
 function record(name, ok, detail = "") {

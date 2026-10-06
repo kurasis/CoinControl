@@ -1,6 +1,8 @@
 # Install and exercise the current production artifact in a disposable CI user.
 $ErrorActionPreference = 'Stop'
 if (-not $env:CI -or -not $env:RUNNER_TEMP) { throw 'Run only in disposable Windows CI' }
+$principal = [Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Production native load requires the elevated disposable CI desktop' }
 $installDir = Join-Path $env:RUNNER_TEMP 'CoinControl-native-load-installed'
 $profile = Join-Path $env:APPDATA 'com.coincontrol.portfoliodesk/profiles/real.sqlite'
 if ((Test-Path $installDir) -or (Test-Path $profile)) { throw 'Refusing to replace an existing installation or portfolio' }
@@ -18,11 +20,11 @@ if (-not $binary) { throw 'Installed production executable is missing' }
 if ((Get-FileHash $binary.FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $payload[0].applicationSha256) { throw 'Installed production executable differs from the inspected NSIS payload' }
 $webviewPolicies = [System.Collections.Generic.List[object]]::new()
 function ConfigureWebviewPolicy([string]$Option, [string]$Value) {
-  $path = "HKCU:\Software\Policies\Microsoft\Edge\WebView2\$Option"
+  $path = "HKLM:\Software\Policies\Microsoft\Edge\WebView2\$Option"
   $existed = Test-Path $path
   if (-not $existed) { New-Item $path -Force | Out-Null }
   # The PowerShell Registry provider returns a read-only handle from Get-Item.
-  $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($path.Substring(6), $true)
+  $key = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey($path.Substring(6), $true)
   if (-not $key) { throw 'Cannot open the per-application WebView2 policy for writing' }
   try {
     foreach ($appId in @('com.coincontrol.portfoliodesk', 'portfolio-desk.exe')) {
@@ -33,12 +35,13 @@ function ConfigureWebviewPolicy([string]$Option, [string]$Value) {
   } finally { $key.Close() }
 }
 try {
-  # Microsoft's per-application WebView2 overrides; original values stay private in memory.
-  # Environment overrides were ignored by the installed runtime in the preceding CI attempt.
+  # Runtime 150+ intentionally ignores environment/HKCU overrides in elevated hosts.
+  # Use Microsoft's supported per-app HKLM channel, restoring original values below.
+  # https://github.com/MicrosoftEdge/WebView2Feedback/issues/5640#issuecomment-4923662109
   $driverPort = $(if ($env:E2E_DRIVER_PORT) { [int]$env:E2E_DRIVER_PORT } else { 4444 })
   ConfigureWebviewPolicy 'AdditionalBrowserArguments' "--remote-debugging-port=$($driverPort + 2) --remote-debugging-address=127.0.0.1"
   ConfigureWebviewPolicy 'UserDataFolder' (Join-Path $env:RUNNER_TEMP 'coincontrol-load-webview')
-  $env:E2E_WEBVIEW2_POLICY = '1'
+  $env:E2E_WEBVIEW2_POLICY = 'HKLM'
   & cargo run -p portfolio-store --example performance --release -- --native-fixture $profile 'target/native-load-report'
   if ($LASTEXITCODE -ne 0) { throw 'External native load fixture preparation failed' }
   $env:E2E_APP_PATH = $binary.FullName
@@ -47,7 +50,7 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Production native load acceptance failed; see NATIVE_LOAD_REPORT.json' }
 } finally {
   foreach ($saved in $webviewPolicies) {
-    $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($saved.path.Substring(6), $true)
+    $key = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey($saved.path.Substring(6), $true)
     if (-not $key) { throw 'Cannot reopen the per-application WebView2 policy for restoration' }
     try {
       if ($saved.hadValue) { $key.SetValue($saved.name, $saved.value, $saved.kind) }
