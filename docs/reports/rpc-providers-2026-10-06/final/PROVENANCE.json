@@ -1,0 +1,9 @@
+{
+  "repository": "kurasis/CoinControl",
+  "runId": 37442084560,
+  "runUrl": "https://github.com/kurasis/CoinControl/actions/runs/37442084560",
+  "sourceSha": "54e82df306aa19c1408a9fbc6f66761db27222c5",
+  "event": "push",
+  "pullRequest": "https://github.com/kurasis/CoinControl/pull/12",
+  "note": "Corrected exact grouped valuation; reports retain original measured values. Initial integration failure is preserved in the parent evidence directory."
+}

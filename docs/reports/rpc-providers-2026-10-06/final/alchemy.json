@@ -1,0 +1,58 @@
+{
+  "provider": "alchemy",
+  "started_at": 1791278367,
+  "duration_ms": 11103,
+  "requests": 12,
+  "endpoints": [
+    "alchemy_getTokenBalances/alchemy_getTokenMetadata",
+    "eth_chainId/eth_getBalance/alchemy_getAssetTransfers",
+    "eth_getTransactionReceipt/eth_getTransactionByHash"
+  ],
+  "checks": [
+    {
+      "name": "known native payment and exact fee",
+      "result": "PASS",
+      "detail": "independent known 79 ETH principal; exact sender receipt fee"
+    },
+    {
+      "name": "exact contract USDC balance",
+      "result": "PASS",
+      "detail": "ERC-20 raw hexadecimal balance; official USDC contract and six decimals"
+    },
+    {
+      "name": "ethereum mainnet balance/history",
+      "result": "PASS",
+      "detail": "correct chain ID; 5 bounded transfer-index rows"
+    },
+    {
+      "name": "Ethereum index pagination",
+      "result": "PASS",
+      "detail": "5 second-page rows"
+    },
+    {
+      "name": "base mainnet access",
+      "result": "FAIL",
+      "detail": "alchemy eth_chainId: network access forbidden (HTTP 403)"
+    },
+    {
+      "name": "arbitrum mainnet access",
+      "result": "FAIL",
+      "detail": "alchemy eth_chainId: network access forbidden (HTTP 403)"
+    },
+    {
+      "name": "optimism mainnet access",
+      "result": "FAIL",
+      "detail": "alchemy eth_chainId: network access forbidden (HTTP 403)"
+    },
+    {
+      "name": "polygon mainnet access",
+      "result": "FAIL",
+      "detail": "alchemy eth_chainId: network access forbidden (HTTP 403)"
+    },
+    {
+      "name": "bounded CU",
+      "result": "PASS",
+      "detail": "4270 conservative estimated CU; ceiling 10000"
+    }
+  ]
+}

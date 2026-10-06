@@ -1,0 +1,112 @@
+{
+  "sourceSha": "54e82df306aa19c1408a9fbc6f66761db27222c5",
+  "runId": 37442084560,
+  "note": "Only fixed phase labels and elapsed milliseconds are extracted; no SQL, paths or command lines.",
+  "launches": [
+    {
+      "launchLog": "application-launch-0.log",
+      "phases": [
+        {
+          "phase": "Startup context ready",
+          "elapsedMs": 4
+        },
+        {
+          "phase": "Startup local profile ready",
+          "elapsedMs": 15
+        },
+        {
+          "phase": "Startup cached summary ready",
+          "elapsedMs": 515
+        },
+        {
+          "phase": "Startup native WebView ready",
+          "elapsedMs": 1057
+        }
+      ]
+    },
+    {
+      "launchLog": "application-launch-1.log",
+      "phases": [
+        {
+          "phase": "Startup context ready",
+          "elapsedMs": 3
+        },
+        {
+          "phase": "Startup local profile ready",
+          "elapsedMs": 13
+        },
+        {
+          "phase": "Startup native WebView ready",
+          "elapsedMs": 594
+        },
+        {
+          "phase": "Startup cached summary ready",
+          "elapsedMs": 670
+        }
+      ]
+    },
+    {
+      "launchLog": "application-launch-2.log",
+      "phases": [
+        {
+          "phase": "Startup context ready",
+          "elapsedMs": 2
+        },
+        {
+          "phase": "Startup local profile ready",
+          "elapsedMs": 13
+        },
+        {
+          "phase": "Startup native WebView ready",
+          "elapsedMs": 465
+        },
+        {
+          "phase": "Startup cached summary ready",
+          "elapsedMs": 687
+        }
+      ]
+    },
+    {
+      "launchLog": "application-launch-3.log",
+      "phases": [
+        {
+          "phase": "Startup context ready",
+          "elapsedMs": 2
+        },
+        {
+          "phase": "Startup local profile ready",
+          "elapsedMs": 12
+        },
+        {
+          "phase": "Startup native WebView ready",
+          "elapsedMs": 409
+        },
+        {
+          "phase": "Startup cached summary ready",
+          "elapsedMs": 1198
+        }
+      ]
+    },
+    {
+      "launchLog": "application-launch-4.log",
+      "phases": [
+        {
+          "phase": "Startup context ready",
+          "elapsedMs": 3
+        },
+        {
+          "phase": "Startup local profile ready",
+          "elapsedMs": 12
+        },
+        {
+          "phase": "Startup native WebView ready",
+          "elapsedMs": 463
+        },
+        {
+          "phase": "Startup cached summary ready",
+          "elapsedMs": 731
+        }
+      ]
+    }
+  ]
+}

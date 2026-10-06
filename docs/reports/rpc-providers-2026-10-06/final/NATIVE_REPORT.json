@@ -1,0 +1,4290 @@
+{
+  "mode": "native-windows",
+  "at": "2026-10-06T09:22:41.026Z",
+  "checks": [
+    {
+      "name": "WebDriver intermediary and native driver ready",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Attach WebDriver to the native application and real IPC",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Clean first launch has no fabricated balances",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Two owned synthetic accounts added through native address validation and UI",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Overlapping native groups preserve scope totals, one fee and owned-transfer accounting across restart",
+      "result": "PASS",
+      "detail": "Synthetic offline evidence: 1.99 ETH total; $5970; $30 fee exactly once"
+    },
+    {
+      "name": "Separate SQLite demo loaded through Rust IPC",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Windows 125% display scale: HWND, physical work area, pages and panels",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Windows 150% display scale: HWND, physical work area, pages and panels",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Windows 200% display scale: HWND, physical work area, pages and panels",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Restore original Windows display scale",
+      "result": "PASS",
+      "detail": "Windows Settings selection and application HWND DPI agree"
+    },
+    {
+      "name": "Native HWND viewport matrix: 3 sizes \u00d7 2 languages \u00d7 2 themes; all 6 asset and 8 activity columns reachable",
+      "result": "PASS",
+      "detail": "Actual WebView2 CSS dimensions measured; hosted Windows DPI recorded, no display-scale emulation"
+    },
+    {
+      "name": "Account navigation and scoped holdings",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Cost basis saved and audit version displayed",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Credential saved in isolated Windows Credential Manager entry",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "OS credential persists across restart and can be removed without echoing it",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "SQLite databases and WAL exclude credentials",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "SQLite basis decision survives process restart",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Language and theme change through native settings",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Privacy masks portfolio values",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Native Save dialogs export backup and four populated CSV files; OS key absent",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Restore in a fresh installation preserves exact holdings/history/lots/audit CSV and groups; keys absent",
+      "result": "PASS",
+      "detail": "Fresh demo destination is automatically seeded by the app before restoring its matching demo archive"
+    },
+    {
+      "name": "Native public BTC import, cancellation/restart/resume and Portfolio/Asset/Account/Activity navigation",
+      "result": "PASS",
+      "detail": "22 transactions; cancellation feedback 12 ms"
+    },
+    {
+      "name": "OS-enforced offline failure retains cached amounts and stale UI; reconnect refreshes without duplicates",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Installer upgrade and uninstall",
+      "result": "SKIPPED_NOT_IN_SCOPE",
+      "detail": "Executed independently by windows-installer job"
+    },
+    {
+      "name": "Restore original physical desktop resolution",
+      "result": "PASS",
+      "detail": "Supported server resolution command verified against physical screen metrics"
+    }
+  ],
+  "environment": {
+    "os": "win32",
+    "osVersion": "10.0.20348",
+    "arch": "x64",
+    "node": "v22.23.3",
+    "tauriDriver": "",
+    "webViewMatchingDriver": "Microsoft Edge WebDriver 154.0.4258.62 (49f7c5590dad654f33b924537ccc8be227c5a43a)"
+  },
+  "applicationSha256": "e3cfecd15f12f692a3474fd59fd4310b64a2574fa09123d4728f8b19d8070b46",
+  "ownedFixture": {
+    "expectedTotalUsd": "5970.00",
+    "expectedFeeUsd": "30.00",
+    "scopes": [
+      {
+        "label": "Acceptance A only",
+        "totalUsd": "$2,970.00",
+        "feeUsd": "30.00",
+        "feeCharges": 1
+      },
+      {
+        "label": "Acceptance both",
+        "totalUsd": "$5,970.00",
+        "feeUsd": "30.00",
+        "feeCharges": 1
+      }
+    ]
+  },
+  "desktop": {
+    "prepared": {
+      "serverCoreResolutionCommand": true,
+      "width": 1600,
+      "method": "Microsoft ServerCore Set-DisplayResolution",
+      "originalWidth": 1024,
+      "serverCoreAttempts": [
+        {
+          "width": 3840,
+          "height": 2160,
+          "actualWidth": 1024,
+          "actualHeight": 768,
+          "applied": false,
+          "detail": "Server resolution command did not change the physical screen to the requested mode"
+        },
+        {
+          "width": 2560,
+          "height": 1600,
+          "actualWidth": 1024,
+          "actualHeight": 768,
+          "applied": false,
+          "detail": "Server resolution command did not change the physical screen to the requested mode"
+        },
+        {
+          "width": 2560,
+          "height": 1440,
+          "actualWidth": 1024,
+          "actualHeight": 768,
+          "applied": false,
+          "detail": "Server resolution command did not change the physical screen to the requested mode"
+        },
+        {
+          "width": 2048,
+          "height": 1536,
+          "actualWidth": 1024,
+          "actualHeight": 768,
+          "applied": false,
+          "detail": "Server resolution command did not change the physical screen to the requested mode"
+        },
+        {
+          "width": 1920,
+          "height": 1200,
+          "actualWidth": 1024,
+          "actualHeight": 768,
+          "applied": false,
+          "detail": "Server resolution command did not change the physical screen to the requested mode"
+        },
+        {
+          "width": 1600,
+          "height": 1200,
+          "actualWidth": 1600,
+          "actualHeight": 1200,
+          "applied": true
+        }
+      ],
+      "height": 1200,
+      "originalHeight": 768,
+      "serverCoreDetail": "Server resolution command did not change the physical screen to the requested mode",
+      "detail": "Supported server resolution command verified against physical screen metrics",
+      "result": "PASS"
+    },
+    "restored": {
+      "serverCoreResolutionCommand": true,
+      "height": 768,
+      "method": "Microsoft ServerCore Set-DisplayResolution",
+      "originalWidth": 1600,
+      "serverCoreAttempts": [
+        {
+          "width": 1024,
+          "height": 768,
+          "actualWidth": 1024,
+          "actualHeight": 768,
+          "applied": true
+        }
+      ],
+      "originalHeight": 1200,
+      "width": 1024,
+      "detail": "Supported server resolution command verified against physical screen metrics",
+      "result": "PASS"
+    }
+  },
+  "viewports": [
+    {
+      "name": "viewport-1440x900-en-dark",
+      "height": 900,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1440,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1440, 900],
+        "outerPhysical": [1456, 939]
+      }
+    },
+    {
+      "name": "viewport-1440x900-en-light",
+      "height": 900,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1440,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1440, 900],
+        "outerPhysical": [1456, 939]
+      }
+    },
+    {
+      "name": "viewport-1440x900-ru-dark",
+      "height": 900,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1440,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1440, 900],
+        "outerPhysical": [1456, 939]
+      }
+    },
+    {
+      "name": "viewport-1440x900-ru-light",
+      "height": 900,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1440,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1440, 900],
+        "outerPhysical": [1456, 939]
+      }
+    },
+    {
+      "name": "viewport-1280x800-en-dark",
+      "height": 800,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1280,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1280, 800],
+        "outerPhysical": [1296, 839]
+      }
+    },
+    {
+      "name": "viewport-1280x800-en-light",
+      "height": 800,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1280,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1280, 800],
+        "outerPhysical": [1296, 839]
+      }
+    },
+    {
+      "name": "viewport-1280x800-ru-dark",
+      "height": 800,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1280,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1280, 800],
+        "outerPhysical": [1296, 839]
+      }
+    },
+    {
+      "name": "viewport-1280x800-ru-light",
+      "height": 800,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": false
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1280,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1280, 800],
+        "outerPhysical": [1296, 839]
+      }
+    },
+    {
+      "name": "viewport-1024x720-en-dark",
+      "height": 720,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1024,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1024, 720],
+        "outerPhysical": [1040, 759]
+      }
+    },
+    {
+      "name": "viewport-1024x720-en-light",
+      "height": 720,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1024,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1024, 720],
+        "outerPhysical": [1040, 759]
+      }
+    },
+    {
+      "name": "viewport-1024x720-ru-dark",
+      "height": 720,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1024,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1024, 720],
+        "outerPhysical": [1040, 759]
+      }
+    },
+    {
+      "name": "viewport-1024x720-ru-light",
+      "height": 720,
+      "mainOverflow": false,
+      "pixelRatio": 1,
+      "screen": {
+        "availableHeight": 1160,
+        "availableWidth": 1600,
+        "height": 1200,
+        "width": 1600
+      },
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true,
+          "scrollable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true,
+          "scrollable": true
+        }
+      ],
+      "width": 1024,
+      "native": {
+        "dpi": 96,
+        "requestedClient": [1024, 720],
+        "outerPhysical": [1040, 759]
+      }
+    }
+  ],
+  "pageLayouts": [
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "controlsReachable": true,
+      "height": 900,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1440
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "controlsReachable": true,
+      "height": 800,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1280
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "controlsReachable": true,
+      "height": 720,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 1024
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-125",
+      "controlsReachable": true,
+      "height": 576,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1.25,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 820
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-150",
+      "controlsReachable": true,
+      "height": 480,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 1.5,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 683
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/wallets",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/activity",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/review",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 7,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/settings",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/settings/sources",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/settings/networks",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/settings/data",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/assets/bitcoin%3Anative",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 5,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 512
+    },
+    {
+      "scenario": "os-scale-200",
+      "controlsReachable": true,
+      "height": 360,
+      "mainOverflow": false,
+      "path": "#/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "pixelRatio": 2,
+      "sideNavigationReachable": true,
+      "tables": [
+        {
+          "columns": 6,
+          "lastColumnReachable": true
+        },
+        {
+          "columns": 8,
+          "lastColumnReachable": true
+        }
+      ],
+      "width": 512
+    }
+  ],
+  "chartData": [
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "route": "/",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "Price observations",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "route": "/",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "Price observations",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "route": "/",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0426\u0435\u043d\u0430\u00bb",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "route": "/",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0426\u0435\u043d\u0430\u00bb",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "route": "/",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "Price observations",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "route": "/",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "Price observations",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "route": "/",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0426\u0435\u043d\u0430\u00bb",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "route": "/",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0426\u0435\u043d\u0430\u00bb",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "route": "/",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "Price observations",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "route": "/",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "Price observations",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "Portfolio value observations",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "route": "/",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0426\u0435\u043d\u0430\u00bb",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "route": "/",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0426\u0435\u043d\u0430\u00bb",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-125",
+      "route": "/",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-125",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-125",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0426\u0435\u043d\u0430\u00bb",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-125",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-150",
+      "route": "/",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-150",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-150",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0426\u0435\u043d\u0430\u00bb",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-150",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-200",
+      "route": "/",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-200",
+      "route": "/accounts/2f25890f-1771-4fd0-b14a-67d6cdceb017",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-200",
+      "route": "/assets/bitcoin%3Anative",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0426\u0435\u043d\u0430\u00bb",
+      "overflow": false,
+      "rows": 50,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-200",
+      "route": "/groups/6112a799-8a88-4623-ad4c-e2d66a1ac4d5",
+      "chart": 0,
+      "label": "\u0422\u043e\u0447\u043a\u0438 \u0433\u0440\u0430\u0444\u0438\u043a\u0430 \u00ab\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044f\u00bb",
+      "overflow": false,
+      "rows": 31,
+      "renderer": "canvas",
+      "keyboard": "PASS"
+    }
+  ],
+  "panelLayouts": [
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 900,
+      "viewportHeight": 900,
+      "viewportWidth": 1440,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-dark",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 900,
+      "viewportHeight": 900,
+      "viewportWidth": 1440,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 900,
+      "viewportHeight": 900,
+      "viewportWidth": 1440,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-en-light",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 900,
+      "viewportHeight": 900,
+      "viewportWidth": 1440,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 900,
+      "viewportHeight": 900,
+      "viewportWidth": 1440,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-dark",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 900,
+      "viewportHeight": 900,
+      "viewportWidth": 1440,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 900,
+      "viewportHeight": 900,
+      "viewportWidth": 1440,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1440x900-ru-light",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 900,
+      "viewportHeight": 900,
+      "viewportWidth": 1440,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 800,
+      "viewportHeight": 800,
+      "viewportWidth": 1280,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-dark",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 800,
+      "viewportHeight": 800,
+      "viewportWidth": 1280,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 800,
+      "viewportHeight": 800,
+      "viewportWidth": 1280,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-en-light",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 800,
+      "viewportHeight": 800,
+      "viewportWidth": 1280,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 785,
+      "viewportHeight": 785,
+      "viewportWidth": 1280,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-dark",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 785,
+      "viewportHeight": 785,
+      "viewportWidth": 1280,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 785,
+      "viewportHeight": 785,
+      "viewportWidth": 1280,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1280x800-ru-light",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 785,
+      "viewportHeight": 785,
+      "viewportWidth": 1280,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 705,
+      "viewportHeight": 705,
+      "viewportWidth": 1024,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-dark",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 705,
+      "viewportHeight": 705,
+      "viewportWidth": 1024,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 705,
+      "viewportHeight": 705,
+      "viewportWidth": 1024,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-en-light",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 705,
+      "viewportHeight": 705,
+      "viewportWidth": 1024,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 705,
+      "viewportHeight": 705,
+      "viewportWidth": 1024,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-dark",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 705,
+      "viewportHeight": 705,
+      "viewportWidth": 1024,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 705,
+      "viewportHeight": 705,
+      "viewportWidth": 1024,
+      "width": 880,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "viewport-1024x720-ru-light",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 705,
+      "viewportHeight": 705,
+      "viewportWidth": 1024,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-125",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 560.7999877929688,
+      "viewportHeight": 560.7999877929688,
+      "viewportWidth": 820,
+      "width": 820,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-125",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 560.7999877929688,
+      "viewportHeight": 560.7999877929688,
+      "viewportWidth": 820,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-150",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 464.66668701171875,
+      "viewportHeight": 464.6666564941406,
+      "viewportWidth": 683.3333129882812,
+      "width": 683.3333740234375,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-150",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 464.66668701171875,
+      "viewportHeight": 464.6666564941406,
+      "viewportWidth": 683.3333129882812,
+      "width": 480,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-200",
+      "panel": "import",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 345,
+      "viewportHeight": 345,
+      "viewportWidth": 497,
+      "width": 497,
+      "keyboard": "PASS"
+    },
+    {
+      "scenario": "os-scale-200",
+      "panel": "leg",
+      "bodyOverflow": false,
+      "closeReachable": true,
+      "height": 345,
+      "viewportHeight": 345,
+      "viewportWidth": 497,
+      "width": 480,
+      "keyboard": "PASS"
+    }
+  ],
+  "chartPrivacy": {
+    "result": "PASS",
+    "privateObservations": 31,
+    "publicPrices": 50
+  },
+  "displayScaling": {
+    "baseline": {
+      "selectedPercent": 100,
+      "workAreaPhysical": [0, 0, 1600, 1160],
+      "outerPhysical": [0, 0, 1040, 759],
+      "physicalBoundsSettled": true,
+      "dpi": 96,
+      "requestedPercent": 0,
+      "detail": "Windows Settings selection and application HWND DPI agree",
+      "result": "PASS",
+      "originalPercent": 100
+    },
+    "scenarios": [
+      {
+        "selectedPercent": 125,
+        "outerPhysical": [0, 0, 1042, 767],
+        "workAreaPhysical": [0, 0, 1600, 1150],
+        "dpi": 120,
+        "physicalBoundsSettled": true,
+        "observedPercentages": [100, 125, 150, 175, 200],
+        "requestedPercent": 125,
+        "detail": "Windows Settings selection and application HWND DPI agree",
+        "result": "PASS",
+        "originalPercent": 100,
+        "settledMeasurement": {
+          "selectedPercent": null,
+          "workAreaPhysical": [0, 0, 1600, 1150],
+          "outerPhysical": [0, 0, 1042, 767],
+          "physicalBoundsSettled": true,
+          "dpi": 120,
+          "requestedPercent": 125,
+          "detail": "Physical bounds measured after renderer DPI settled",
+          "result": "PASS",
+          "originalPercent": null
+        }
+      },
+      {
+        "selectedPercent": 150,
+        "outerPhysical": [0, 0, 1046, 776],
+        "workAreaPhysical": [0, 0, 1600, 1140],
+        "dpi": 144,
+        "physicalBoundsSettled": true,
+        "observedPercentages": [100, 125, 150, 175, 200],
+        "requestedPercent": 150,
+        "detail": "Windows Settings selection and application HWND DPI agree",
+        "result": "PASS",
+        "originalPercent": 125,
+        "settledMeasurement": {
+          "selectedPercent": null,
+          "workAreaPhysical": [0, 0, 1600, 1140],
+          "outerPhysical": [0, 0, 1046, 776],
+          "physicalBoundsSettled": true,
+          "dpi": 144,
+          "requestedPercent": 150,
+          "detail": "Physical bounds measured after renderer DPI settled",
+          "result": "PASS",
+          "originalPercent": null
+        }
+      },
+      {
+        "selectedPercent": 200,
+        "outerPhysical": [0, 0, 1050, 791],
+        "workAreaPhysical": [0, 0, 1600, 1120],
+        "dpi": 192,
+        "physicalBoundsSettled": true,
+        "observedPercentages": [100, 125, 150, 175, 200],
+        "requestedPercent": 200,
+        "detail": "Windows Settings selection and application HWND DPI agree",
+        "result": "PASS",
+        "originalPercent": 150,
+        "settledMeasurement": {
+          "selectedPercent": null,
+          "workAreaPhysical": [0, 0, 1600, 1120],
+          "outerPhysical": [0, 0, 1050, 791],
+          "physicalBoundsSettled": true,
+          "dpi": 192,
+          "requestedPercent": 200,
+          "detail": "Physical bounds measured after renderer DPI settled",
+          "result": "PASS",
+          "originalPercent": null
+        }
+      }
+    ],
+    "restored": {
+      "selectedPercent": 100,
+      "outerPhysical": [0, 0, 1040, 759],
+      "workAreaPhysical": [0, 0, 1600, 1160],
+      "dpi": 96,
+      "physicalBoundsSettled": true,
+      "observedPercentages": [100, 125, 150, 175, 200],
+      "requestedPercent": 100,
+      "detail": "Windows Settings selection and application HWND DPI agree",
+      "result": "PASS",
+      "originalPercent": 200
+    }
+  },
+  "cancellationFeedbackMs": 12,
+  "providerUsage": [
+    {
+      "provider": "defillama",
+      "requests": 14
+    },
+    {
+      "provider": "esplora",
+      "requests": 12
+    }
+  ],
+  "originalIsolatedProfile": "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\coincontrol-native-demo-gvM2yA"
+}
