@@ -1,0 +1,13 @@
+{
+  "sourceSha": "8830f1827a002f52a47eba14713d4fdfc0edbc64",
+  "runId": 37430180430,
+  "jobId": 112158959901,
+  "source": "Only bundle-size lines extracted from the completed main Linux job; other log text is not curated.",
+  "currentBuildLines": [
+    "2026-10-06T07:33:06.4827780Z dist/assets/SeriesChartCanvas-DE6xRSTp.js                 495.02 kB \u2502 gzip: 167.73 kB",
+    "2026-10-06T07:33:06.4828298Z dist/assets/index-CZYUFKty.js                             516.39 kB \u2502 gzip: 154.66 kB"
+  ],
+  "previousInitialJsKilobytes": 1011.78,
+  "previousBuildSource": "4873add6042b62c229bc3ef2848dcab3b40835f0; recorded in the local production build log. Application source matches 427131e before renderer separation.",
+  "kilobyteUnit": "Vite display kB, rounded to two decimal places."
+}

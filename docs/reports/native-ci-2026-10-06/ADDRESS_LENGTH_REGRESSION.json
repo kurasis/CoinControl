@@ -1,0 +1,27 @@
+{
+  "mode": "browser-address-length-regression",
+  "limits": "Chromium mock IPC at 512x360 CSS pixels; not a native DPI test. The old overflow-wrap behavior is applied only to the public full account address for the before control.",
+  "id": "0:0000000000000000000000000000000000000000000000000000000000000001",
+  "before": {
+    "mainClientWidth": 433,
+    "mainScrollWidth": 533,
+    "overflow": true,
+    "identityClientWidth": 0,
+    "identityScrollWidth": 0,
+    "identityFullyPreserved": true,
+    "identityHeight": 15
+  },
+  "after": {
+    "mainClientWidth": 433,
+    "mainScrollWidth": 433,
+    "overflow": false,
+    "identityClientWidth": 0,
+    "identityScrollWidth": 0,
+    "identityFullyPreserved": true,
+    "identityHeight": 33.84375
+  },
+  "localBaseSha": "e0ee8b9af7c6025b62612dc62fdd8ced7d697941",
+  "sourceDirtyAtCapture": true,
+  "scrollbarFixture": "Chromium default hide-scrollbars removed; actual 15px scrollbar participates in layout.",
+  "applicationChangeCommit": "4873add6042b62c229bc3ef2848dcab3b40835f0"
+}

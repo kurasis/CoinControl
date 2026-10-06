@@ -1,0 +1,52 @@
+{
+  "sourceSha": "8830f1827a002f52a47eba14713d4fdfc0edbc64",
+  "runId": 37430180430,
+  "note": "Only startup phase labels and elapsed milliseconds are copied from process logs. Full logs, SQL and process command lines are not curated.",
+  "launches": [
+    {
+      "launchLog": "application-launch-0.log",
+      "elapsedMsSinceRustRun": {
+        "contextReady": 4,
+        "nativeWebViewReady": 1284,
+        "localProfileReady": 16,
+        "cachedSummaryReady": 1100
+      }
+    },
+    {
+      "launchLog": "application-launch-1.log",
+      "elapsedMsSinceRustRun": {
+        "contextReady": 3,
+        "nativeWebViewReady": 614,
+        "localProfileReady": 14,
+        "cachedSummaryReady": 1193
+      }
+    },
+    {
+      "launchLog": "application-launch-2.log",
+      "elapsedMsSinceRustRun": {
+        "contextReady": 3,
+        "nativeWebViewReady": 596,
+        "localProfileReady": 14,
+        "cachedSummaryReady": 1141
+      }
+    },
+    {
+      "launchLog": "application-launch-3.log",
+      "elapsedMsSinceRustRun": {
+        "contextReady": 3,
+        "nativeWebViewReady": 570,
+        "localProfileReady": 13,
+        "cachedSummaryReady": 1183
+      }
+    },
+    {
+      "launchLog": "application-launch-4.log",
+      "elapsedMsSinceRustRun": {
+        "contextReady": 3,
+        "nativeWebViewReady": 576,
+        "localProfileReady": 13,
+        "cachedSummaryReady": 1192
+      }
+    }
+  ]
+}

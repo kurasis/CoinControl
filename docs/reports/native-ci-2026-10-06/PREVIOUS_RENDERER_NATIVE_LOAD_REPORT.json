@@ -1,0 +1,181 @@
+{
+  "mode": "windows-production-native-load",
+  "at": "2026-10-06T07:09:32.836Z",
+  "sourceSha": "f72ff6d315741b4862673ae4a53292273e7f5e72",
+  "ciSha": "f72ff6d315741b4862673ae4a53292273e7f5e72",
+  "buildMode": "production-release",
+  "checks": [
+    {
+      "name": "Installed production binary matches inspected NSIS payload hash",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Real profile has exactly 50 accounts, 500 assets and 100000 legs",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "First useful native screen with normal runtime networking within 2 seconds",
+      "result": "FAIL",
+      "detail": "2459.10 ms"
+    },
+    {
+      "name": "Cached first useful native screen within 2 seconds in all three process launches",
+      "result": "PASS",
+      "detail": "1868.80 ms maximum"
+    },
+    {
+      "name": "All 500 native holdings remain scrollable with fewer than 80 mounted rows",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Large-dataset pending CSV preview closes within one second",
+      "result": "PASS",
+      "detail": "24 ms"
+    },
+    {
+      "name": "Activity renders two 50-row pages while background preview calculates",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Virtualized native activity reaches row 200 with fewer than 80 mounted rows",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Late CSV preview is discarded without applying decisions or duplicating history",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Native renderer continues presenting frames during large-dataset preview/replay",
+      "result": "PASS",
+      "detail": "265.60 ms maximum frame gap"
+    },
+    {
+      "name": "CSV basis decision commits through native UI and replays all 100000 legs",
+      "result": "PASS",
+      "detail": "30395 ms commit/replay; one imported row"
+    },
+    {
+      "name": "Large portfolio and exact import/history counts survive process restart",
+      "result": "PASS",
+      "detail": ""
+    }
+  ],
+  "startupTargetMs": 2000,
+  "environment": {
+    "os": "win32",
+    "osVersion": "10.0.20348",
+    "node": "v22.23.3",
+    "cpu": "AMD EPYC 7763 64-Core Processor                ",
+    "logicalCpus": 4,
+    "totalMemoryBytes": 17174360064,
+    "webviewPolicyHive": "HKLM"
+  },
+  "limits": [
+    "Synthetic 50-account/500-asset/100000-leg normalized SQL fixture; not a production provider import.",
+    "Cold application processes; operating-system disk/page caches are not flushed.",
+    "First sample uses a fresh WebView2 data folder; later samples retain that browser cache.",
+    "Initial normal-network startup is measured and gated before the three offline samples; its browser folder is preserved separately; OS runtime/certificate caches are not reset.",
+    "First useful paint means cached balance and navigation, after two animation frames; not all charts/rows finished.",
+    "Closing a pending CSV preview acknowledges cancellation immediately; background calculation can finish before its staging is discarded.",
+    "Production binary uses documented per-app HKLM WebView2 options on the elevated disposable CI host (Runtime 150+ ignores environment/HKCU); original policy values are restored; no native-e2e feature."
+  ],
+  "dataset": {
+    "accounts": 50,
+    "activity_legs": 100000,
+    "assets": 500
+  },
+  "applicationSha256": "ee0ff4d7b803ebc366993cedfd8325dbf57b3f7a06ad67fd867f4872e600b1dc",
+  "initialNormalNetworkStartup": {
+    "index": 0,
+    "height": 689,
+    "measuredEpochMs": 1791270575829.1,
+    "navigationEpochMs": 1791270574515.1,
+    "pixelRatio": 1,
+    "usefulFrameMs": 1314,
+    "width": 1008,
+    "processStartUtcMs": 1791270573370,
+    "spawnRequestedUtcMs": 1791270573368,
+    "processToUsefulMs": 2459.10009765625,
+    "browserCache": "fresh",
+    "launchLog": "application-launch-0.log"
+  },
+  "startupSamples": [
+    {
+      "index": 0,
+      "height": 689,
+      "measuredEpochMs": 1791270583780.8,
+      "navigationEpochMs": 1791270582421.3,
+      "pixelRatio": 1,
+      "usefulFrameMs": 1359.5,
+      "width": 1008,
+      "processStartUtcMs": 1791270581912,
+      "spawnRequestedUtcMs": 1791270581911,
+      "processToUsefulMs": 1868.800048828125,
+      "browserCache": "fresh",
+      "launchLog": "application-launch-1.log"
+    },
+    {
+      "index": 1,
+      "height": 689,
+      "measuredEpochMs": 1791270587111.5999,
+      "navigationEpochMs": 1791270586011.9,
+      "pixelRatio": 1,
+      "usefulFrameMs": 1099.7000000000116,
+      "width": 1008,
+      "processStartUtcMs": 1791270585611,
+      "spawnRequestedUtcMs": 1791270585609,
+      "processToUsefulMs": 1500.599853515625,
+      "browserCache": "retained",
+      "launchLog": "application-launch-2.log"
+    },
+    {
+      "index": 2,
+      "height": 689,
+      "measuredEpochMs": 1791270590370.5999,
+      "navigationEpochMs": 1791270589272.4,
+      "pixelRatio": 1,
+      "usefulFrameMs": 1098.2000000000116,
+      "width": 1008,
+      "processStartUtcMs": 1791270588860,
+      "spawnRequestedUtcMs": 1791270588859,
+      "processToUsefulMs": 1510.599853515625,
+      "browserCache": "retained",
+      "launchLog": "application-launch-3.log"
+    }
+  ],
+  "previewCancellationFeedbackMs": 24,
+  "previewMs": 3689,
+  "commitAndReplayMs": 30395,
+  "rendererFrameGaps": {
+    "samples": 2633,
+    "p95Ms": 15.700000000000728,
+    "maxMs": 265.59999999999945,
+    "scope": "Review/Activity navigation, cancelled preview, completed preview and commit/replay"
+  },
+  "applicationMemory": {
+    "peakWorkingSetBytes": 445829120,
+    "workingSetBytes": 65916928,
+    "scope": "Application process only; WebView2 child processes are excluded"
+  },
+  "finalCounts": {
+    "accounts": 50,
+    "assets": 500,
+    "legs": 100000,
+    "overrides": 1,
+    "previews": 0,
+    "discarded": 1,
+    "committed": 1
+  },
+  "providerUsage": [
+    {
+      "provider": "defillama",
+      "requests": 6
+    }
+  ]
+}

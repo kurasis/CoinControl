@@ -1,0 +1,44 @@
+{
+  "provider": "esplora",
+  "started_at": 1791271913,
+  "duration_ms": 5083,
+  "requests": 6,
+  "endpoints": ["address", "blocks/tip/height", "tx", "txs/chain", "txs/mempool"],
+  "checks": [
+    {
+      "name": "tip height",
+      "result": "PASS",
+      "detail": "height 970146"
+    },
+    {
+      "name": "balance and statistics",
+      "result": "PASS",
+      "detail": "confirmed balance 5757509389 sat, 66827 confirmed txs"
+    },
+    {
+      "name": "two confirmed history pages via last_seen_txid",
+      "result": "PASS",
+      "detail": "page sizes 25 and 25, overlap 0, newest-first true"
+    },
+    {
+      "name": "known transaction status and fee",
+      "result": "PASS",
+      "detail": "height Some(57043), fee 99000000 sat"
+    },
+    {
+      "name": "input/output effect for 17SkEw2md5avVNyYgj6RiXuQKNwkXaxFyQ",
+      "result": "PASS",
+      "detail": "principal 1000000000000 sat, fee 0 sat"
+    },
+    {
+      "name": "input/output effect for 1XPTgDRhN8RFnzniWCddobD9iKZatrvH4",
+      "result": "PASS",
+      "detail": "principal -1000000000000 sat, fee 99000000 sat"
+    },
+    {
+      "name": "mempool listing within documented cap",
+      "result": "PASS",
+      "detail": "13 pending"
+    }
+  ]
+}

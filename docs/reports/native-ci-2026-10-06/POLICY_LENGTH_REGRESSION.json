@@ -1,0 +1,26 @@
+{
+  "mode": "browser-policy-length-regression",
+  "limits": "Chromium mock IPC at 512x360 CSS pixels; not a native DPI test. The old overflow-wrap behavior is applied only to the public identity label for the before control.",
+  "id": "ethereum:token:0x00000000000000000000000000000000000d3e30",
+  "before": {
+    "mainClientWidth": 448,
+    "mainScrollWidth": 524,
+    "overflow": true,
+    "identityClientWidth": 366,
+    "identityScrollWidth": 483,
+    "identityFullyPreserved": true,
+    "identityHeight": 54.5625
+  },
+  "after": {
+    "mainClientWidth": 448,
+    "mainScrollWidth": 448,
+    "overflow": false,
+    "identityClientWidth": 366,
+    "identityScrollWidth": 366,
+    "identityFullyPreserved": true,
+    "identityHeight": 54.5625
+  },
+  "localBaseSha": "2ed83e4fd24141ef65c069ad01b03f7cefa1cc12",
+  "sourceDirtyAtCapture": true,
+  "applicationChangeCommit": "e0ee8b9af7c6025b62612dc62fdd8ced7d697941"
+}

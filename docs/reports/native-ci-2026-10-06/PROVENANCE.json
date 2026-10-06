@@ -1,0 +1,11 @@
+{
+  "repository": "kurasis/CoinControl",
+  "runId": 37430180430,
+  "runUrl": "https://github.com/kurasis/CoinControl/actions/runs/37430180430",
+  "sourceSha": "8830f1827a002f52a47eba14713d4fdfc0edbc64",
+  "event": "push",
+  "checkedOutSourceSha": "8830f1827a002f52a47eba14713d4fdfc0edbc64",
+  "sourceVerification": "Main push source agrees with browser sourceSha, installer sourceSha, Store load commit and production ciSha/sourceSha. Native report has no sourceSha field; provenance comes from this main run.",
+  "formatting": "Captured reports retain their original values; JSON/Markdown formatting is normalized afterward.",
+  "localNegativeControls": "POLICY_LENGTH_REGRESSION.json and ADDRESS_LENGTH_REGRESSION.json explicitly record their older working-tree bases/change commits and are browser/mock IPC evidence."
+}
