@@ -992,10 +992,31 @@ try {
         .count === 0
     )
       throw new Error("Reconnect did not refresh the balance");
-    const errors = readProfile(
-      "SELECT json_extract(retry_state,'$.last_error') AS error FROM sync_checkpoints WHERE json_extract(retry_state,'$.last_error') IS NOT NULL",
+    // Retired reserves keep their independent error/cooldown history. Match the
+    // Store sync_status selection and assert the current account outcome.
+    const current = readProfile(
+      "SELECT a.id AS account_id,c.provider,json_extract(c.retry_state,'$.last_error') AS error,json_extract(c.retry_state,'$.last_attempt_at') AS attempt,json_extract(c.retry_state,'$.last_success_at') AS success FROM accounts a LEFT JOIN sync_checkpoints c ON c.rowid=COALESCE((SELECT rowid FROM sync_checkpoints WHERE account_id=a.id AND category='history' AND provider=(SELECT value FROM app_meta WHERE key='sync_source:' || a.id) LIMIT 1),(SELECT rowid FROM sync_checkpoints WHERE account_id=a.id AND category='history' ORDER BY updated_at DESC,rowid DESC LIMIT 1))",
     );
-    if (errors.length) throw new Error("Reconnect retained a synchronization error");
+    report.syncRecovery = {
+      current,
+      retainedProviderErrors: readProfile(
+        "SELECT provider,category,json_extract(retry_state,'$.last_error') AS error FROM sync_checkpoints WHERE json_extract(retry_state,'$.last_error') IS NOT NULL",
+      ),
+    };
+    if (
+      current.length !== 1 ||
+      current.some(
+        (row) => !row.provider || row.error !== null || !row.success || row.success < row.attempt,
+      )
+    )
+      throw new Error(
+        "Reconnect retained an error or missing success in the active account source",
+      );
+    await until(() =>
+      execute(
+        "return [...document.querySelectorAll('.toolbar .meta')].some(e=>e.textContent.trim()==='Synchronization finished');",
+      ),
+    );
     report.providerUsage = readProfile(
       "SELECT provider,SUM(requests) AS requests FROM provider_usage GROUP BY provider",
     );

@@ -1673,12 +1673,6 @@ impl SyncEngine {
                 }
             }
         }
-        if self.providers.livecoinwatch.is_none() && !natives.is_empty() {
-            report
-                .errors
-                .push("livecoinwatch: no API key configured; using fallback quotes".into());
-        }
-
         report.priced = u32::try_from(priced.len()).unwrap_or(u32::MAX);
         report.unpriced = held
             .iter()

@@ -701,3 +701,90 @@ fn drpc_free_scope_excludes_premium_solana() {
     }
     assert!(!api.supports(NetworkId::Solana));
 }
+
+#[tokio::test]
+async fn recovered_primary_has_one_healthy_status_while_reserve_keeps_its_pause() {
+    let primary = MockServer::start().await;
+    let backup = MockServer::start().await;
+    for server in [&primary, &backup] {
+        Mock::given(method("GET"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(server)
+            .await;
+    }
+    let s = store().await;
+    let w = s.create_wallet("reconnect").await.unwrap();
+    let a = s
+        .add_account(&w.id, NetworkId::Bitcoin, BTC, None)
+        .await
+        .unwrap();
+    let make = || {
+        SyncEngine::new(
+            s.clone(),
+            Providers {
+                esplora: Some(
+                    Esplora::with_config(&primary.uri(), Budget::limited(50), fast()).unwrap(),
+                ),
+                mempool: Some(
+                    Esplora::with_provider("mempool", &backup.uri(), Budget::limited(50), fast())
+                        .unwrap(),
+                ),
+                ..Providers::default()
+            },
+            SyncOptions::default(),
+        )
+        .with_transient_retry(true)
+    };
+    assert!(make().sync_account(&a).await.error.is_some());
+    let reserve_error = s
+        .checkpoint(&a.id, "mempool", "history")
+        .await
+        .unwrap()
+        .state
+        .last_error;
+    assert!(reserve_error.is_some());
+    let attempts = backup.received_requests().await.unwrap().len();
+    primary.reset().await;
+    Mock::given(path("/blocks/tip/height"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("900000"))
+        .mount(&primary)
+        .await;
+    Mock::given(path(format!("/address/{BTC}")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"address":BTC,"chain_stats":{"funded_txo_sum":1000,"spent_txo_sum":0,"tx_count":1},"mempool_stats":{"funded_txo_sum":0,"spent_txo_sum":0,"tx_count":0}})))
+        .mount(&primary).await;
+    Mock::given(path(format!("/address/{BTC}/txs/chain")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(vec![btc_tx(1)]))
+        .mount(&primary)
+        .await;
+    Mock::given(path(format!("/address/{BTC}/txs/mempool")))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!([])))
+        .mount(&primary)
+        .await;
+    let r = make().sync_account(&a).await;
+    assert!(r.error.is_none(), "{:?}", r.error);
+    let status = s.sync_status().await.unwrap();
+    assert_eq!(status.len(), 1);
+    assert_eq!(status[0].provider.as_deref(), Some("esplora"));
+    assert_eq!(status[0].last_error, None);
+    assert_eq!(status[0].last_success_at, Some(NOW));
+    assert_eq!(status[0].transaction_count, 1);
+    assert_eq!(
+        s.list_holdings(&Scope::All).await.unwrap()[0].balance_status,
+        BalanceStatus::Fresh
+    );
+    assert_eq!(backup.received_requests().await.unwrap().len(), attempts);
+    assert_eq!(
+        s.checkpoint(&a.id, "mempool", "history")
+            .await
+            .unwrap()
+            .state
+            .last_error,
+        reserve_error
+    );
+    assert!(
+        s.provider_cooldown("mempool", NetworkId::Bitcoin)
+            .await
+            .unwrap()
+            .is_some()
+    );
+}
