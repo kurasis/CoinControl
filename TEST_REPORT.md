@@ -2,6 +2,12 @@
 
 Development version **0.1.4** is delivered on main through [provider PR #11](https://github.com/kurasis/CoinControl/pull/11) and [startup correction PR #12](https://github.com/kurasis/CoinControl/pull/12). Exact final tested code: [54e82df306aa19c1408a9fbc6f66761db27222c5](https://github.com/kurasis/CoinControl/commit/54e82df306aa19c1408a9fbc6f66761db27222c5), [CI 37442084560](https://github.com/kurasis/CoinControl/actions/runs/37442084560): **six jobs passed; only the live API job failed because four Alchemy mainnets returned 403 and Zerion returned 429**. Credential availability is established through authenticated reads. This is a development build; full release acceptance remains blocked by those API gates and physical Windows 11 verification. Evidence follow-up commits change documentation only.
 
+## Published Windows prerelease ZIP
+
+[Windows x64 ZIP, v0.1.4](https://github.com/kurasis/CoinControl/releases/download/v0.1.4/CoinControl-0.1.4-windows-x64.zip) is published as a prerelease, not full release acceptance. [Packaging/publishing workflow 37445549616](https://github.com/kurasis/CoinControl/actions/runs/37445549616) passed on packaging source bea3d6c. It reused the exact production installer from CI 37442084560 after matching release/upgrade/startup reports and installer/application payload hashes. Application code remains the tested 54e82df source; subsequent changes add reports and packaging automation.
+
+The published ZIP was downloaded again: CRC, exact four-file contents, inner checksums and external SHA-256 passed. ZIP SHA-256: `12f2ae2273b6d544dc94adef2fd44e2cd61b25d66b7b91fb8c8dc343b9018af4` (8016340 bytes). It contains the unsigned setup EXE, README, build information and file checksums. A tampered installer was rejected in a local negative control. The release gate limitations below remain in force.
+
 ## Final verification
 
 | Scope                                                            | Result                                                                                   |
@@ -68,4 +74,4 @@ The corrective implementation groups identical remaining lot values in SQLite an
 
 Earlier source-specific evidence: [CI recovery](docs/reports/ci-recovery-2026-10-06/README.md), [responsive UI](docs/reports/responsive-ui-2026-10-05/README.md), [native upgrade](docs/reports/upgrade-and-native-2026-10-05/README.md), [release follow-up](docs/reports/release-acceptance-2026-10-05/README.md), [imported report](docs/reports/IMPORTED_TEST_REPORT.md).
 
-The current production startup gate passed. Full release acceptance still requires Alchemy network access, Zerion quota and physical Windows 11 verification. No release tag, physical Windows 11 pass or complete blockchain coverage is claimed.
+The current production startup gate passed. Full release acceptance still requires Alchemy network access, Zerion quota and physical Windows 11 verification. The v0.1.4 tag publishes a prerelease ZIP; no full release pass, physical Windows 11 pass or complete blockchain coverage is claimed.
