@@ -188,7 +188,7 @@
     "node": "v24.19.0",
     "chromium": "153.0.8010.12"
   },
-  "sourceSha": "880c0c994812d90884ce7e59850568a40b1dc2cf",
+  "sourceSha": "c7c721f57c694b34445808054c588ea067a5f8a6",
   "sourceDirty": false,
   "pageLayouts": [
     {
@@ -5723,7 +5723,7 @@
   },
   "longTable": {
     "logicalRows": 10000,
-    "mountedFinalRows": 8,
+    "mountedFinalRows": 12,
     "variableHeight": true,
     "scrollToLast": "PASS",
     "focusRetained": "PASS",
