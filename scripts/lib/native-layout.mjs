@@ -76,6 +76,31 @@ export async function verifyNativePages(ui, { name, capture }, report) {
     report.pageLayouts ??= [];
     report.pageLayouts.push({ scenario: name, ...layout });
     if (capture) await ui.screenshot(`${name}-page-${index}`);
+    await until(() => ui.execute("return !document.querySelector('.chart.skeleton');"));
+    const charts = await ui.execute("return document.querySelectorAll('.chart-data').length;");
+    for (let chart = 0; chart < charts; chart++) {
+      await ui.execute(
+        "document.querySelectorAll('.chart-data summary')[arguments[0]].focus();return true;",
+        [chart],
+      );
+      await ui.key("\uE007");
+      await until(() =>
+        ui.execute("return document.querySelectorAll('.chart-data')[arguments[0]].open;", [chart]),
+      );
+      const data = await ui.execute(
+        `const e=document.querySelectorAll('.chart-data')[arguments[0]],b=e.querySelector('[role=region]');return {rows:e.querySelectorAll('tbody tr').length,label:b.getAttribute('aria-label'),overflow:document.querySelector('.main').scrollWidth>document.querySelector('.main').clientWidth+2};`,
+        [chart],
+      );
+      if (!data.rows || data.rows > 50 || !data.label || data.overflow)
+        throw new Error(`Inaccessible chart data: ${name}${route}`);
+      if (capture) await ui.screenshot(`${name}-page-${index}-chart-data-${chart}`);
+      await ui.key(" ");
+      await until(() =>
+        ui.execute("return !document.querySelectorAll('.chart-data')[arguments[0]].open;", [chart]),
+      );
+      report.chartData ??= [];
+      report.chartData.push({ scenario: name, route, chart, ...data, keyboard: "PASS" });
+    }
   }
   // Verify actual Tab/Shift+Tab and Escape, including restoration to the opening control.
   await ui.route("/review");

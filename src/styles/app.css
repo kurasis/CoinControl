@@ -403,6 +403,40 @@ select {
   height: 280px;
 }
 
+.chart-data {
+  margin-top: var(--space-2);
+}
+
+.chart-data summary {
+  cursor: pointer;
+  padding: var(--space-3) 0;
+  color: var(--text-secondary);
+}
+
+.chart-data caption {
+  padding-bottom: var(--space-2);
+  text-align: left;
+}
+
+.chart-data-scroll {
+  max-height: 320px;
+}
+
+.chart-data .table th,
+.chart-data .table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.chart-data .table tbody th {
+  font-weight: 400;
+}
+
+.chart-data-pages {
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
 .chart-empty {
   display: grid;
   place-items: center;

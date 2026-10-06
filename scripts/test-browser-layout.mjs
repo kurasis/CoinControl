@@ -67,7 +67,10 @@ try {
       await page.screenshot({ path: `${output}/${name}.png` });
     },
     key: (value, shift = false) =>
-      page.keyboard.press((shift ? "Shift+" : "") + (value === "\uE004" ? "Tab" : "Escape")),
+      page.keyboard.press(
+        (shift ? "Shift+" : "") +
+          ({ "\uE004": "Tab", "\uE007": "Enter", "\uE00C": "Escape" }[value] ?? value),
+      ),
   };
   try {
     await page.goto("http://127.0.0.1:4175/");

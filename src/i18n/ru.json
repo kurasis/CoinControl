@@ -83,7 +83,18 @@
     "gap": "Нет данных",
     "empty": "Истории стоимости пока нет. Она появится после синхронизации балансов.",
     "summary": "График стоимости портфеля от {{from}} до {{to}}",
-    "summaryOf": "График «{{label}}»: от {{from}} до {{to}}"
+    "summaryOf": "График «{{label}}»: от {{from}} до {{to}}",
+    "viewData": "Данные графика: {{label}}",
+    "dataTitle": "Точки графика «{{label}}»",
+    "dataSummary": "Точек: {{count}}, пропусков: {{gaps}}.",
+    "observedAt": "Дата и время",
+    "usdValue": "Стоимость (USD)",
+    "quality": "Полнота данных",
+    "available": "Доступно",
+    "dataPages": "Страницы данных «{{label}}»",
+    "previousPage": "Предыдущая страница",
+    "nextPage": "Следующая страница",
+    "pageNumber": "Страница {{page}} из {{pages}}"
   },
   "assets": {
     "title": "Активы",
