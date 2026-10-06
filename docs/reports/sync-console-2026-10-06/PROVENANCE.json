@@ -1,0 +1,73 @@
+{
+  "sourceSha": "a1492978c4adf962dde4ec1af7a7e788c5495845",
+  "ciRunId": 37449823930,
+  "workflowUrl": "https://github.com/kurasis/CoinControl/actions/runs/37449823930",
+  "conclusion": "failure",
+  "jobs": [
+    {
+      "name": "Checks and offline tests (Linux)",
+      "id": 112223408301,
+      "conclusion": "success"
+    },
+    {
+      "name": "Windows native recovery and public BTC scenarios",
+      "id": 112223408512,
+      "conclusion": "success"
+    },
+    {
+      "name": "Windows NSIS installer (unsigned)",
+      "id": 112223408545,
+      "conclusion": "success"
+    },
+    {
+      "name": "Live provider tests (read-only)",
+      "id": 112223408626,
+      "conclusion": "failure"
+    },
+    {
+      "name": "Cached load measurements (windows-latest)",
+      "id": 112223408704,
+      "conclusion": "success"
+    },
+    {
+      "name": "Cached load measurements (ubuntu-24.04)",
+      "id": 112223408709,
+      "conclusion": "success"
+    },
+    {
+      "name": "Production native startup and 100000-leg UI/import",
+      "id": 112226027069,
+      "conclusion": "success"
+    }
+  ],
+  "nativeApplicationSha256": "b6fe73def4b128996ea1088ca3e0a7e5e199f98001a58cc632bb664a2583db70",
+  "productionApplicationSha256": "1709fd2c08a5b9962ef4e8f37ec6c1a83c4315c74ae697d94a9a8d230da0189c",
+  "files": {
+    "PRODUCTION_WEBVIEW_RUNTIME_REPORT.json": "24ce61e3515402c77129414e6b2dca265f5016f353bee3d3e9dd4b3e5cd9dcb7",
+    "network-console-live.png": "316ae9a2872c20ff16ef50e2f213e7fc170f5f6dcf6c7fe6d30b6e80ebf3187c",
+    "NATIVE_REPORT.json": "4e3c4ac57e3e88fb72e01325e453aad4327bd86e984e5ae565c6a1444daba1f3",
+    "load-portfolio.png": "9e8f9eaf52231fb38ff2319c820c0a3eacc81f9e8fd50756754b0be5f66b6032",
+    "BUILD_INFO.json": "b50e893862cadd6bdb241484d1004cd5836a26923407533b495c48af50e2fb80",
+    "helius.json": "ce1182efaa264f5be1c264072a85322a765ca86559050fad4ee4945565e9e192",
+    "README.md": "7aaadcac9390a7e8a491375803fb7b2756a6a25eb4d78988f22ff946ab2e08d7",
+    "LINUX_PERFORMANCE_REPORT.json": "069e16a721ce33431c7291b95495d2d66e986ad142c8a5237fca91267b408f6c",
+    "WEBVIEW_RUNTIME_REPORT.json": "b84df726969d37065391ebb1f861817c1d0dcb227fbbeb759a7db76be638219d",
+    "BROWSER_LAYOUT_REPORT.json": "388e62ccd9c525b1a965848cace07a77fbd126041eb79c1549ed7a01d4dedac5",
+    "alchemy.json": "31472ed358cd9b403a0a0bba68adec105f0ac0161d7163fb60a09fc1052c7a14",
+    "WINDOWS_PERFORMANCE_REPORT.json": "f9f95775d1772647bcea5c97bcb678bd2018653f162062b72abfa5e446c8346c",
+    "estimated-credits.json": "c15052a8516ec838b4dda747f263d8c7ea6080524633e1a0080157557d959ed0",
+    "LIVE_REPORT.md": "12c85601db49d8281c322a9cf996b58ea4154cf7e0da07e01acd4ab9e0a6ec20",
+    "usage.json": "16ce50d09dd9537ce8672b9ce66a2825b96c1263f22bf668549ec717ed6fbff6",
+    "OWNED_FIXTURE_REPORT.json": "f714a1f45c66cd5645445b85b4c9ec31d4b30b2c96f20b7a6381261971dfd29c",
+    "RELEASE_REPORT.json": "5d9142b6e2ba80c209dbd36fe3be0c2bb8e54a5d9ab26121ac82aefdf5063dac",
+    "INSTALLER_REPORT.json": "8b229e7299bfe41571e8acda3c49b2f6e2f76433c78a8086e1d2bec913fa2ed5",
+    "NATIVE_LOAD_REPORT.json": "a3ec1e77b232f20b276863bde7934d3c9cf0ae71c61661dfca6d0bf277244a3f"
+  },
+  "publisherRunId": 37451154966,
+  "publishedZip": {
+    "filename": "CoinControl-0.1.5-windows-x64.zip",
+    "sizeBytes": 8032522,
+    "sha256": "06d28b08c9037f648017ecf2285df31483d2798ba1bf2a6c01745f6bf567d046",
+    "downloadVerification": "CRC, exact contents, inner/external SHA-256, CI source and inspected installer PASS"
+  }
+}
