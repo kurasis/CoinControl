@@ -53,15 +53,17 @@ export function PortfolioChart({
   range,
   onRangeChange,
   window,
+  enabled = true,
 }: {
   scope: Scope;
   range: ChartRange;
   window?: { start: number; end: number };
   onRangeChange: (r: ChartRange) => void;
+  enabled?: boolean;
 }) {
   const { t } = useTranslation();
   const { locale, timeZone } = useApp();
-  const chart = useQuery(chartQuery(scope, range, window));
+  const chart = useQuery({ ...chartQuery(scope, range, window), enabled });
   const points = useMemo(() => toSeries(chart.data?.points ?? []), [chart.data]);
   const hasData = points.some((p) => p.value !== null);
   const anyEstimated = points.some((p) => p.estimated);
@@ -82,7 +84,7 @@ export function PortfolioChart({
         {anyEstimated && <span className="chip">{t("chart.estimatedChip")}</span>}
         {anyPartial && <span className="chip chip-warning">{t("chart.partialChip")}</span>}
       </div>
-      {chart.isLoading ? (
+      {chart.isPending ? (
         <div className="chart skeleton" />
       ) : hasData ? (
         <SeriesChart points={points} kind="value" label={t("chart.label")} />

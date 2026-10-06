@@ -446,23 +446,43 @@ impl Store {
     }
 
     async fn review_counts(&self, accounts: &BTreeSet<String>) -> Result<(u32, u32)> {
-        let review: Vec<String> =
-            sqlx::query_scalar("SELECT account_id FROM leg_accounting WHERE review IS NOT NULL")
-                .fetch_all(&self.pool)
-                .await?;
-        let recon: Vec<Option<String>> =
-            sqlx::query_scalar("SELECT account_id FROM reconciliation_items")
-                .fetch_all(&self.pool)
-                .await?;
-        let count = |n: usize| u32::try_from(n).unwrap_or(u32::MAX);
+        // Count in SQLite instead of transferring every reviewed movement to
+        // Rust on the first screen. All identifiers remain bound parameters.
+        let mut review = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
+            "SELECT COUNT(*) FROM leg_accounting WHERE review IS NOT NULL AND account_id IN (",
+        );
+        let mut recon = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
+            "SELECT COUNT(*) FROM reconciliation_items WHERE account_id IS NULL OR account_id IN (",
+        );
+        {
+            let mut review_scope = review.separated(",");
+            let mut recon_scope = recon.separated(",");
+            if accounts.is_empty() {
+                review_scope.push("NULL");
+                recon_scope.push("NULL");
+            }
+            for account in accounts {
+                review_scope.push_bind(account.clone());
+                recon_scope.push_bind(account.clone());
+            }
+        }
+        review.push(")");
+        recon.push(")");
         Ok((
-            count(review.iter().filter(|a| accounts.contains(*a)).count()),
-            count(
+            u32::try_from(
+                review
+                    .build_query_scalar::<i64>()
+                    .fetch_one(&self.pool)
+                    .await?,
+            )
+            .unwrap_or(u32::MAX),
+            u32::try_from(
                 recon
-                    .iter()
-                    .filter(|a| a.as_ref().is_none_or(|a| accounts.contains(a)))
-                    .count(),
-            ),
+                    .build_query_scalar::<i64>()
+                    .fetch_one(&self.pool)
+                    .await?,
+            )
+            .unwrap_or(u32::MAX),
         ))
     }
 

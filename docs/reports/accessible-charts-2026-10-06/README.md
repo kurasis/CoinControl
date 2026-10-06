@@ -1,6 +1,6 @@
 # Accessible chart observations (0.1.3)
 
-Local browser source: [880c0c994812d90884ce7e59850568a40b1dc2cf](https://github.com/kurasis/CoinControl/commit/880c0c994812d90884ce7e59850568a40b1dc2cf), clean at capture. Later changes scope native asset/activity assertions to visible tables/column headers; frontend/version files are identical to this tested source.
+Initial local browser source: [880c0c994812d90884ce7e59850568a40b1dc2cf](https://github.com/kurasis/CoinControl/commit/880c0c994812d90884ce7e59850568a40b1dc2cf), clean at capture. Subsequent changes scope native asset/activity assertions to visible tables/column headers and prioritize summary loading before holdings/charts; the original report does not measure those startup changes.
 
 Every portfolio/account/group and asset chart provides a native HTML disclosure with a semantic table: localized date/time, exact-string USD formatting, missing observations and estimated/partial labels. Pages contain at most 50 observations. Privacy masks portfolio/holding values immediately, including table text, while public market prices remain available. A changed time range resets the disclosure/page through its observation-range identity. ECharts respects reduced-motion settings, including subsequent changes.
 

@@ -68,12 +68,14 @@ export function PortfolioView({ scope }: { scope: Scope }) {
   const holdings = useQuery({
     queryKey: ["holdings", scope],
     queryFn: () => api.listHoldings(scope),
+    enabled: !summary.isPending,
   });
   const activity = useQuery({
     queryKey: ["activity", scope, "preview"],
     queryFn: () => api.listActivity(scope, null, 5),
   });
-  const chart = useQuery(chartQuery(scope, range, window));
+  // Let the cached balance finish before competing lot/chart computations.
+  const chart = useQuery({ ...chartQuery(scope, range, window), enabled: !summary.isPending });
   const s = summary.data;
   const a = s?.accounting;
   useFirstUsefulPaint(s !== undefined && settings !== undefined && profile !== undefined);
@@ -201,6 +203,7 @@ export function PortfolioView({ scope }: { scope: Scope }) {
         </button>
       </form>
       <PortfolioChart
+        enabled={!summary.isPending}
         scope={scope}
         range={range}
         window={window}
@@ -210,7 +213,7 @@ export function PortfolioView({ scope }: { scope: Scope }) {
         }}
       />
 
-      {holdings.isLoading ? (
+      {holdings.isPending ? (
         <div className="card skeleton skeleton-table" />
       ) : (
         <>

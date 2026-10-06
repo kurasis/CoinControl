@@ -53,6 +53,7 @@ pub async fn open_profile(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let startup = std::time::Instant::now();
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -61,6 +62,10 @@ pub fn run() {
         .init();
 
     let context = tauri::generate_context!();
+    tracing::info!(
+        elapsed_ms = startup.elapsed().as_millis(),
+        "Startup context ready"
+    );
     #[cfg(feature = "native-e2e")]
     let context = {
         let mut context = context;
@@ -92,7 +97,11 @@ pub fn run() {
                 window_geometry::fit_main(window, false);
             }
         })
-        .setup(|app| {
+        .setup(move |app| {
+            tracing::info!(
+                elapsed_ms = startup.elapsed().as_millis(),
+                "Startup native WebView ready"
+            );
             window_geometry::fit_main(app, true);
             let data_dir = app.path().app_data_dir()?;
             #[cfg(feature = "native-e2e")]
@@ -104,6 +113,10 @@ pub fn run() {
             let store =
                 tauri::async_runtime::block_on(open_profile(&profiles_dir, ProfileKind::Real))
                     .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
+            tracing::info!(
+                elapsed_ms = startup.elapsed().as_millis(),
+                "Startup local profile ready"
+            );
             app.manage(AppState {
                 store: RwLock::new(store),
                 profiles_dir,

@@ -418,10 +418,6 @@ async function ownedAccountScenarios() {
 async function viewportScenarios() {
   const desktop = changeDesktop("prepare");
   report.desktop = { prepared: desktop };
-  if (desktop.result !== "PASS") {
-    record("Native desktop supports the required viewport matrix", "BLOCKED", desktop.detail);
-    return;
-  }
   const layoutUi = {
     execute,
     route,
@@ -439,6 +435,45 @@ async function viewportScenarios() {
       });
     },
   };
+  const appearance = async (language, theme) => {
+    await route("/settings");
+    await until(() => execute("return Boolean(document.querySelector('#language'));"));
+    await select("#language", language);
+    await until(() => execute("return document.documentElement.lang===arguments[0];", [language]));
+    await execute(
+      "document.querySelectorAll('[aria-labelledby=theme-label] button')[arguments[0]==='dark'?0:1].click();return true;",
+      [theme],
+    );
+    await until(() =>
+      execute(
+        "return document.documentElement.lang===arguments[0] && document.documentElement.dataset.theme===arguments[1];",
+        [language, theme],
+      ),
+    );
+  };
+  if (desktop.result !== "PASS") {
+    record("Native desktop supports the required viewport matrix", "BLOCKED", desktop.detail);
+    // Exercise independent UI gates at the actual hosted size, without claiming
+    // the unavailable 1440/1280/1024 matrix or substituting browser zoom for DPI.
+    report.availableViewports = [];
+    for (const language of ["en", "ru"]) {
+      for (const theme of ["dark", "light"]) {
+        await appearance(language, theme);
+        const actual = await execute(
+          "return {width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio};",
+        );
+        const name = `available-${actual.width}x${actual.height}-${language}-${theme}`;
+        report.availableViewports.push({ name, ...actual });
+        await verifyNativePages(layoutUi, { name, capture: language === "ru" }, report);
+      }
+    }
+    record("Native pages, panels and chart data at the available physical viewport", "PASS");
+    if (process.argv.includes("--display-scaling"))
+      await verifyDisplayScaling(layoutUi, record, report);
+    await appearance("en", "dark");
+    await route("/");
+    return;
+  }
   report.viewports = [];
   for (const [width, height] of [
     [1440, 900],
@@ -474,22 +509,7 @@ async function viewportScenarios() {
     const native = JSON.parse(result.stdout);
     for (const language of ["en", "ru"]) {
       for (const theme of ["dark", "light"]) {
-        await route("/settings");
-        await until(() => execute("return Boolean(document.querySelector('#language'));"));
-        await select("#language", language);
-        await until(() =>
-          execute("return document.documentElement.lang===arguments[0];", [language]),
-        );
-        await execute(
-          "document.querySelectorAll('[aria-labelledby=theme-label] button')[arguments[0]==='dark'?0:1].click();return true;",
-          [theme],
-        );
-        await until(() =>
-          execute(
-            "return document.documentElement.lang===arguments[0] && document.documentElement.dataset.theme===arguments[1];",
-            [language, theme],
-          ),
-        );
+        await appearance(language, theme);
         await route("/");
         await until(() =>
           execute(

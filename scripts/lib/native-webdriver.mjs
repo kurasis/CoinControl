@@ -25,6 +25,7 @@ export class NativeWebDriver {
     this.debugPort = this.port + 2;
     this.firewallName = `CoinControl-load-${process.pid}`;
     this.firewallInstalled = false;
+    this.launchCount = 0;
   }
 
   async request(path, method = "GET", body) {
@@ -78,6 +79,7 @@ export class NativeWebDriver {
   }
 
   async open() {
+    const launch = this.launchCount++;
     this.spawnRequestedUtcMs = Date.now();
     const environment = { ...this.environment, TAURI_WEBVIEW_AUTOMATION: "true" };
     for (const key of Object.keys(environment))
@@ -100,6 +102,7 @@ export class NativeWebDriver {
       stream.on("data", (chunk) => {
         log = (log + chunk.toString()).slice(-100000);
         writeFileSync(join(this.output, "application.log"), log);
+        writeFileSync(join(this.output, `application-launch-${launch}.log`), log);
       });
     try {
       await until(async () => {
