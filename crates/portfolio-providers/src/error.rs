@@ -6,6 +6,8 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Error, PartialEq, Eq)]
 pub enum ProviderError {
+    #[error("{provider}: synchronization cancelled")]
+    Cancelled { provider: &'static str },
     #[error("{provider} {endpoint}: credential rejected (HTTP {status})")]
     Auth {
         provider: &'static str,

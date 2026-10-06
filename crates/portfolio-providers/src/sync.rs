@@ -216,7 +216,11 @@ pub struct SyncEngine {
 }
 
 impl SyncEngine {
-    pub fn new(store: Store, providers: Providers, options: SyncOptions) -> Self {
+    pub fn new(store: Store, mut providers: Providers, options: SyncOptions) -> Self {
+        providers.alchemy = providers
+            .alchemy
+            .take()
+            .map(|a| a.with_metadata_store(store.clone()));
         SyncEngine {
             progress_hook: None,
             cancelled: Arc::new(AtomicBool::new(false)),
@@ -242,6 +246,9 @@ impl SyncEngine {
     }
 
     pub fn with_cancellation(mut self, cancelled: Arc<AtomicBool>) -> Self {
+        for client in self.providers.clients() {
+            client.set_cancellation(cancelled.clone());
+        }
         self.cancelled = cancelled;
         self
     }
@@ -394,6 +401,9 @@ impl SyncEngine {
             }
         };
         match result {
+            Err(SyncError::Provider(ProviderError::Cancelled { .. })) => {
+                checkpoint.coverage = Coverage::Paused;
+            }
             Ok(()) => {
                 checkpoint.state.last_success_at = Some(now);
                 checkpoint.state.last_error = None;
@@ -440,6 +450,28 @@ impl SyncEngine {
         F: FnMut(Option<String>) -> Fut,
         Fut: Future<Output = Result<HistoryPage, ProviderError>>,
     {
+        self.sync_history_limit(
+            account,
+            checkpoint,
+            fingerprint,
+            &mut fetch,
+            self.options.max_history_pages,
+        )
+        .await
+    }
+
+    async fn sync_history_limit<F, Fut>(
+        &self,
+        account: &Account,
+        checkpoint: &mut Checkpoint,
+        fingerprint: &str,
+        mut fetch: F,
+        limit: u32,
+    ) -> Result<HistoryOutcome, SyncError>
+    where
+        F: FnMut(Option<String>) -> Fut,
+        Fut: Future<Output = Result<HistoryPage, ProviderError>>,
+    {
         if checkpoint.boundary.as_deref() != Some(fingerprint) {
             // A cursor is only valid with the exact query that produced it.
             checkpoint.backfill_cursor = None;
@@ -452,7 +484,7 @@ impl SyncEngine {
             ..HistoryOutcome::default()
         };
         let first_run = checkpoint.backfill_cursor.is_none() && !checkpoint.state.completed_once;
-        let total = self.options.max_history_pages.max(1);
+        let total = limit.max(1);
         // While older history is pending, the forward pass gets half the pages so
         // the backfill always progresses too.
         let forward_budget = if checkpoint.backfill_cursor.is_some() {
@@ -942,21 +974,27 @@ impl SyncEngine {
                 .checkpoint(&account.id, alchemy::PROVIDER, category)
                 .await?;
             let result = self
-                .sync_history(account, &mut cp, fingerprint, |cursor| async move {
-                    let p = api
-                        .transactions(
-                            account.network,
-                            &account.canonical_address,
-                            incoming,
-                            cursor.as_deref(),
-                        )
-                        .await?;
-                    Ok(HistoryPage {
-                        txs: p.txs,
-                        next: p.next,
-                        indexing: false,
-                    })
-                })
+                .sync_history_limit(
+                    account,
+                    &mut cp,
+                    fingerprint,
+                    |cursor| async move {
+                        let p = api
+                            .transactions(
+                                account.network,
+                                &account.canonical_address,
+                                incoming,
+                                cursor.as_deref(),
+                            )
+                            .await?;
+                        Ok(HistoryPage {
+                            txs: p.txs,
+                            next: p.next,
+                            indexing: false,
+                        })
+                    },
+                    (self.options.max_history_pages / 2).max(1),
+                )
                 .await;
             self.store
                 .save_checkpoint(&account.id, alchemy::PROVIDER, category, &cp)

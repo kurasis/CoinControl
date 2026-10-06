@@ -208,6 +208,31 @@ mod tests {
     use crate::sync::SyncEngine;
 
     #[test]
+    fn configured_sources_keep_bnb_on_zerion_and_do_not_inherit_live_evidence() {
+        let caps = configured_capabilities(true, true);
+        for n in alchemy::NETWORKS {
+            let c = caps.iter().find(|c| c.network == n).unwrap();
+            assert_eq!(c.provider, "alchemy");
+            assert!(c.live_verified_on.is_none());
+            assert_eq!(c.internal_transfers, Support::None);
+        }
+        assert_eq!(
+            caps.iter()
+                .find(|c| c.network == NetworkId::Solana)
+                .unwrap()
+                .provider,
+            "helius"
+        );
+        assert_eq!(
+            caps.iter()
+                .find(|c| c.network == NetworkId::Bsc)
+                .unwrap()
+                .provider,
+            "zerion"
+        );
+    }
+
+    #[test]
     fn every_required_network_has_a_working_adapter() {
         let caps = network_capabilities();
         assert_eq!(caps.len(), NetworkId::ALL.len());

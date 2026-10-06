@@ -27,6 +27,39 @@ beforeEach(async () => {
 
 afterEach(() => vi.restoreAllMocks());
 
+describe("provider configuration", () => {
+  it("updates primary network routing after adding and removing a Helius key", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    window.location.hash = "#/settings/networks";
+    renderApp();
+    await screen.findAllByText("Solana");
+    // Visit coverage first: it is cached indefinitely until a key change invalidates it.
+    await user.click(screen.getByRole("link", { name: "Data sources" }));
+    const card = await screen.findByRole("article", { name: "Helius" });
+    await user.type(within(card).getByLabelText("API key (optional)"), "dummy-preview-key");
+    await user.click(within(card).getByRole("button", { name: "Save" }));
+    await within(card).findByText("Configured");
+    await user.click(screen.getByRole("link", { name: "Networks" }));
+    const solana = (await screen.findAllByText("Solana"))
+      .map((el) => el.closest("tr"))
+      .find(Boolean)!;
+    await within(solana).findByText("Helius");
+    expect(screen.getByText(/SOL program\/rent effects/)).toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: "Data sources" }));
+    await user.click(
+      within(await screen.findByRole("article", { name: "Helius" })).getByRole("button", {
+        name: "Remove",
+      }),
+    );
+    await user.click(screen.getByRole("link", { name: "Networks" }));
+    const reverted = (await screen.findAllByText("Solana"))
+      .map((el) => el.closest("tr"))
+      .find(Boolean)!;
+    await within(reverted).findByText("Zerion");
+  });
+});
+
 describe("pending CSV lifecycle", () => {
   const content =
     "external_row_id,network_id,account_address,quantity,total_basis_usd\nr1,ethereum,0xabc,1.2,2400\n";

@@ -329,3 +329,182 @@ async fn wrong_chain_and_missing_metadata_do_not_fabricate_balances() {
             .is_err()
     );
 }
+
+#[tokio::test]
+async fn short_key_in_http_error_never_reaches_caller() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(
+            ResponseTemplate::new(400)
+                .set_body_json(json!({"message":format!("invalid key {SENTINEL_KEY}")})),
+        )
+        .mount(&server)
+        .await;
+    let error = helius(&server, Budget::unlimited())
+        .slot()
+        .await
+        .unwrap_err();
+    assert!(!format!("{error} {error:?}").contains(SENTINEL_KEY));
+}
+
+#[tokio::test]
+async fn cancellation_stops_before_next_rpc_and_keeps_checkpoint_paused() {
+    let server = MockServer::start().await;
+    let store = store().await;
+    let wallet = store.create_wallet("Cancelled").await.unwrap();
+    let account = store
+        .add_account(&wallet.id, NetworkId::Solana, SOL, None)
+        .await
+        .unwrap();
+    let b = Budget::limited_with_credits(50, 100);
+    let flag = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+    let engine = SyncEngine::new(
+        store.clone(),
+        Providers {
+            helius: Some(helius(&server, b.clone())),
+            ..Providers::default()
+        },
+        SyncOptions::default(),
+    )
+    .with_cancellation(flag);
+    let r = engine.sync_account(&account).await;
+    assert_eq!(r.coverage, Coverage::Paused);
+    assert!(r.error.is_none());
+    assert_eq!(b.used(), 0);
+    assert!(server.received_requests().await.unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn alchemy_persistent_block_cursor_avoids_expired_page_keys() {
+    let server = MockServer::start().await;
+    evm_defaults(&server, false).await;
+    // Six indexed log events for one transaction; enrichment imports the entire
+    // receipt once even when an event crosses the normalized page boundary.
+    let rows:Vec<_>=(0..6).map(|i|json!({"hash":HASH,"uniqueId":format!("event-{i}"),"blockNum":"0xa","metadata":{"blockTimestamp":"2023-11-14T22:13:20Z"}})).collect();
+    Mock::given(method("POST"))
+        .and(body_partial_json(
+            json!({"method":"alchemy_getAssetTransfers"}),
+        ))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"jsonrpc":"2.0","id":1,"result":{"transfers":rows}})),
+        )
+        .with_priority(1)
+        .mount(&server)
+        .await;
+    let api = alchemy(&server, Budget::unlimited());
+    let first = api
+        .transactions(NetworkId::Ethereum, ADDR, true, None)
+        .await
+        .unwrap();
+    assert_eq!(first.txs.len(), 1);
+    let c = first.next.as_deref().unwrap();
+    assert!(c.contains("event-4"));
+    // A fresh adapter simulates a later process; no opaque provider key is saved.
+    let second = alchemy(&server, Budget::unlimited())
+        .transactions(NetworkId::Ethereum, ADDR, true, Some(c))
+        .await
+        .unwrap();
+    assert!(second.txs.is_empty());
+    assert!(second.next.is_none());
+    let requests = server.received_requests().await.unwrap();
+    let index: Vec<Value> = requests
+        .iter()
+        .map(|r| serde_json::from_slice::<Value>(&r.body).unwrap())
+        .filter(|v| v["method"] == "alchemy_getAssetTransfers")
+        .collect();
+    assert_eq!(index[1]["params"][0]["toBlock"], "0xa");
+    assert!(index[1]["params"][0].get("pageKey").is_none());
+}
+
+#[tokio::test]
+async fn capped_token_scan_does_not_zero_omitted_cached_holdings() {
+    let server = MockServer::start().await;
+    evm_defaults(&server, false).await;
+    let rows: Vec<_> = (1..=51)
+        .map(|i| json!({"contractAddress":format!("0x{i:040x}"),"tokenBalance":"0x1"}))
+        .collect();
+    Mock::given(method("POST"))
+        .and(body_partial_json(
+            json!({"method":"alchemy_getTokenBalances"}),
+        ))
+        .respond_with(ResponseTemplate::new(200).set_body_json(
+            json!({"jsonrpc":"2.0","id":1,"result":{"address":ADDR,"tokenBalances":rows}}),
+        ))
+        .with_priority(1)
+        .mount(&server)
+        .await;
+    let store = store().await;
+    let wallet = store.create_wallet("Capped").await.unwrap();
+    let account = store
+        .add_account(&wallet.id, NetworkId::Ethereum, ADDR, None)
+        .await
+        .unwrap();
+    let mut old = portfolio_store::ingest::AssetSpec::native(NetworkId::Ethereum, "zerion");
+    old.contract = Some(CONTRACT.into());
+    old.decimals = 6;
+    store
+        .record_balance(&account.id, &old, &BigInt::from(777), None, "fresh")
+        .await
+        .unwrap();
+    let engine = SyncEngine::new(
+        store.clone(),
+        Providers {
+            alchemy: Some(alchemy(&server, Budget::unlimited())),
+            ..Providers::default()
+        },
+        SyncOptions::default(),
+    );
+    let r = engine.sync_account(&account).await;
+    assert!(r.error.is_none(), "{:?}", r.error);
+    let balances = store.list_holdings(&Scope::All).await.unwrap();
+    let prior = balances.iter().find(|b| b.asset_id == old.id()).unwrap();
+    assert_eq!(prior.quantity, "0.000777");
+    assert_eq!(prior.balance_status, portfolio_store::BalanceStatus::Stale);
+}
+
+#[tokio::test]
+async fn fresh_alchemy_history_is_idempotent_and_reuses_persisted_metadata() {
+    let server = MockServer::start().await;
+    evm_defaults(&server, false).await;
+    Mock::given(method("POST")).and(body_partial_json(json!({"method":"alchemy_getTokenMetadata"})))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"jsonrpc":"2.0","id":1,"result":{"decimals":6,"symbol":"USDC","name":"USD Coin"}})))
+        .with_priority(1).expect(1).mount(&server).await;
+    let store = store().await;
+    let wallet = store.create_wallet("Fresh").await.unwrap();
+    let account = store
+        .add_account(&wallet.id, NetworkId::Ethereum, ADDR, None)
+        .await
+        .unwrap();
+    for run in 0..2 {
+        let engine = SyncEngine::new(
+            store.clone(),
+            Providers {
+                alchemy: Some(alchemy(&server, Budget::unlimited())),
+                ..Providers::default()
+            },
+            SyncOptions::default(),
+        );
+        let r = engine.sync_account(&account).await;
+        assert!(r.error.is_none(), "{:?}", r.error);
+        assert_eq!(r.new_transactions, if run == 0 { 1 } else { 0 });
+        assert_eq!(r.coverage, Coverage::Partial);
+    }
+    let rows = store
+        .list_activity(&Scope::All, &Default::default(), None, 50)
+        .await
+        .unwrap()
+        .rows;
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].legs.len(), 3);
+    assert_eq!(rows[0].fee_quantity.as_deref(), Some("0.000021"));
+    let incoming = store
+        .checkpoint(&account.id, "alchemy", "history:incoming")
+        .await
+        .unwrap();
+    let outgoing = store
+        .checkpoint(&account.id, "alchemy", "history:outgoing")
+        .await
+        .unwrap();
+    assert!(incoming.state.completed_once && outgoing.state.completed_once);
+}

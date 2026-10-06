@@ -588,7 +588,41 @@ export async function mockInvoke(
     case "list_networks":
       return NETWORKS;
     case "list_network_capabilities":
-      return NETWORK_CAPABILITIES;
+      return NETWORK_CAPABILITIES.map((c) => {
+        if (current.keys.helius && c.network === "solana")
+          return {
+            ...c,
+            provider: "helius",
+            live_verified_on: null,
+            history: ["native", "tokens", "failed"],
+            limitations: [
+              "helius_full_history",
+              "helius_program_effects",
+              "rpc_unverified_tokens",
+              "confirmed_only",
+            ],
+          };
+        if (
+          current.keys.alchemy &&
+          ["ethereum", "base", "arbitrum", "optimism", "polygon"].includes(c.network)
+        )
+          return {
+            ...c,
+            provider: "alchemy",
+            live_verified_on: null,
+            token_discovery: "partial",
+            fees: "partial",
+            internal_transfers: "none",
+            history: ["native", "tokens"],
+            limitations: [
+              "alchemy_transfer_index",
+              "alchemy_bounded_discovery",
+              "rpc_unverified_tokens",
+              "confirmed_only",
+            ],
+          };
+        return c;
+      });
     case "validate_address": {
       const address = String(args.address ?? "").trim();
       if (address.length < 26)
@@ -954,6 +988,36 @@ const NETWORK_CAPABILITIES: NetworkCapability[] = [
 ];
 
 const PROVIDERS: ProviderStatus[] = [
+  {
+    id: "helius",
+    name: "Helius",
+    role: "account_data",
+    key_requirement: "optional",
+    networks: ["solana"],
+    docs_url: "https://www.helius.dev/docs",
+    key_url: "https://dashboard.helius.dev/",
+    free_allowance: "1M credits/month",
+    key_storage: null,
+    requests_today: 0,
+    estimated_credits_today: 0,
+    last_error: null,
+    adapter_available: true,
+  },
+  {
+    id: "alchemy",
+    name: "Alchemy",
+    role: "account_data",
+    key_requirement: "optional",
+    networks: ["ethereum", "base", "arbitrum", "optimism", "polygon"],
+    docs_url: "https://www.alchemy.com/docs",
+    key_url: "https://dashboard.alchemy.com/",
+    free_allowance: "30M compute units/month",
+    key_storage: null,
+    requests_today: 0,
+    estimated_credits_today: 0,
+    last_error: null,
+    adapter_available: true,
+  },
   {
     id: "livecoinwatch",
     name: "Live Coin Watch",

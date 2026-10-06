@@ -292,6 +292,41 @@ async fn alchemy_live() {
     let api = Alchemy::new(&key("ALCHEMY_API_KEY"), b.clone()).unwrap();
     let mut r = Report::new("alchemy");
     let address = s(&t["ethereum"]["address"]);
+    r.endpoint("eth_getTransactionReceipt/eth_getTransactionByHash");
+    let known = &t["ethereum"]["known_transactions"][0];
+    let tx = api
+        .transaction(
+            NetworkId::Ethereum,
+            &address.to_ascii_lowercase(),
+            s(&known["hash"]),
+            parse_rfc3339(s(&known["mined_at"])).unwrap(),
+        )
+        .await
+        .unwrap();
+    r.check(
+        "known native payment and exact fee",
+        tx.legs.iter().any(|l| {
+            l.asset.contract.is_none() && l.signed_raw.to_string() == "-79000000000000000000"
+        }) && tx
+            .fee
+            .as_ref()
+            .is_some_and(|f| f.raw.to_string() == "6151018965000"),
+        "independent known 79 ETH principal; exact sender receipt fee",
+    );
+    r.endpoint("alchemy_getTokenBalances/alchemy_getTokenMetadata");
+    let (usdc, raw) = api
+        .token_balance(
+            NetworkId::Ethereum,
+            address,
+            "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        )
+        .await
+        .unwrap();
+    r.check(
+        "exact contract USDC balance",
+        usdc.decimals == 6 && raw >= BigInt::from(0),
+        "ERC-20 raw hexadecimal balance; official USDC contract and six decimals",
+    );
     for n in portfolio_providers::alchemy::NETWORKS {
         r.endpoint("eth_chainId/eth_getBalance/alchemy_getAssetTransfers");
         api.check_chain(n).await.unwrap();
@@ -329,27 +364,6 @@ async fn alchemy_live() {
             );
         }
     }
-    r.endpoint("eth_getTransactionReceipt/eth_getTransactionByHash");
-    let known = &t["ethereum"]["known_transactions"][0];
-    let tx = api
-        .transaction(
-            NetworkId::Ethereum,
-            &address.to_ascii_lowercase(),
-            s(&known["hash"]),
-            parse_rfc3339(s(&known["mined_at"])).unwrap(),
-        )
-        .await
-        .unwrap();
-    r.check(
-        "known native payment and exact fee",
-        tx.legs.iter().any(|l| {
-            l.asset.contract.is_none() && l.signed_raw.to_string() == "-79000000000000000000"
-        }) && tx
-            .fee
-            .as_ref()
-            .is_some_and(|f| f.raw.to_string() == "6151018965000"),
-        "independent known 79 ETH principal; exact sender receipt fee",
-    );
     r.check(
         "bounded CU",
         b.credits() <= 10_000,

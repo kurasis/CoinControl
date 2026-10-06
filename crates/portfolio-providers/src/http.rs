@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 use std::sync::Mutex as StdMutex;
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::{Duration, Instant};
 
 use reqwest::header::{HeaderMap, HeaderValue, RETRY_AFTER};
@@ -144,6 +144,7 @@ pub struct HttpClient {
     config: HttpConfig,
     budget: Arc<Budget>,
     usage: StdMutex<Usage>,
+    cancelled: StdMutex<Arc<AtomicBool>>,
 }
 
 /// A successful (2xx) response body.
@@ -200,11 +201,30 @@ impl HttpClient {
             config,
             budget,
             usage: StdMutex::new(Usage::default()),
+            cancelled: StdMutex::new(Arc::new(AtomicBool::new(false))),
         })
     }
 
     pub fn provider(&self) -> &'static str {
         self.provider
+    }
+
+    pub fn set_cancellation(&self, flag: Arc<AtomicBool>) {
+        *self.cancelled.lock().expect("cancellation lock") = flag;
+    }
+    fn check_cancelled(&self) -> Result<(), ProviderError> {
+        if self
+            .cancelled
+            .lock()
+            .expect("cancellation lock")
+            .load(Ordering::Relaxed)
+        {
+            Err(ProviderError::Cancelled {
+                provider: self.provider,
+            })
+        } else {
+            Ok(())
+        }
     }
 
     pub fn budget(&self) -> &Arc<Budget> {
@@ -279,11 +299,13 @@ impl HttpClient {
         let provider = self.provider;
         let mut attempt = 0u32;
         loop {
+            self.check_cancelled()?;
             if let Some(error) = self.budget.stopped_error() {
                 self.note_failure(&error);
                 return Err(error);
             }
             self.pace().await;
+            self.check_cancelled()?;
             if !self.budget.take_cost(cost) {
                 let error = ProviderError::BudgetExhausted { provider };
                 self.budget.stop(&error);
@@ -367,7 +389,13 @@ impl HttpClient {
         if status.is_success() {
             return Ok(Body { status, bytes });
         }
-        let detail = provider_message(&bytes);
+        // RPC providers put credentials in URL paths/query strings and may echo
+        // even short keys in arbitrary HTTP error bodies. Status is sufficient.
+        let detail = if matches!(provider, "helius" | "alchemy") {
+            String::new()
+        } else {
+            provider_message(&bytes)
+        };
         let error = match status {
             StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => ProviderError::Auth {
                 provider,

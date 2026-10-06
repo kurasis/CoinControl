@@ -145,7 +145,10 @@ function SourceCard({ provider: p }: { provider: ProviderStatus }) {
     onSuccess: () => {
       setKey("");
       setReveal(false);
-      return queryClient.invalidateQueries({ queryKey: ["providers"] });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["providers"] }),
+        queryClient.invalidateQueries({ queryKey: ["network-capabilities"] }),
+      ]);
     },
   });
   const test = useMutation({
@@ -154,7 +157,11 @@ function SourceCard({ provider: p }: { provider: ProviderStatus }) {
   });
   const remove = useMutation({
     mutationFn: () => api.removeProviderKey(p.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["providers"] }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["providers"] }),
+        queryClient.invalidateQueries({ queryKey: ["network-capabilities"] }),
+      ]),
   });
   const status = storageLabel(p, t);
   const inputId = `key-${p.id}`;
