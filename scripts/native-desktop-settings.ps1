@@ -32,19 +32,38 @@ if ($Width -eq $result.originalWidth -and $Height -eq $result.originalHeight) {
 $serverCommand = Get-Command Set-DisplayResolution -ErrorAction SilentlyContinue
 $result.serverCoreResolutionCommand = [bool]$serverCommand
 if ($serverCommand) {
-  try {
-    & $serverCommand -Width $Width -Height $Height -Force -ErrorAction Stop *> $null
-    for ($attempt = 0; $attempt -lt 20; $attempt++) {
-      if ([DesktopPixels]::GetSystemMetrics(0) -eq $Width -and [DesktopPixels]::GetSystemMetrics(1) -eq $Height) { break }
-      Start-Sleep -Milliseconds 100
+  $candidates = @(,@($Width, $Height))
+  if ($Action -eq 'prepare') {
+    # Prefer space for 200% scaling, but retain the validated viewport matrix
+    # when a hosted adapter cannot support a larger physical framebuffer.
+    $candidates = @(@(3840,2160), @(2560,1600), @(2560,1440), @(2048,1536), @(1920,1080))
+  }
+  $result.serverCoreAttempts = @()
+  foreach ($candidate in $candidates) {
+    $candidateWidth = [int]$candidate[0]; $candidateHeight = [int]$candidate[1]
+    $attemptResult = @{ width = $candidateWidth; height = $candidateHeight; applied = $false }
+    try {
+      & $serverCommand -Width $candidateWidth -Height $candidateHeight -Force -ErrorAction Stop *> $null
+      for ($attempt = 0; $attempt -lt 20; $attempt++) {
+        if ([DesktopPixels]::GetSystemMetrics(0) -eq $candidateWidth -and [DesktopPixels]::GetSystemMetrics(1) -eq $candidateHeight) { break }
+        Start-Sleep -Milliseconds 100
+      }
+      $attemptResult.actualWidth = [DesktopPixels]::GetSystemMetrics(0)
+      $attemptResult.actualHeight = [DesktopPixels]::GetSystemMetrics(1)
+      if ($attemptResult.actualWidth -ne $candidateWidth -or $attemptResult.actualHeight -ne $candidateHeight) { throw 'Server resolution command did not change the physical screen to the requested mode' }
+      $attemptResult.applied = $true
+      $result.serverCoreAttempts += $attemptResult
+      $result.width = $candidateWidth; $result.height = $candidateHeight; $result.result = 'PASS'
+      $result.method = 'Microsoft ServerCore Set-DisplayResolution'
+      $result.detail = 'Supported server resolution command verified against physical screen metrics'
+      $result | ConvertTo-Json -Depth 4 -Compress
+      exit 0
+    } catch {
+      $attemptResult.detail = $_.Exception.Message
+      $result.serverCoreAttempts += $attemptResult
+      $result.serverCoreDetail = $_.Exception.Message
     }
-    if ([DesktopPixels]::GetSystemMetrics(0) -ne $Width -or [DesktopPixels]::GetSystemMetrics(1) -ne $Height) { throw 'Server resolution command did not change the physical screen to the requested mode' }
-    $result.width = $Width; $result.height = $Height; $result.result = 'PASS'
-    $result.method = 'Microsoft ServerCore Set-DisplayResolution'
-    $result.detail = 'Supported server resolution command verified against physical screen metrics'
-    $result | ConvertTo-Json -Depth 4 -Compress
-    exit 0
-  } catch { $result.serverCoreDetail = $_.Exception.Message }
+  }
 }
 try {
   Start-Process 'ms-settings:display'
