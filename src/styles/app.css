@@ -633,10 +633,15 @@ select {
 }
 
 .address {
+  overflow-wrap: anywhere;
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
   font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.asset-policy-identity {
+  overflow-wrap: anywhere;
 }
 
 .source-grid {

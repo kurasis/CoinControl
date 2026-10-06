@@ -11,6 +11,11 @@ mkdirSync(output, { recursive: true });
 const report = {
   mode: "browser-preview",
   note: "Chromium with mock demo IPC; no Windows, native IPC, physical monitor or OS DPI assertion.",
+  nativeLikePolicyIdentityFixture: "ethereum:token:0x00000000000000000000000000000000000d3e30",
+  nativeLikeAccountAddressFixture:
+    "0:0000000000000000000000000000000000000000000000000000000000000001",
+  scrollbarFixture:
+    "Chromium hide-scrollbars default removed; real scrollbars participate in layout.",
   scenarios: [],
   checks: [],
 };
@@ -49,7 +54,11 @@ try {
       return false;
     }
   }, 20000);
-  browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
+  browser = await chromium.launch({
+    headless: true,
+    args: ["--no-sandbox"],
+    ignoreDefaultArgs: ["--hide-scrollbars"],
+  });
   report.environment = {
     os: process.platform,
     osVersion: release(),
@@ -71,6 +80,30 @@ try {
     route: async (path) => {
       await page.evaluate((hash) => (location.hash = hash), "#" + path);
       await page.waitForTimeout(300);
+      if (path === "/settings/data") {
+        // The lightweight browser demo uses short IDs. Exercise the same long
+        // public contract identity rendered by the real native demo instead.
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll(".card-pad span[title]")].some((e) =>
+            e.textContent.includes("DEMO"),
+          ),
+        );
+        await page.evaluate((id) => {
+          const e = [...document.querySelectorAll(".card-pad span[title]")].find((e) =>
+            e.textContent.includes("DEMO"),
+          );
+          e.textContent = `DEMO · ${id} · unverified`;
+          e.title = id;
+        }, report.nativeLikePolicyIdentityFixture);
+      }
+      if (path.startsWith("/accounts/")) {
+        await page.waitForSelector(".content p.meta .address");
+        await page.evaluate((address) => {
+          const e = document.querySelector(".content p.meta .address");
+          // Preserve privacy masking; the fixture supplies a full raw TON address.
+          if (!e.textContent.includes("•")) e.textContent = address;
+        }, report.nativeLikeAccountAddressFixture);
+      }
     },
     screenshot: async (name) => {
       await page.screenshot({ path: `${output}/${name}.png` });
