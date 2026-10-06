@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use portfolio_core::clock::SystemClock;
-use portfolio_store::{ProfileKind, Store};
+use portfolio_store::{ProfileKind, Scope, Store};
 use tauri::Manager;
 use tokio::sync::RwLock;
 
@@ -20,7 +20,7 @@ mod window_geometry;
 use secrets::{OsSecretStore, SecretStore};
 
 pub struct AppState {
-    store: RwLock<Store>,
+    store: Arc<RwLock<Store>>,
     profiles_dir: PathBuf,
     secrets: Arc<dyn SecretStore>,
     sync: Arc<sync::SyncState>,
@@ -86,6 +86,23 @@ pub fn run() {
         context
     };
 
+    // Initialize local state and its cached summary while WebView2 creates the
+    // main window, instead of putting both cold operations on the critical path.
+    let main_window_config = context
+        .config()
+        .app
+        .windows
+        .iter()
+        .find(|window| window.label == "main")
+        .cloned()
+        .expect("main window configuration");
+    let mut context = context;
+    for window in &mut context.config_mut().app.windows {
+        if window.label == "main" {
+            window.create = false;
+        }
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -98,11 +115,6 @@ pub fn run() {
             }
         })
         .setup(move |app| {
-            tracing::info!(
-                elapsed_ms = startup.elapsed().as_millis(),
-                "Startup native WebView ready"
-            );
-            window_geometry::fit_main(app, true);
             let data_dir = app.path().app_data_dir()?;
             #[cfg(feature = "native-e2e")]
             let data_dir = std::env::var_os("COINCONTROL_E2E_DATA_DIR")
@@ -117,12 +129,35 @@ pub fn run() {
                 elapsed_ms = startup.elapsed().as_millis(),
                 "Startup local profile ready"
             );
+            let store = Arc::new(RwLock::new(store));
+            // Gate initial IPC reads until this one calculation completes. An
+            // owned guard lets the UI thread continue creating/painting its
+            // window and prevents duplicate cold summary calculations.
+            let priming_store = tauri::async_runtime::block_on(store.clone().write_owned());
+            tauri::async_runtime::spawn(async move {
+                if priming_store.portfolio_summary(&Scope::All).await.is_ok() {
+                    tracing::info!(
+                        elapsed_ms = startup.elapsed().as_millis(),
+                        "Startup cached summary ready"
+                    );
+                } else {
+                    tracing::warn!("Startup summary prewarm unavailable");
+                }
+                // Dropping the guard releases queued IPC; errors remain visible
+                // through the normal summary command rather than fabricated data.
+            });
             app.manage(AppState {
-                store: RwLock::new(store),
+                store,
                 profiles_dir,
                 secrets: Arc::new(OsSecretStore::default()),
                 sync: sync::shared(),
             });
+            tauri::WebviewWindowBuilder::from_config(app, &main_window_config)?.build()?;
+            tracing::info!(
+                elapsed_ms = startup.elapsed().as_millis(),
+                "Startup native WebView ready"
+            );
+            window_geometry::fit_main(app, true);
             sync::spawn_scheduler(app.handle().clone());
             Ok(())
         })
