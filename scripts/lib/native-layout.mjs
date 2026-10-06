@@ -15,10 +15,10 @@ const sideNavigationReachable=linkBounds.top>=navBounds.top-2 && linkBounds.bott
 sidebar.scrollTop=0;
 const tables=[...document.querySelectorAll('.table-scroll')].filter(visible).map(e=>{
   e.scrollLeft=e.scrollWidth;
-  const last=e.querySelector('th:last-child')?.getBoundingClientRect();
+  const last=e.querySelector('thead th:last-child')?.getBoundingClientRect();
   const reach=!last || last.right<=e.getBoundingClientRect().right+2;
   e.scrollLeft=0;
-  return {columns:e.querySelectorAll('th').length,lastColumnReachable:reach};
+  return {columns:e.querySelectorAll('thead th').length,lastColumnReachable:reach};
 });
 return {path:location.hash,width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio,
 mainOverflow:main.scrollWidth>main.clientWidth+2,sideNavigationReachable,

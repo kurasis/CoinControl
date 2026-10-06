@@ -493,11 +493,11 @@ async function viewportScenarios() {
         await route("/");
         await until(() =>
           execute(
-            "return document.querySelectorAll('.table').length>=2 && !document.querySelector('.skeleton-balance');",
+            "return [...document.querySelectorAll('.table-scroll')].filter(e=>e.checkVisibility()).length>=2 && !document.querySelector('.skeleton-balance');",
           ),
         );
         const layout = await execute(
-          "const main=document.querySelector('.main');const tables=[...document.querySelectorAll('.table-scroll')].map(e=>{e.scrollLeft=e.scrollWidth;const last=e.querySelector('th:last-child').getBoundingClientRect();const bounds=e.getBoundingClientRect();return {columns:e.querySelectorAll('th').length,scrollable:e.scrollWidth>e.clientWidth,lastColumnReachable:last.right<=bounds.right+2};});return {width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio,screen:{width:screen.width,height:screen.height,availableWidth:screen.availWidth,availableHeight:screen.availHeight},mainOverflow:main.scrollWidth>main.clientWidth+2,tables};",
+          "const main=document.querySelector('.main');const tables=[...document.querySelectorAll('.table-scroll')].filter(e=>e.checkVisibility()).map(e=>{e.scrollLeft=e.scrollWidth;const last=e.querySelector('thead th:last-child').getBoundingClientRect();const bounds=e.getBoundingClientRect();return {columns:e.querySelectorAll('thead th').length,scrollable:e.scrollWidth>e.clientWidth,lastColumnReachable:last.right<=bounds.right+2};});return {width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio,screen:{width:screen.width,height:screen.height,availableWidth:screen.availWidth,availableHeight:screen.availHeight},mainOverflow:main.scrollWidth>main.clientWidth+2,tables};",
         );
         if (
           layout.mainOverflow ||
@@ -522,7 +522,7 @@ async function viewportScenarios() {
           ]) {
             for (const edge of ["left", "right"]) {
               await execute(
-                "const main=document.querySelector('.main');const table=document.querySelectorAll('.table-scroll')[arguments[0]];main.scrollTop+=table.getBoundingClientRect().top-main.getBoundingClientRect().top-72;table.scrollLeft=arguments[1]==='right'?table.scrollWidth:0;return true;",
+                "const main=document.querySelector('.main');const table=[...document.querySelectorAll('.table-scroll')].filter(e=>e.checkVisibility())[arguments[0]];main.scrollTop+=table.getBoundingClientRect().top-main.getBoundingClientRect().top-72;table.scrollLeft=arguments[1]==='right'?table.scrollWidth:0;return true;",
                 [index, edge],
               );
               await screenshot(`${name}-${kind}-${edge}`);
