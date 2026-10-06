@@ -531,6 +531,10 @@ async fn token_without_quote_stays_unpriced() {
         SyncOptions::default(),
     );
     let report = engine.refresh_prices().await;
+    assert!(
+        report.errors.is_empty(),
+        "public quotes do not need an optional LCW key: {report:?}"
+    );
     assert_eq!(report.priced, 1);
     assert_eq!(
         report.unpriced,
