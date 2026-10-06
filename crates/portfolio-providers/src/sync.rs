@@ -33,10 +33,25 @@ use crate::livecoinwatch::{self, LiveCoinWatch};
 use crate::tonapi::{self, TonApi};
 use crate::trongrid::{self, TronGrid};
 use crate::zerion::{self, Positions, Window, Zerion};
+use crate::{
+    alchemy::{self, Alchemy},
+    helius::{self, Helius},
+};
 
 const HISTORY: &str = "history";
 /// Second history category of TRON accounts (TRC-20 transfer events).
 const HISTORY_TRC20: &str = "history:trc20";
+fn history_category(fingerprint: &str) -> &'static str {
+    if fingerprint.contains("trc20") {
+        HISTORY_TRC20
+    } else if fingerprint.starts_with("alchemy;") && fingerprint.contains("incoming") {
+        "history:incoming"
+    } else if fingerprint.starts_with("alchemy;") {
+        "history:outgoing"
+    } else {
+        HISTORY
+    }
+}
 /// TRC-20 contracts whose metadata may be looked up per account and run.
 const MAX_TOKEN_LOOKUPS: usize = 10;
 const DAY_SECONDS: i64 = 86_400;
@@ -48,6 +63,8 @@ const QUOTE_MISS_RETRY_SECONDS: i64 = DAY_SECONDS;
 pub struct Providers {
     pub esplora: Option<Esplora>,
     pub zerion: Option<Zerion>,
+    pub alchemy: Option<Alchemy>,
+    pub helius: Option<Helius>,
     pub livecoinwatch: Option<LiveCoinWatch>,
     pub defillama: Option<DefiLlama>,
     pub trongrid: Option<TronGrid>,
@@ -61,6 +78,12 @@ impl Providers {
             out.push(p.http());
         }
         if let Some(p) = &self.zerion {
+            out.push(p.http());
+        }
+        if let Some(p) = &self.alchemy {
+            out.push(p.http());
+        }
+        if let Some(p) = &self.helius {
             out.push(p.http());
         }
         if let Some(p) = &self.livecoinwatch {
@@ -193,7 +216,11 @@ pub struct SyncEngine {
 }
 
 impl SyncEngine {
-    pub fn new(store: Store, providers: Providers, options: SyncOptions) -> Self {
+    pub fn new(store: Store, mut providers: Providers, options: SyncOptions) -> Self {
+        providers.alchemy = providers
+            .alchemy
+            .take()
+            .map(|a| a.with_metadata_store(store.clone()));
         SyncEngine {
             progress_hook: None,
             cancelled: Arc::new(AtomicBool::new(false)),
@@ -219,6 +246,9 @@ impl SyncEngine {
     }
 
     pub fn with_cancellation(mut self, cancelled: Arc<AtomicBool>) -> Self {
+        for client in self.providers.clients() {
+            client.set_cancellation(cancelled.clone());
+        }
         self.cancelled = cancelled;
         self
     }
@@ -241,6 +271,16 @@ impl SyncEngine {
             NetworkId::Tron => trongrid::PROVIDER,
             NetworkId::Ton => tonapi::PROVIDER,
         })
+    }
+
+    pub fn selected_provider(&self, network: NetworkId) -> Option<&'static str> {
+        if network == NetworkId::Solana && self.providers.helius.is_some() {
+            Some(helius::PROVIDER)
+        } else if alchemy::NETWORKS.contains(&network) && self.providers.alchemy.is_some() {
+            Some(alchemy::PROVIDER)
+        } else {
+            Self::provider_for(network)
+        }
     }
 
     fn check_stopped(&self, provider: &'static str) -> Result<(), ProviderError> {
@@ -268,10 +308,11 @@ impl SyncEngine {
             let usage = client.take_usage();
             if usage.requests > 0 {
                 self.store
-                    .add_provider_usage(
+                    .add_provider_usage_cost(
                         client.provider(),
                         &day,
                         usage.requests,
+                        usage.credits,
                         usage.last_error.as_deref(),
                     )
                     .await?;
@@ -310,7 +351,7 @@ impl SyncEngine {
         report
     }
     async fn sync_account_inner(&self, account: &Account) -> AccountSyncReport {
-        let provider = Self::provider_for(account.network);
+        let provider = self.selected_provider(account.network);
         let mut report = AccountSyncReport {
             account_id: account.id.clone(),
             network: account.network,
@@ -339,19 +380,30 @@ impl SyncEngine {
         let now = self.store_now();
         checkpoint.state.last_attempt_at = Some(now);
 
-        let result = match account.network {
-            NetworkId::Bitcoin => {
+        let result = match provider {
+            alchemy::PROVIDER => {
+                self.sync_alchemy(account, &mut checkpoint, &mut report)
+                    .await
+            }
+            helius::PROVIDER => {
+                self.sync_helius(account, &mut checkpoint, &mut report)
+                    .await
+            }
+            esplora::PROVIDER => {
                 self.sync_bitcoin(account, &mut checkpoint, &mut report)
                     .await
             }
-            NetworkId::Tron => self.sync_tron(account, &mut checkpoint, &mut report).await,
-            NetworkId::Ton => self.sync_ton(account, &mut checkpoint, &mut report).await,
+            trongrid::PROVIDER => self.sync_tron(account, &mut checkpoint, &mut report).await,
+            tonapi::PROVIDER => self.sync_ton(account, &mut checkpoint, &mut report).await,
             _ => {
                 self.sync_zerion(account, &mut checkpoint, &mut report)
                     .await
             }
         };
         match result {
+            Err(SyncError::Provider(ProviderError::Cancelled { .. })) => {
+                checkpoint.coverage = Coverage::Paused;
+            }
             Ok(()) => {
                 checkpoint.state.last_success_at = Some(now);
                 checkpoint.state.last_error = None;
@@ -398,6 +450,28 @@ impl SyncEngine {
         F: FnMut(Option<String>) -> Fut,
         Fut: Future<Output = Result<HistoryPage, ProviderError>>,
     {
+        self.sync_history_limit(
+            account,
+            checkpoint,
+            fingerprint,
+            &mut fetch,
+            self.options.max_history_pages,
+        )
+        .await
+    }
+
+    async fn sync_history_limit<F, Fut>(
+        &self,
+        account: &Account,
+        checkpoint: &mut Checkpoint,
+        fingerprint: &str,
+        mut fetch: F,
+        limit: u32,
+    ) -> Result<HistoryOutcome, SyncError>
+    where
+        F: FnMut(Option<String>) -> Fut,
+        Fut: Future<Output = Result<HistoryPage, ProviderError>>,
+    {
         if checkpoint.boundary.as_deref() != Some(fingerprint) {
             // A cursor is only valid with the exact query that produced it.
             checkpoint.backfill_cursor = None;
@@ -410,7 +484,7 @@ impl SyncEngine {
             ..HistoryOutcome::default()
         };
         let first_run = checkpoint.backfill_cursor.is_none() && !checkpoint.state.completed_once;
-        let total = self.options.max_history_pages.max(1);
+        let total = limit.max(1);
         // While older history is pending, the forward pass gets half the pages so
         // the backfill always progresses too.
         let forward_budget = if checkpoint.backfill_cursor.is_some() {
@@ -466,12 +540,8 @@ impl SyncEngine {
                 self.store
                     .save_checkpoint(
                         &account.id,
-                        Self::provider_for(account.network).unwrap_or("sync"),
-                        if fingerprint.contains("trc20") {
-                            HISTORY_TRC20
-                        } else {
-                            HISTORY
-                        },
+                        self.selected_provider(account.network).unwrap_or("sync"),
+                        history_category(fingerprint),
                         checkpoint,
                     )
                     .await?;
@@ -527,12 +597,8 @@ impl SyncEngine {
             self.store
                 .save_checkpoint(
                     &account.id,
-                    Self::provider_for(account.network).unwrap_or("sync"),
-                    if fingerprint.contains("trc20") {
-                        HISTORY_TRC20
-                    } else {
-                        HISTORY
-                    },
+                    self.selected_provider(account.network).unwrap_or("sync"),
+                    history_category(fingerprint),
                     checkpoint,
                 )
                 .await?;
@@ -579,7 +645,26 @@ impl SyncEngine {
             Some(p) => known_parts.contains(&(t.hash.clone(), p.clone())),
         };
         let known_count = txs.iter().filter(|t| is_known(t)).count();
+        // A partial alternative must not replace richer imported evidence or basis links.
+        let foreign = if txs
+            .first()
+            .is_some_and(|t| matches!(t.provider, alchemy::PROVIDER | helius::PROVIDER))
+        {
+            self.store
+                .known_foreign_account_transactions(
+                    &account.id,
+                    account.network,
+                    &hashes,
+                    txs[0].provider,
+                )
+                .await?
+        } else {
+            BTreeSet::new()
+        };
         for tx in txs {
+            if foreign.contains(&tx.hash) {
+                continue;
+            }
             if self.store.ingest_transaction(&account.id, tx).await? {
                 outcome.new_transactions += 1;
             }
@@ -794,6 +879,150 @@ impl SyncEngine {
     }
 
     // ------------------------------------------------------------ EVM (Zerion)
+
+    async fn sync_helius(
+        &self,
+        account: &Account,
+        checkpoint: &mut Checkpoint,
+        report: &mut AccountSyncReport,
+    ) -> Result<(), SyncError> {
+        self.check_stopped(helius::PROVIDER)?;
+        let api = self
+            .providers
+            .helius
+            .as_ref()
+            .ok_or(ProviderError::MissingKey {
+                provider: helius::PROVIDER,
+            })?;
+        let holdings = api.holdings(&account.canonical_address).await?;
+        if holdings.complete {
+            self.record_holdings(
+                account,
+                helius::PROVIDER,
+                &holdings.assets,
+                Some(holdings.slot),
+            )
+            .await?;
+        } else {
+            self.store.mark_balances_stale(&account.id).await?;
+            for (asset, raw) in &holdings.assets {
+                self.store
+                    .record_balance(&account.id, asset, raw, Some(holdings.slot), "fresh")
+                    .await?;
+            }
+        }
+        report.balance_refreshed = true;
+        let outcome = self
+            .sync_history(
+                account,
+                checkpoint,
+                "helius;full-v1;all-token-accounts;20",
+                |cursor| async move {
+                    let p = api
+                        .transactions(&account.canonical_address, cursor.as_deref())
+                        .await?;
+                    Ok(HistoryPage {
+                        txs: p.txs,
+                        next: p.next,
+                        indexing: false,
+                    })
+                },
+            )
+            .await?;
+        report.pages_fetched = outcome.pages;
+        report.new_transactions = outcome.new_transactions;
+        if checkpoint.coverage == Coverage::Complete {
+            checkpoint.coverage = Coverage::Partial;
+        }
+        Ok(())
+    }
+
+    async fn sync_alchemy(
+        &self,
+        account: &Account,
+        checkpoint: &mut Checkpoint,
+        report: &mut AccountSyncReport,
+    ) -> Result<(), SyncError> {
+        self.check_stopped(alchemy::PROVIDER)?;
+        let api = self
+            .providers
+            .alchemy
+            .as_ref()
+            .ok_or(ProviderError::MissingKey {
+                provider: alchemy::PROVIDER,
+            })?;
+        let holdings = api
+            .holdings(account.network, &account.canonical_address)
+            .await?;
+        if holdings.complete {
+            self.record_holdings(account, alchemy::PROVIDER, &holdings.assets, None)
+                .await?;
+        } else {
+            self.store.mark_balances_stale(&account.id).await?;
+            for (asset, raw) in &holdings.assets {
+                self.store
+                    .record_balance(&account.id, asset, raw, None, "fresh")
+                    .await?;
+            }
+        }
+        report.balance_refreshed = true;
+        let mut states = Vec::new();
+        for incoming in [true, false] {
+            if self.is_cancelled() {
+                checkpoint.coverage = Coverage::Paused;
+                return Ok(());
+            }
+            let fingerprint = if incoming {
+                "alchemy;v1;incoming;external-erc20;5"
+            } else {
+                "alchemy;v1;outgoing;external-erc20;5"
+            };
+            let category = history_category(fingerprint);
+            let mut cp = self
+                .store
+                .checkpoint(&account.id, alchemy::PROVIDER, category)
+                .await?;
+            let result = self
+                .sync_history_limit(
+                    account,
+                    &mut cp,
+                    fingerprint,
+                    |cursor| async move {
+                        let p = api
+                            .transactions(
+                                account.network,
+                                &account.canonical_address,
+                                incoming,
+                                cursor.as_deref(),
+                            )
+                            .await?;
+                        Ok(HistoryPage {
+                            txs: p.txs,
+                            next: p.next,
+                            indexing: false,
+                        })
+                    },
+                    (self.options.max_history_pages / 2).max(1),
+                )
+                .await;
+            self.store
+                .save_checkpoint(&account.id, alchemy::PROVIDER, category, &cp)
+                .await?;
+            let outcome = result?;
+            report.pages_fetched += outcome.pages;
+            report.new_transactions += outcome.new_transactions;
+            states.push(cp.coverage);
+        }
+        checkpoint.coverage = if states.contains(&Coverage::Paused) {
+            Coverage::Paused
+        } else if states.contains(&Coverage::Loading) {
+            Coverage::Loading
+        } else {
+            Coverage::Partial
+        };
+        checkpoint.state.completed_once = states.iter().all(|c| *c == Coverage::Complete);
+        Ok(())
+    }
 
     async fn sync_zerion(
         &self,

@@ -28,18 +28,31 @@ returns. The separate
 **demo profile** uses synthetic data, is labeled as such, and never contacts a
 provider.
 
+## Helius and Alchemy (0.1.4)
+
+Configured Helius reads SOL/SPL/Token-2022 holdings and paginated finalized full
+history including related token accounts. Configured Alchemy reads native/ERC-20
+holdings and transfer-indexed receipt history on Ethereum, Base, Arbitrum,
+Optimism and Polygon. BNB Chain remains on Zerion. Keys are saved through
+Settings → Data sources; release builds use the OS credential store.
+
+Both alternatives expose partial history/accounting limits. Existing foreign
+provider transactions are preserved rather than overwritten by partial data.
+No automatic fallback hides a rejected key or unavailable method.
+[Routing, request/credit budgets and verified official contracts](docs/PROVIDER_INTEGRATION.md).
+
 ## Chart data and accessibility
 
 Charts include **View chart data**, a keyboard-accessible table of the same observations with date/time, USD values and missing/estimated/partial coverage. Tables use 50-row pages, honor English/Russian settings and mask private values. Observations remain usable while the plot loads. Public market prices remain visible in privacy mode. Chart animation follows the operating system's reduced-motion preference.
 
 ## Synchronization (stage B)
 
-| Network / data      | Source                                   | Key                     |
-| ------------------- | ---------------------------------------- | ----------------------- |
-| Bitcoin             | Blockstream Esplora (public)             | none                    |
-| Ethereum            | Zerion (simple positions + transactions) | `ZERION_API_KEY`        |
-| Native asset prices | Live Coin Watch (curated native codes)   | `LIVECOINWATCH_API_KEY` |
-| Token prices        | DefiLlama by contract identity           | none                    |
+| Network / data      | Source                                    | Key                                   |
+| ------------------- | ----------------------------------------- | ------------------------------------- |
+| Bitcoin             | Blockstream Esplora (public)              | none                                  |
+| Ethereum            | Alchemy when configured; otherwise Zerion | `ALCHEMY_API_KEY` or `ZERION_API_KEY` |
+| Native asset prices | Live Coin Watch (curated native codes)    | `LIVECOINWATCH_API_KEY`               |
+| Token prices        | DefiLlama by contract identity            | none                                  |
 
 - A new address synchronizes right after it is added. A background sweep runs
   at startup and then every `sweep_interval_minutes` (default 60); prices
@@ -64,12 +77,13 @@ Charts include **View chart data**, a keyboard-accessible table of the same obse
 
 ## Required networks (stage D)
 
-| Network                                      | Source                                     | Key                         |
-| -------------------------------------------- | ------------------------------------------ | --------------------------- |
-| Base, Arbitrum, Optimism, Polygon, BNB Chain | Zerion, filtered to the chain              | `ZERION_API_KEY`            |
-| Solana                                       | Zerion (SOL and SPL by exact mint)         | `ZERION_API_KEY`            |
-| TRON                                         | TronGrid (TRX, staking, TRC-20)            | `TRONGRID_API_KEY`          |
-| TON                                          | TonAPI (account events, Jettons by master) | `TONAPI_API_KEY` (optional) |
+| Network                           | Source                                     | Key                                   |
+| --------------------------------- | ------------------------------------------ | ------------------------------------- |
+| Base, Arbitrum, Optimism, Polygon | Alchemy when configured; otherwise Zerion  | `ALCHEMY_API_KEY` or `ZERION_API_KEY` |
+| BNB Chain                         | Zerion, filtered to the chain              | `ZERION_API_KEY`                      |
+| Solana                            | Helius when configured; otherwise Zerion   | `HELIUS_API_KEY` or `ZERION_API_KEY`  |
+| TRON                              | TronGrid (TRX, staking, TRC-20)            | `TRONGRID_API_KEY`                    |
+| TON                               | TonAPI (account events, Jettons by master) | `TONAPI_API_KEY` (optional)           |
 
 **Settings → Networks** lists, per network, the provider, which history
 categories are imported, and every known limitation (for example: TRON staked
@@ -304,7 +318,7 @@ $env:RUN_LIVE_API_TESTS = "1"
 npm run test:e2e:windows -- --live-btc
 ```
 
-The separate production job tests an upgrade from the pinned, SHA-256-verified `0.1.0` NSIS artifact (main `f0603fd`, CI `37345501830`) to the current version in `tauri.conf.json` (now `0.1.3`). The old installed app creates schema 6; an external offline fixture utility fills the closed database with two synthetic owned accounts, an internal transfer, one fee, two audit versions and overlapping groups. Both installed versions open and replay that data. The check compares exact source/derived table fingerprints and balance quantities after migration to schema 7, another restart and normal uninstall. The baseline CI artifact must remain available; expiry is an explicit prerequisite failure, never a silently substituted baseline. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
+The separate production job tests an upgrade from the pinned, SHA-256-verified `0.1.0` NSIS artifact (main `f0603fd`, CI `37345501830`) to the current version in `tauri.conf.json` (now `0.1.4`). The old installed app creates schema 6; an external offline fixture utility fills the closed database with two synthetic owned accounts, an internal transfer, one fee, two audit versions and overlapping groups. Both installed versions open and replay that data. The check compares exact source/derived table fingerprints and balance quantities after migration to schema 7, another restart and normal uninstall. The baseline CI artifact must remain available; expiry is an explicit prerequisite failure, never a silently substituted baseline. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
 
 Native acceptance adds the two synthetic addresses and overlapping groups through the actual UI; only deterministic chain evidence is seeded externally while the app is closed. Expected values are independently checked against the production Store APIs: 1.99 ETH at $3000 gives $5970, with one $30 fee. The viewport matrix resizes the actual Windows HWND client area to 1440×900, 1280×800 and 1024×720 CSS pixels, captures EN/RU and dark/light combinations, and checks that all six asset and eight activity columns remain reachable by scrolling. It records WebView2 pixel ratio and Windows window DPI. This does not substitute for changing Windows display scaling to 125%, 150% and 200%; that release gate remains separate. The hosted monitor can be smaller than a requested test window, so the report also records available screen size.
 

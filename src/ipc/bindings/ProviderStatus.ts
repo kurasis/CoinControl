@@ -21,6 +21,7 @@ export type ProviderStatus = {
    * Requests counted by this app today (UTC); other apps sharing the key are not included.
    */
   requests_today: number;
+  estimated_credits_today: number;
   last_error: string | null;
   /**
    * Adapter availability in this build.

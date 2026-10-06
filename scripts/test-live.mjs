@@ -8,16 +8,15 @@ import { spawnSync } from "node:child_process";
 const KNOWN = {
   livecoinwatch: "LIVECOINWATCH_API_KEY",
   zerion: "ZERION_API_KEY",
+  helius: "HELIUS_API_KEY",
+  alchemy: "ALCHEMY_API_KEY",
   esplora: null,
   defillama: null,
   trongrid: "TRONGRID_API_KEY",
   tonapi: "TONAPI_API_KEY",
 };
-// Optional supplemental providers documented in the specification; this build
-// does not use them (Solana is served by Zerion), so they are not in scope.
+// Optional provider not shipped in this build.
 const LATER = {
-  helius: "HELIUS_API_KEY",
-  alchemy: "ALCHEMY_API_KEY",
   ankr: "ANKR_API_TOKEN",
 };
 const REPORT_DIR = "target/live-report";

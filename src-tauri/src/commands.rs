@@ -5,7 +5,7 @@ use portfolio_core::accounting::ACCOUNTING_ENGINE_VERSION;
 use portfolio_core::address::{NormalizedAddress, normalize_address};
 use portfolio_core::clock::{Clock, SystemClock, utc_day};
 use portfolio_core::network::{NetworkFamily, NetworkId};
-use portfolio_providers::capabilities::{NetworkCapability, network_capabilities};
+use portfolio_providers::capabilities::NetworkCapability;
 use std::collections::BTreeMap;
 
 use portfolio_store::{
@@ -108,8 +108,8 @@ pub fn list_networks() -> Vec<NetworkInfo> {
 
 /// What this build reads for each required network (capability report).
 #[tauri::command]
-pub fn list_network_capabilities() -> Vec<NetworkCapability> {
-    network_capabilities()
+pub fn list_network_capabilities(state: State<'_, AppState>) -> Vec<NetworkCapability> {
+    sync::network_capabilities(state.secrets.as_ref())
 }
 
 /// Local-only validation; never contacts a provider.
@@ -429,6 +429,7 @@ pub async fn list_providers(state: State<'_, AppState>) -> CommandResult<Vec<Pro
             let mut status = ProviderStatus::from_spec(spec, state.secrets.status(spec.id));
             if let Some(u) = usage.iter().find(|u| u.provider == spec.id) {
                 status.requests_today = u.requests;
+                status.estimated_credits_today = u.credits;
                 status.last_error = u.last_error.clone();
             }
             status
@@ -494,6 +495,12 @@ pub fn get_sync_progress(state: State<'_, AppState>) -> sync::SyncProgress {
 
 #[tauri::command]
 pub async fn test_provider(state: State<'_, AppState>, provider: String) -> CommandResult<()> {
+    // Connection probes share the same persisted budget window as sweeps.
+    let _guard = state
+        .sync
+        .run_lock
+        .try_lock()
+        .map_err(|_| CommandError::new("sync_busy", "Synchronization is already running."))?;
     let _sync = state.sync.run_lock.lock().await;
     sync::test_provider(&state.store().await, state.secrets.as_ref(), &provider).await
 }

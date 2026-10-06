@@ -20,6 +20,10 @@ use portfolio_providers::zerion::{self, Zerion};
 use portfolio_providers::{
     AccountSyncReport, PriceHistoryReport, PriceReport, Providers, SyncEngine, SyncOptions,
 };
+use portfolio_providers::{
+    alchemy::{self, Alchemy},
+    helius::{self, Helius},
+};
 use portfolio_store::ReplayReport;
 use portfolio_store::{ProfileKind, Store};
 use serde::Serialize;
@@ -40,6 +44,8 @@ const LCW_DAILY_BUDGET: u32 = 9_000;
 const TRONGRID_DAILY_BUDGET: u32 = 5_000;
 /// TonAPI's free key allows about one request per second.
 const TONAPI_DAILY_BUDGET: u32 = 5_000;
+const HELIUS_DAILY_CREDITS: u32 = 20_000;
+const ALCHEMY_DAILY_CU: u32 = 150_000;
 const TICK: Duration = Duration::from_secs(15);
 
 /// Scheduler bookkeeping shared by the background loop and commands.
@@ -77,6 +83,15 @@ fn credential(secrets: &dyn SecretStore, provider: &str, env: &str) -> Option<Ze
             .map(Zeroizing::new);
     }
     None
+}
+
+pub fn network_capabilities(
+    secrets: &dyn SecretStore,
+) -> Vec<portfolio_providers::capabilities::NetworkCapability> {
+    portfolio_providers::capabilities::configured_capabilities(
+        credential(secrets, alchemy::PROVIDER, "ALCHEMY_API_KEY").is_some(),
+        credential(secrets, helius::PROVIDER, "HELIUS_API_KEY").is_some(),
+    )
 }
 
 async fn remaining_today(store: &Store, provider: &str, limit: u32) -> u32 {
@@ -122,6 +137,28 @@ async fn build_providers(store: &Store, secrets: &dyn SecretStore) -> Providers 
     if let Some(key) = credential(secrets, zerion::PROVIDER, "ZERION_API_KEY") {
         let budget = remaining_today(store, zerion::PROVIDER, ZERION_DAILY_BUDGET).await;
         providers.zerion = Zerion::new(zerion::DEFAULT_BASE, &key, Budget::limited(budget)).ok();
+    }
+    for (id, var, limit) in [
+        (helius::PROVIDER, "HELIUS_API_KEY", HELIUS_DAILY_CREDITS),
+        (alchemy::PROVIDER, "ALCHEMY_API_KEY", ALCHEMY_DAILY_CU),
+    ] {
+        if let Some(key) = credential(secrets, id, var) {
+            let used = store
+                .provider_usage(&utc_day(SystemClock.now()))
+                .await
+                .ok()
+                .and_then(|u| u.into_iter().find(|u| u.provider == id))
+                .map_or(0, |u| u.credits);
+            let budget = Budget::limited_with_credits(
+                remaining_today(store, id, 5_000).await,
+                limit.saturating_sub(used),
+            );
+            if id == helius::PROVIDER {
+                providers.helius = Helius::new(&key, budget).ok();
+            } else {
+                providers.alchemy = Alchemy::new(&key, budget).ok();
+            }
+        }
     }
     if let Some(key) = credential(secrets, trongrid::PROVIDER, "TRONGRID_API_KEY") {
         let budget = remaining_today(store, trongrid::PROVIDER, TRONGRID_DAILY_BUDGET).await;
@@ -363,6 +400,20 @@ pub async fn test_provider(
     let p = build_providers(store, secrets).await;
     let missing = || CommandError::new("missing_key", "Configure this provider's key first.");
     let outcome = match id {
+        "helius" => p
+            .helius
+            .as_ref()
+            .ok_or_else(missing)?
+            .slot()
+            .await
+            .map(|_| ()),
+        "alchemy" => {
+            p.alchemy
+                .as_ref()
+                .ok_or_else(missing)?
+                .check_chain(portfolio_core::network::NetworkId::Ethereum)
+                .await
+        }
         "livecoinwatch" => p
             .livecoinwatch
             .as_ref()

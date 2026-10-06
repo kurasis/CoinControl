@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 use std::sync::Mutex as StdMutex;
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::{Duration, Instant};
 
 use reqwest::header::{HeaderMap, HeaderValue, RETRY_AFTER};
@@ -53,6 +53,8 @@ impl Default for HttpConfig {
 pub struct Budget {
     limit: Option<u32>,
     used: AtomicU32,
+    credit_limit: Option<u32>,
+    credits: AtomicU32,
     stopped: StdMutex<Option<ProviderError>>,
     last_start: Mutex<Option<Instant>>,
 }
@@ -66,9 +68,34 @@ impl Budget {
         Arc::new(Budget {
             limit: Some(limit),
             used: AtomicU32::new(0),
+            credit_limit: None,
+            credits: AtomicU32::new(0),
             stopped: StdMutex::new(None),
             last_start: Mutex::new(None),
         })
+    }
+
+    pub fn limited_with_credits(requests: u32, credits: u32) -> Arc<Self> {
+        Arc::new(Budget {
+            limit: Some(requests),
+            credit_limit: Some(credits),
+            ..Budget::default()
+        })
+    }
+
+    fn take_cost(&self, cost: u32) -> bool {
+        self.credits
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |used| {
+                let next = used.checked_add(cost)?;
+                self.credit_limit
+                    .is_none_or(|limit| next <= limit)
+                    .then_some(next)
+            })
+            .is_ok()
+    }
+
+    pub fn credits(&self) -> u32 {
+        self.credits.load(Ordering::Relaxed)
     }
 
     /// Reserves one request; `false` when the budget is spent.
@@ -107,6 +134,7 @@ impl Budget {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Usage {
     pub requests: u32,
+    pub credits: u32,
     pub last_error: Option<String>,
 }
 
@@ -116,6 +144,8 @@ pub struct HttpClient {
     config: HttpConfig,
     budget: Arc<Budget>,
     usage: StdMutex<Usage>,
+    cancelled: StdMutex<Arc<AtomicBool>>,
+    forbidden: StdMutex<std::collections::BTreeMap<String, ProviderError>>,
 }
 
 /// A successful (2xx) response body.
@@ -172,11 +202,34 @@ impl HttpClient {
             config,
             budget,
             usage: StdMutex::new(Usage::default()),
+            cancelled: StdMutex::new(Arc::new(AtomicBool::new(false))),
+            forbidden: StdMutex::new(std::collections::BTreeMap::new()),
         })
     }
 
     pub fn provider(&self) -> &'static str {
         self.provider
+    }
+    pub fn rpc_retry_policy(&self) -> (u32, Duration) {
+        (self.config.max_retries, self.config.backoff)
+    }
+
+    pub fn set_cancellation(&self, flag: Arc<AtomicBool>) {
+        *self.cancelled.lock().expect("cancellation lock") = flag;
+    }
+    fn check_cancelled(&self) -> Result<(), ProviderError> {
+        if self
+            .cancelled
+            .lock()
+            .expect("cancellation lock")
+            .load(Ordering::Relaxed)
+        {
+            Err(ProviderError::Cancelled {
+                provider: self.provider,
+            })
+        } else {
+            Ok(())
+        }
     }
 
     pub fn budget(&self) -> &Arc<Budget> {
@@ -198,8 +251,21 @@ impl HttpClient {
         self.usage.lock().expect("usage lock").last_error = Some(error.to_string());
     }
 
+    pub fn record_rpc_failure(&self, error: &ProviderError, url: &Url) {
+        if matches!(error, ProviderError::NetworkForbidden { .. }) {
+            self.forbidden
+                .lock()
+                .expect("network access lock")
+                .insert(url.origin().ascii_serialization(), error.clone());
+        }
+        if error.stops_provider() {
+            self.budget.stop(error);
+        }
+        self.note_failure(error);
+    }
+
     pub async fn get(&self, endpoint: &'static str, url: Url) -> Result<Body, ProviderError> {
-        self.send(endpoint, Method::GET, url, None).await
+        self.send(endpoint, Method::GET, url, None, 0).await
     }
 
     pub async fn post_json(
@@ -208,7 +274,18 @@ impl HttpClient {
         url: Url,
         body: &serde_json::Value,
     ) -> Result<Body, ProviderError> {
-        self.send(endpoint, Method::POST, url, Some(body)).await
+        self.post_json_cost(endpoint, url, body, 0).await
+    }
+
+    pub async fn post_json_cost(
+        &self,
+        endpoint: &'static str,
+        url: Url,
+        body: &serde_json::Value,
+        cost: u32,
+    ) -> Result<Body, ProviderError> {
+        self.send(endpoint, Method::POST, url, Some(body), cost)
+            .await
     }
 
     async fn pace(&self) {
@@ -228,16 +305,36 @@ impl HttpClient {
         method: Method,
         url: Url,
         json: Option<&serde_json::Value>,
+        cost: u32,
     ) -> Result<Body, ProviderError> {
         let provider = self.provider;
         let mut attempt = 0u32;
         loop {
+            self.check_cancelled()?;
+            let denied = self
+                .forbidden
+                .lock()
+                .expect("network access lock")
+                .get(&url.origin().ascii_serialization())
+                .cloned();
+            if let Some(error) = denied {
+                self.note_failure(&error);
+                return Err(error);
+            }
             if let Some(error) = self.budget.stopped_error() {
                 self.note_failure(&error);
                 return Err(error);
             }
             self.pace().await;
+            self.check_cancelled()?;
+            if !self.budget.take_cost(cost) {
+                let error = ProviderError::BudgetExhausted { provider };
+                self.budget.stop(&error);
+                self.note_failure(&error);
+                return Err(error);
+            }
             if !self.budget.try_take() {
+                self.budget.credits.fetch_sub(cost, Ordering::Relaxed);
                 let error = self
                     .budget
                     .stopped_error()
@@ -245,6 +342,7 @@ impl HttpClient {
                 self.note_failure(&error);
                 return Err(error);
             }
+            self.usage.lock().expect("usage lock").credits += cost;
             let mut request = self.client.request(method.clone(), url.clone());
             if let Some(body) = json {
                 request = request.json(body);
@@ -259,6 +357,12 @@ impl HttpClient {
                 Err(failure) => failure,
             };
             if !error.is_retryable() || attempt >= self.config.max_retries {
+                if matches!(error, ProviderError::NetworkForbidden { .. }) {
+                    self.forbidden
+                        .lock()
+                        .expect("network access lock")
+                        .insert(url.origin().ascii_serialization(), error.clone());
+                }
                 if error.stops_provider() {
                     self.budget.stop(&error);
                 }
@@ -312,8 +416,17 @@ impl HttpClient {
         if status.is_success() {
             return Ok(Body { status, bytes });
         }
-        let detail = provider_message(&bytes);
+        // RPC providers put credentials in URL paths/query strings and may echo
+        // even short keys in arbitrary HTTP error bodies. Status is sufficient.
+        let detail = if matches!(provider, "helius" | "alchemy") {
+            String::new()
+        } else {
+            provider_message(&bytes)
+        };
         let error = match status {
+            StatusCode::FORBIDDEN if provider == "alchemy" => {
+                ProviderError::NetworkForbidden { provider, endpoint }
+            }
             StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => ProviderError::Auth {
                 provider,
                 endpoint,

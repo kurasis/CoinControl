@@ -240,7 +240,9 @@
     "requestsToday_one": "{{count}} request today by this app",
     "requestsToday_other": "{{count}} requests today by this app",
     "getKey": "Get a free key",
-    "docs": "Documentation"
+    "docs": "Documentation",
+    "estimatedCreditsToday": "Estimated usage today: {{count}} credits/CU",
+    "routing": "Configured Alchemy takes priority for Ethereum, Base, Arbitrum, Optimism and Polygon; Helius takes priority for Solana. Zerion serves other covered networks. Source errors keep cached data."
   },
   "sync": {
     "now": "Sync now",
@@ -534,7 +536,13 @@
       "ton_events_canonical": "Each trace is one record (the TonAPI account event); its fee is net of refunds.",
       "ton_contract_calls_partial": "Other contract calls show the TON sent but are marked partially decoded.",
       "ton_nft_excluded": "NFT transfers are shown but not valued.",
-      "ton_key_recommended": "Works without a key at a slower rate; a free TonAPI key is recommended."
+      "ton_key_recommended": "Works without a key at a slower rate; a free TonAPI key is recommended.",
+      "alchemy_transfer_index": "Transfer-indexed history misses failed calls, approvals and internal transfers; receipt logs supply ERC-20 legs and sender fees. Coverage stays partial.",
+      "alchemy_bounded_discovery": "Token discovery is limited to 8 pages / 50 nonzero tokens per sweep. Omitted balances stay stale after a capped scan.",
+      "rpc_unverified_tokens": "Tokens are unverified and identified by their contract or mint; a symbol is never used as identity.",
+      "helius_full_history": "History uses full finalized transactions and all related token accounts. Method access depends on the Helius account; unavailable access is reported.",
+      "helius_program_effects": "SOL program/rent effects and token deltas require review. Wrapped SOL, rent and Token-2022 extensions are not fully classified.",
+      "helius_fungible_scope": "NFTs and unclassified zero-decimal SPL mints are excluded from fungible holdings/history; omitted cached holdings remain stale."
     }
   },
   "ops": {

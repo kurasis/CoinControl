@@ -1,6 +1,12 @@
 # Network coverage (stage D)
 
-What each required network gets from its data provider, as shipped. The same
+The table below describes the original Zerion route. In 0.1.4 a configured
+Alchemy key takes priority for Ethereum, Base, Arbitrum, Optimism and Polygon;
+a configured Helius key takes priority for Solana. The application shows the
+actual configured route, with partial-coverage limitations and no inherited live
+verification date. See [provider integration](PROVIDER_INTEGRATION.md).
+
+What each required network gets from its original data provider: The same
 table is compiled into the app (`portfolio_providers::capabilities`) and shown
 under **Settings → Networks**, so the UI and this document cannot drift apart
 silently: a unit test checks that every network's listed provider is the one the

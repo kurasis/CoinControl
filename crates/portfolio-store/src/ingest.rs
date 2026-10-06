@@ -300,6 +300,7 @@ pub struct AccountSyncStatus {
 pub struct ProviderUsage {
     pub provider: String,
     pub requests: u32,
+    pub credits: u32,
     pub last_error: Option<String>,
 }
 
@@ -766,6 +767,38 @@ impl Store {
     }
 
     /// Hashes of this account's transactions still recorded as pending.
+    pub async fn known_foreign_account_transactions(
+        &self,
+        account: &str,
+        network: NetworkId,
+        hashes: &[String],
+        provider: &str,
+    ) -> Result<BTreeSet<String>> {
+        if hashes.is_empty() {
+            return Ok(BTreeSet::new());
+        }
+        let mut q = QueryBuilder::<Sqlite>::new(
+            "SELECT t.canonical_tx_id FROM account_transactions x JOIN chain_transactions t ON t.id=x.transaction_id WHERE x.account_id=",
+        );
+        q.push_bind(account)
+            .push(" AND t.network_id=")
+            .push_bind(network.as_str())
+            .push(" AND x.provider != ")
+            .push_bind(provider)
+            .push(" AND t.canonical_tx_id IN (");
+        let mut list = q.separated(", ");
+        for hash in hashes {
+            list.push_bind(hash);
+        }
+        list.push_unseparated(")");
+        Ok(q.build_query_scalar::<String>()
+            .fetch_all(&self.pool)
+            .await?
+            .into_iter()
+            .collect())
+    }
+
+    /// Hashes of this account's transactions still recorded as pending.
     pub async fn pending_account_transactions(&self, account_id: &str) -> Result<Vec<String>> {
         Ok(sqlx::query_scalar(
             "SELECT t.canonical_tx_id FROM account_transactions x
@@ -1096,17 +1129,31 @@ impl Store {
         requests: u32,
         last_error: Option<&str>,
     ) -> Result<()> {
+        self.add_provider_usage_cost(provider, day_utc, requests, 0, last_error)
+            .await
+    }
+
+    pub async fn add_provider_usage_cost(
+        &self,
+        provider: &str,
+        day_utc: &str,
+        requests: u32,
+        credits: u32,
+        last_error: Option<&str>,
+    ) -> Result<()> {
         let _guard = self.write_lock.lock().await;
         sqlx::query(
-            "INSERT INTO provider_usage (provider, day_utc, requests, last_error) VALUES (?1, ?2, ?3, ?4)
+            "INSERT INTO provider_usage (provider, day_utc, requests, last_error, credits) VALUES (?1, ?2, ?3, ?4, CAST(?5 AS TEXT))
              ON CONFLICT(provider, day_utc) DO UPDATE SET
                  requests = provider_usage.requests + excluded.requests,
+                 credits = CAST(CAST(provider_usage.credits AS INTEGER) + CAST(excluded.credits AS INTEGER) AS TEXT),
                  last_error = excluded.last_error",
         )
         .bind(provider)
         .bind(day_utc)
         .bind(i64::from(requests))
         .bind(last_error)
+        .bind(i64::from(credits))
         .execute(&self.pool)
         .await?;
         Ok(())
@@ -1114,7 +1161,7 @@ impl Store {
 
     pub async fn provider_usage(&self, day_utc: &str) -> Result<Vec<ProviderUsage>> {
         let rows = sqlx::query(
-            "SELECT provider, requests, last_error FROM provider_usage WHERE day_utc = ?",
+            "SELECT provider, requests, credits, last_error FROM provider_usage WHERE day_utc = ?",
         )
         .bind(day_utc)
         .fetch_all(&self.pool)
@@ -1124,6 +1171,7 @@ impl Store {
             .map(|r| ProviderUsage {
                 provider: r.get("provider"),
                 requests: u32::try_from(r.get::<i64, _>("requests")).unwrap_or(u32::MAX),
+                credits: r.get::<String, _>("credits").parse().unwrap_or(u32::MAX),
                 last_error: r.get("last_error"),
             })
             .collect())

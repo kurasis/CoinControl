@@ -5,12 +5,15 @@
 //! to any blockchain. Credentials are passed in by the caller and never appear
 //! in errors or logs.
 
+pub mod alchemy;
 pub mod capabilities;
 pub mod defillama;
 pub mod error;
 pub mod esplora;
+pub mod helius;
 pub mod http;
 pub mod livecoinwatch;
+mod rpc;
 pub mod sync;
 pub mod tonapi;
 pub mod trongrid;

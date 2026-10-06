@@ -6,6 +6,19 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Error, PartialEq, Eq)]
 pub enum ProviderError {
+    #[error("{provider} {endpoint}: network access forbidden (HTTP 403)")]
+    NetworkForbidden {
+        provider: &'static str,
+        endpoint: &'static str,
+    },
+    #[error("{provider} {endpoint}: RPC node temporarily unavailable (code {code})")]
+    RpcUnavailable {
+        provider: &'static str,
+        endpoint: &'static str,
+        code: i64,
+    },
+    #[error("{provider}: synchronization cancelled")]
+    Cancelled { provider: &'static str },
     #[error("{provider} {endpoint}: credential rejected (HTTP {status})")]
     Auth {
         provider: &'static str,
@@ -75,6 +88,7 @@ impl ProviderError {
         matches!(
             self,
             ProviderError::RateLimited { .. }
+                | ProviderError::RpcUnavailable { .. }
                 | ProviderError::Server { .. }
                 | ProviderError::Timeout { .. }
                 | ProviderError::Network { .. }
