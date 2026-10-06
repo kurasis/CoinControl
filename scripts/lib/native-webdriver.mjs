@@ -79,14 +79,17 @@ export class NativeWebDriver {
 
   async open() {
     this.spawnRequestedUtcMs = Date.now();
+    const environment = { ...this.environment, TAURI_WEBVIEW_AUTOMATION: "true" };
+    for (const key of Object.keys(environment))
+      if (/^WEBVIEW2_(ADDITIONAL_BROWSER_ARGUMENTS|USER_DATA_FOLDER)$/i.test(key))
+        delete environment[key];
+    if (process.env.E2E_WEBVIEW2_POLICY !== "1") {
+      environment.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = `--remote-debugging-port=${this.debugPort}`;
+      environment.WEBVIEW2_USER_DATA_FOLDER = this.webviewDirectory;
+    }
     this.app = spawn(this.application, [], {
-      env: {
-        ...this.environment,
-        TAURI_WEBVIEW_AUTOMATION: "true",
-        // Official WebView2 runtime environment options, outside production code.
-        WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${this.debugPort}`,
-        WEBVIEW2_USER_DATA_FOLDER: this.webviewDirectory,
-      },
+      // Official external WebView2 options, applied via per-app policy or environment.
+      env: environment,
       stdio: ["ignore", "pipe", "pipe"],
     });
     let error;
