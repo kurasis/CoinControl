@@ -192,6 +192,7 @@ function SourceCard({ provider: p }: { provider: ProviderStatus }) {
           : t("sources.allAssets")}
         {" · "}
         {p.free_allowance}
+        {p.id === "chainstack" && <p>{t("sources.chainstackHint")}</p>}
       </span>
       {p.key_requirement !== "not_needed" && (
         <form
@@ -325,6 +326,7 @@ function NetworkCoverage() {
   return (
     <>
       <p className="notice meta">{t("coverage.intro")}</p>
+      <p className="notice meta">{t("coverage.reserveIntro")}</p>
       <div className="card table-scroll">
         <table className="table coverage-table" aria-label={t("settings.networks")}>
           <thead>
@@ -355,6 +357,10 @@ function NetworkCoverage() {
                 <td>
                   <div className="stack">
                     <span>{providerName.get(c.provider) ?? c.provider}</span>
+                    <span className="meta">
+                      {t("coverage.reserves")}:{" "}
+                      {c.fallback_providers.map((id) => providerName.get(id) ?? id).join(" → ")}
+                    </span>
                     <span className="meta">
                       {c.key_required ? t("coverage.keyRequired") : t("coverage.keyNotNeeded")}
                     </span>

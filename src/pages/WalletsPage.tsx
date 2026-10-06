@@ -92,10 +92,12 @@ function SyncLine({ status }: { status: AccountSyncStatus | undefined }) {
   if (!status || (status.coverage === null && status.last_error === null)) {
     return <span className="meta">{t("sync.waiting")}</span>;
   }
-  if (status.coverage === "unsupported") {
+  if (status.coverage === "unsupported" && status.last_error === null) {
     return <span className="meta">{t("sync.unsupported")}</span>;
   }
   const parts: string[] = [];
+  if (status.provider) parts.push(t("sync.source", { provider: status.provider }));
+  if (status.balance_only) parts.push(t("sync.balanceReserve"));
   if (status.coverage === "complete") {
     parts.push(t("sync.complete", { count: status.transaction_count }));
   } else if (status.coverage === "partial") {
@@ -114,6 +116,9 @@ function SyncLine({ status }: { status: AccountSyncStatus | undefined }) {
   return (
     <span className="meta">
       {parts.join(" · ")}
+      {status.fallback_reasons.length > 0 && (
+        <span title={status.fallback_reasons.join("\n")}> {t("sync.reserveUsed")}</span>
+      )}
       {status.last_error !== null && (
         <span className="field-error"> {t("sync.failed", { error: status.last_error })}</span>
       )}

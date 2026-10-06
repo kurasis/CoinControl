@@ -90,6 +90,16 @@ async fn call_once(
                 endpoint: method,
                 status: 401,
             }
+        } else if code == -32601
+            || msg.contains("not supported")
+            || msg.contains("not allowed")
+            || msg.contains("paid plan")
+            || msg.contains("free plan")
+        {
+            ProviderError::CapabilityUnavailable {
+                provider,
+                endpoint: method,
+            }
         } else {
             invalid(
                 provider,

@@ -64,6 +64,11 @@ for (const key of [
   "TONAPI_API_KEY",
   "HELIUS_API_KEY",
   "ALCHEMY_API_KEY",
+  "BLOCKSCOUT_API_KEY",
+  "DRPC_API_KEY",
+  "CHAINSTACK_API_KEY",
+  "TONCENTER_API_KEY",
+  "ETHERSCAN_API_KEY",
 ])
   delete driverEnvironment[key];
 const driver = spawn(

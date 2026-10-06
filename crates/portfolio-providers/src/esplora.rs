@@ -111,8 +111,17 @@ impl Esplora {
         budget: Arc<Budget>,
         config: HttpConfig,
     ) -> Result<Self, ProviderError> {
+        Self::with_provider(PROVIDER, base, budget, config)
+    }
+
+    pub fn with_provider(
+        provider: &'static str,
+        base: &str,
+        budget: Arc<Budget>,
+        config: HttpConfig,
+    ) -> Result<Self, ProviderError> {
         Ok(Esplora {
-            http: HttpClient::new(PROVIDER, config, budget, HeaderMap::new())?,
+            http: HttpClient::new(provider, config, budget, HeaderMap::new())?,
             base: parse_base(base)?,
         })
     }

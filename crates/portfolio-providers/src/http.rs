@@ -258,11 +258,11 @@ impl HttpClient {
     }
 
     pub fn record_rpc_failure(&self, error: &ProviderError, url: &Url) {
-        if matches!(error, ProviderError::NetworkForbidden { .. }) {
+        if let ProviderError::NetworkForbidden { endpoint, .. } = error {
             self.forbidden
                 .lock()
                 .expect("network access lock")
-                .insert(url.origin().ascii_serialization(), error.clone());
+                .insert(self.access_scope(url, endpoint), error.clone());
         }
         if error.stops_provider() {
             self.budget.stop(error);
@@ -270,8 +270,28 @@ impl HttpClient {
         self.note_failure(error);
     }
 
+    fn access_scope(&self, url: &Url, endpoint: &'static str) -> String {
+        let origin = url.origin().ascii_serialization();
+        match self.provider {
+            "publicnode" => format!("{origin}/{endpoint}"),
+            "drpc" => format!(
+                "{origin}/{}/{endpoint}",
+                url.path_segments().and_then(|mut p| p.next()).unwrap_or("")
+            ),
+            _ => origin,
+        }
+    }
     pub async fn get(&self, endpoint: &'static str, url: Url) -> Result<Body, ProviderError> {
         self.send(endpoint, Method::GET, url, None, 0).await
+    }
+
+    pub async fn get_cost(
+        &self,
+        endpoint: &'static str,
+        url: Url,
+        cost: u32,
+    ) -> Result<Body, ProviderError> {
+        self.send(endpoint, Method::GET, url, None, cost).await
     }
 
     pub async fn post_json(
@@ -321,7 +341,7 @@ impl HttpClient {
                 .forbidden
                 .lock()
                 .expect("network access lock")
-                .get(&url.origin().ascii_serialization())
+                .get(&self.access_scope(&url, endpoint))
                 .cloned();
             if let Some(error) = denied {
                 self.note_failure(&error);
@@ -370,7 +390,10 @@ impl HttpClient {
             };
             if let Some(id) = request_id {
                 let rpc_error = outcome.as_ref().ok().and_then(|body| {
-                    if !matches!(provider, "helius" | "alchemy") {
+                    if !matches!(
+                        provider,
+                        "helius" | "alchemy" | "drpc" | "publicnode" | "chainstack"
+                    ) {
                         return None;
                     }
                     let value: serde_json::Value = serde_json::from_slice(&body.bytes).ok()?;
@@ -404,7 +427,7 @@ impl HttpClient {
                     self.forbidden
                         .lock()
                         .expect("network access lock")
-                        .insert(url.origin().ascii_serialization(), error.clone());
+                        .insert(self.access_scope(&url, endpoint), error.clone());
                 }
                 if error.stops_provider() {
                     self.budget.stop(&error);
@@ -461,13 +484,16 @@ impl HttpClient {
         }
         // RPC providers put credentials in URL paths/query strings and may echo
         // even short keys in arbitrary HTTP error bodies. Status is sufficient.
-        let detail = if matches!(provider, "helius" | "alchemy") {
+        let detail = if matches!(
+            provider,
+            "helius" | "alchemy" | "drpc" | "publicnode" | "chainstack"
+        ) {
             String::new()
         } else {
             provider_message(&bytes)
         };
         let error = match status {
-            StatusCode::FORBIDDEN if provider == "alchemy" => {
+            StatusCode::FORBIDDEN if matches!(provider, "alchemy" | "publicnode" | "drpc") => {
                 ProviderError::NetworkForbidden { provider, endpoint }
             }
             StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => ProviderError::Auth {

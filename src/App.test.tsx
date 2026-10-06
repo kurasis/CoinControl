@@ -122,6 +122,34 @@ describe("sync visibility and network console", () => {
   });
 });
 
+describe("reserve coverage", () => {
+  it("shows the selected source, retained history scope and fallback cause", async () => {
+    await api.switchProfile("demo");
+    const accounts = await api.listAccounts();
+    const statuses = await api.listSyncStatus();
+    vi.spyOn(api, "listSyncStatus").mockResolvedValue(
+      statuses.map((s) =>
+        s.account_id === accounts[0]!.id
+          ? {
+              ...s,
+              provider: "publicnode",
+              coverage: "partial",
+              balance_only: true,
+              fallback_reasons: ["alchemy: local request budget exhausted"],
+            }
+          : s,
+      ),
+    );
+    window.location.hash = "#/wallets";
+    renderApp();
+    expect(await screen.findByText(/Source: publicnode/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/reserve updated balances; cached history retained, coverage partial/),
+    ).toBeInTheDocument();
+    expect(screen.getByTitle("alchemy: local request budget exhausted")).toBeInTheDocument();
+  });
+});
+
 describe("provider configuration", () => {
   it("updates primary network routing after adding and removing a Helius key", async () => {
     const user = userEvent.setup();

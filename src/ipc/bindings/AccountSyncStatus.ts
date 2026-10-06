@@ -5,6 +5,8 @@ import type { Coverage } from "./Coverage";
  * Synchronization state of one account for the UI.
  */
 export type AccountSyncStatus = {
+  fallback_reasons: Array<string>;
+  balance_only: boolean;
   account_id: string;
   provider: string | null;
   coverage: Coverage | null;

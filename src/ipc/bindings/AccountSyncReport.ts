@@ -6,6 +6,8 @@ import type { NetworkId } from "./NetworkId";
  * Result of synchronizing one account.
  */
 export type AccountSyncReport = {
+  fallback_reasons: Array<string>;
+  balance_only: boolean;
   account_id: string;
   network: NetworkId;
   provider: string | null;

@@ -1588,3 +1588,225 @@ async fn vertical_slice_live() {
     }
     r.finish(budgets.iter().map(|b| b.used()).sum::<u32>() - used_before);
 }
+
+async fn check_reserve(provider: &'static str, var: Option<&str>) {
+    if !selected(provider) {
+        return;
+    }
+    use portfolio_providers::mirrors::{EVM, Reserve};
+    let mut report = Report::new(provider);
+    let credential = var.map(key).unwrap_or_default();
+    let api = Reserve::new(provider, &credential, budget(provider)).unwrap();
+    let t = targets();
+    let evm_address = s(&t["ethereum"]["address"]).to_ascii_lowercase();
+    for n in EVM
+        .into_iter()
+        .chain([NetworkId::Solana, NetworkId::Ton, NetworkId::Tron])
+    {
+        if !api.supports(n) {
+            continue;
+        }
+        let address = match n {
+            NetworkId::Solana => s(&t["solana"]["address"]),
+            NetworkId::Ton => s(&t["ton"]["address"]),
+            NetworkId::Tron => s(&t["tron"]["address"]),
+            _ => evm_address.as_str(),
+        };
+        report.endpoint("balance reserve");
+        match api.snapshot(n, address, &[]).await {
+            Ok(h) => {
+                if !h.warnings.is_empty() {
+                    report.check(
+                        &format!("{} token discovery limitation", n.as_str()),
+                        true,
+                        format!(
+                            "native balance retained; token access partial: {}",
+                            h.warnings.join("; ")
+                        ),
+                    );
+                }
+                report.check(
+                    &format!("{} native balance", n.as_str()),
+                    h.assets.iter().any(|(a, raw)| {
+                        a.contract.is_none() && a.network == n && *raw >= BigInt::from(0)
+                    }),
+                    "documented mainnet balance response; history not claimed",
+                );
+                report.check(
+                    &format!("{} integer precision and provenance", n.as_str()),
+                    h.assets
+                        .iter()
+                        .all(|(a, raw)| a.provider == provider && *raw >= BigInt::from(0)),
+                    "integer raw quantities and independent provider attribution",
+                );
+            }
+            Err(e) => report.check(
+                &format!("{} reserve access", n.as_str()),
+                false,
+                e.to_string(),
+            ),
+        }
+    }
+    let count = api
+        .clients()
+        .into_iter()
+        .map(|c| c.take_usage().requests)
+        .sum();
+    report.finish(count);
+}
+#[tokio::test]
+async fn live_blockscout_reserve() {
+    check_reserve("blockscout", Some("BLOCKSCOUT_API_KEY")).await;
+}
+#[tokio::test]
+async fn live_etherscan_reserve() {
+    check_reserve("etherscan", Some("ETHERSCAN_API_KEY")).await;
+}
+#[tokio::test]
+async fn live_drpc_reserve() {
+    check_reserve("drpc", Some("DRPC_API_KEY")).await;
+}
+#[tokio::test]
+async fn live_chainstack_reserve() {
+    check_reserve("chainstack", Some("CHAINSTACK_API_KEY")).await;
+}
+#[tokio::test]
+async fn live_toncenter_reserve() {
+    check_reserve("toncenter", Some("TONCENTER_API_KEY")).await;
+}
+#[tokio::test]
+async fn live_publicnode_reserve() {
+    check_reserve("publicnode", None).await;
+}
+#[tokio::test]
+async fn live_mempool_reserve() {
+    if !selected("mempool") {
+        return;
+    }
+    let mut report = Report::new("mempool");
+    let api = Esplora::with_provider(
+        "mempool",
+        "https://mempool.space/api/",
+        budget("mempool"),
+        Esplora::default_config(),
+    )
+    .unwrap();
+    let t = targets();
+    let address = s(&t["bitcoin"]["paging_address"]["address"]);
+    let tip = api.tip_height().await.unwrap();
+    report.endpoint("blocks/tip/height");
+    report.check("mainnet height", tip > 900000, "Bitcoin mainnet height");
+    let a = api.address(address).await.unwrap();
+    report.endpoint("address");
+    report.check(
+        "exact confirmed balance",
+        a.confirmed_balance().is_ok(),
+        "integer funded minus spent",
+    );
+    let first = api.chain_txs(address, None).await.unwrap();
+    let second = api
+        .chain_txs(address, Some(&first.last().unwrap().txid))
+        .await
+        .unwrap();
+    report.endpoint("txs/chain");
+    report.check(
+        "independent continuation",
+        !second.is_empty()
+            && !first
+                .iter()
+                .any(|a| second.iter().any(|b| a.txid == b.txid)),
+        "two non-overlapping Esplora-compatible pages",
+    );
+    let tx = api
+        .tx(s(&t["bitcoin"]["known_transaction"]["txid"]))
+        .await
+        .unwrap()
+        .unwrap();
+    report.endpoint("tx");
+    report.check(
+        "known fee",
+        tx.fee
+            == t["bitcoin"]["known_transaction"]["fee_sats"]
+                .as_u64()
+                .unwrap(),
+        "known pizza transaction fee in satoshis",
+    );
+    report.finish(api.http().take_usage().requests);
+}
+#[tokio::test]
+async fn live_reserve_routing_after_primary_budget_exhaustion() {
+    if !selected("publicnode") {
+        return;
+    }
+    use portfolio_providers::mirrors::Reserve;
+    let mut report = Report::new("mirror-routing");
+    let t = targets();
+    let address = s(&t["ethereum"]["address"]);
+    let tmp = tempfile::tempdir().unwrap();
+    let store = Store::open(
+        &tmp.path().join("routing.sqlite"),
+        ProfileKind::Test,
+        Arc::new(SystemClock),
+    )
+    .await
+    .unwrap();
+    let wallet = store.create_wallet("Public reserve fixture").await.unwrap();
+    let account = store
+        .add_account(&wallet.id, NetworkId::Ethereum, address, None)
+        .await
+        .unwrap();
+    let mut reserves = Vec::new();
+    for (p, var) in [
+        ("blockscout", Some("BLOCKSCOUT_API_KEY")),
+        ("etherscan", Some("ETHERSCAN_API_KEY")),
+        ("drpc", Some("DRPC_API_KEY")),
+        ("publicnode", None),
+    ] {
+        if selected(p) {
+            reserves.push(Reserve::new(p, &var.map(key).unwrap_or_default(), budget(p)).unwrap());
+        }
+    }
+    let engine = SyncEngine::new(
+        store.clone(),
+        Providers {
+            alchemy: Some(
+                Alchemy::new("fixture-no-request-with-zero-budget", Budget::limited(0)).unwrap(),
+            ),
+            reserves,
+            ..Providers::default()
+        },
+        SyncOptions::default(),
+    );
+    let r = engine.sync_account(&account).await;
+    report.endpoint("primary budget → reserve snapshot");
+    report.check(
+        "primary limit does not prevent balances",
+        r.error.is_none() && r.balance_refreshed,
+        r.error
+            .clone()
+            .unwrap_or_else(|| "native balance refreshed by independent source".into()),
+    );
+    report.check(
+        "history scope remains truthful",
+        r.balance_only && r.coverage == Coverage::Partial,
+        "ordinary reserves retain cached history and expose partial coverage",
+    );
+    report.check(
+        "fallback reason visible",
+        r.fallback_reasons
+            .iter()
+            .any(|s| s.contains("budget exhausted")),
+        "primary had a hard zero budget; no primary request sent",
+    );
+    let statuses = store.sync_status().await.unwrap();
+    report.check(
+        "selected source persists",
+        statuses.len() == 1 && statuses[0].provider == r.provider && statuses[0].balance_only,
+        "one current source per account",
+    );
+    let count = budget_usage()
+        .iter()
+        .map(|(p, v)| v.saturating_sub(report.usage_start.get(*p).copied().unwrap_or(0)))
+        .sum();
+    report.finish(count);
+}
