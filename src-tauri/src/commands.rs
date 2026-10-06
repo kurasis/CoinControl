@@ -65,6 +65,11 @@ pub async fn switch_profile(
     }
     let next = open_profile(&state.profiles_dir, profile).await?;
     let previous = std::mem::replace(&mut *guard, next);
+    state.sync.network_log.clear();
+    state
+        .sync
+        .network_log
+        .set_enabled(guard.get_settings().await?.network_console_enabled);
     previous.close().await;
     Ok(profile)
 }
@@ -79,7 +84,12 @@ pub async fn update_settings(
     state: State<'_, AppState>,
     settings: Settings,
 ) -> CommandResult<Settings> {
-    Ok(state.store().await.update_settings(&settings).await?)
+    let saved = state.store().await.update_settings(&settings).await?;
+    state
+        .sync
+        .network_log
+        .set_enabled(saved.network_console_enabled);
+    Ok(saved)
 }
 
 #[derive(Debug, Serialize)]
@@ -494,15 +504,27 @@ pub fn get_sync_progress(state: State<'_, AppState>) -> sync::SyncProgress {
 }
 
 #[tauri::command]
+pub fn get_network_log(
+    state: State<'_, AppState>,
+) -> Vec<portfolio_providers::network_log::NetworkRequest> {
+    state.sync.network_log.entries()
+}
+
+#[tauri::command]
+pub fn clear_network_log(state: State<'_, AppState>) {
+    state.sync.network_log.clear();
+}
+
+#[tauri::command]
 pub async fn test_provider(state: State<'_, AppState>, provider: String) -> CommandResult<()> {
-    // Connection probes share the same persisted budget window as sweeps.
-    let _guard = state
-        .sync
-        .run_lock
-        .try_lock()
-        .map_err(|_| CommandError::new("sync_busy", "Synchronization is already running."))?;
-    let _sync = state.sync.run_lock.lock().await;
-    sync::test_provider(&state.store().await, state.secrets.as_ref(), &provider).await
+    // The probe acquires the shared run lock exactly once.
+    sync::test_provider(
+        &state.sync,
+        &state.store().await,
+        state.secrets.as_ref(),
+        &provider,
+    )
+    .await
 }
 
 async fn save_text(app: tauri::AppHandle, name: &str, text: String) -> CommandResult<bool> {
@@ -561,6 +583,11 @@ pub async fn restore_backup(
         std::process::id()
     ));
     store.restore_backup(&content, &path).await?;
+    state.sync.network_log.clear();
+    state
+        .sync
+        .network_log
+        .set_enabled(store.get_settings().await?.network_console_enabled);
     store.replay_accounting().await?;
     use tauri::Emitter;
     app.emit(sync::DATA_CHANGED_EVENT, ())

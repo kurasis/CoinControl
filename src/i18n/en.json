@@ -255,7 +255,9 @@
     "unsupported": "This network has no synchronization source in this build",
     "pendingIncomplete": "Some pending transactions may be hidden by the provider's limit",
     "done": "Synchronization finished",
-    "doneWithErrors": "Synchronization finished with errors; see the accounts below"
+    "doneWithErrors": "Synchronization finished with errors; see the accounts below",
+    "partialHistory": "History partially available: {{count}} transactions",
+    "pausedHistory": "History download stopped: {{count}} transactions"
   },
   "accounting": {
     "partial": "Partial",
@@ -582,5 +584,68 @@
     "syncProgress": "Accounts {{done}}/{{total}} · {{pages}} history pages",
     "csvHoldings": "Export holdings CSV",
     "csvActivity": "Export activity CSV"
+  },
+  "syncState": {
+    "label": "Synchronization status",
+    "stopping": "Stopping after the current request…",
+    "pricesDone": "Prices updated",
+    "accounts": "Accounts: {{done}} / {{total}}",
+    "pages": "History pages received: {{count}}",
+    "errors": "Errors: {{count}}",
+    "partialHint": "Available data updated. Sources may cover only part of activity; some history or prices are missing.",
+    "errorHint": "Check account errors below or open Settings → Network console.",
+    "phases": {
+      "preparing": "Preparing synchronization…",
+      "accounts": "Updating balances and history…",
+      "prices": "Updating current prices…",
+      "price_history": "Loading historical prices…",
+      "accounting": "Recalculating portfolio…",
+      "idle": "Finishing synchronization…"
+    },
+    "outcomes": {
+      "idle": "Ready to synchronize",
+      "completed": "Synchronization completed",
+      "partial": "Updated with partial coverage",
+      "errors": "Completed with errors",
+      "failed": "Synchronization failed",
+      "cancelled": "Synchronization stopped",
+      "running": "Synchronizing…"
+    }
+  },
+  "networkLog": {
+    "title": "Network console",
+    "enable": "Enable network console",
+    "hint": "Application requests to data providers. The latest 500 attempts are kept in memory, newest first. Keys, wallet addresses, URL paths, headers and response bodies are excluded. Disabling clears the log.",
+    "live": "Live",
+    "paused": "Display paused; requests are still recorded",
+    "pause": "Pause display",
+    "resume": "Resume display",
+    "clear": "Clear log",
+    "errorsOnly": "Errors and retries only",
+    "empty": "No requests yet. Start a sync or test a data source connection.",
+    "disabled": "The console is off. Enable it before starting a sync to see requests.",
+    "table": "Network requests",
+    "attempt": "Attempt {{count}}",
+    "ms": "{{value}} ms",
+    "range": "{{start}}–{{end}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next",
+    "columns": {
+      "time": "Time",
+      "provider": "Provider",
+      "request": "Request",
+      "server": "Server",
+      "status": "Status",
+      "duration": "Duration"
+    },
+    "statuses": {
+      "pending": "Connecting / awaiting response",
+      "success": "Received",
+      "failed": "Failed",
+      "retrying": "Retry scheduled",
+      "timeout": "Timed out",
+      "connection_error": "Connection failed",
+      "rpc_error": "RPC rejected the request"
+    }
   }
 }

@@ -57,7 +57,14 @@ if (liveBtc && process.env.RUN_LIVE_API_TESTS !== "1") {
 const port = Number(process.env.E2E_DRIVER_PORT ?? 4444);
 const base = `http://127.0.0.1:${port}`;
 const driverEnvironment = { ...process.env, COINCONTROL_E2E_DATA_DIR: dataDir };
-for (const key of ["LIVECOINWATCH_API_KEY", "ZERION_API_KEY", "TRONGRID_API_KEY", "TONAPI_API_KEY"])
+for (const key of [
+  "LIVECOINWATCH_API_KEY",
+  "ZERION_API_KEY",
+  "TRONGRID_API_KEY",
+  "TONAPI_API_KEY",
+  "HELIUS_API_KEY",
+  "ALCHEMY_API_KEY",
+])
   delete driverEnvironment[key];
 const driver = spawn(
   process.env.TAURI_DRIVER_PATH ?? "tauri-driver",
@@ -851,6 +858,17 @@ try {
   if (liveBtc) {
     await route("/settings/data");
     await clickText("Leave demo");
+    await route("/settings/console");
+    await until(() =>
+      execute("return document.querySelector('.content input[type=checkbox]')?.disabled===false;"),
+    );
+    await clickText("Enable network console");
+    await until(
+      () =>
+        readProfile(
+          "SELECT json_extract(value_json,'$.network_console_enabled') AS enabled FROM settings WHERE key='app'",
+        )[0]?.enabled === 1,
+    );
     await route("/wallets?add=1");
     await until(() => execute("return Boolean(document.querySelector('textarea'));"));
     const target = JSON.parse(readFileSync("tests/live/public-targets.json", "utf8")).bitcoin
@@ -869,6 +887,11 @@ try {
       execute("return Boolean(document.querySelector('a[href^=\"#/accounts/\"]'));"),
     );
     await until(async () => (await body()).includes("Syncing…"), 15000);
+    await until(() =>
+      execute(
+        "return Boolean(document.querySelector('.content .sync-status .spinner')) && Boolean(document.querySelector('.nav .sync-status .spinner')) && document.querySelector('.content .sync-status strong').textContent.trim().length>0;",
+      ),
+    );
     const cancelStarted = Date.now();
     await clickText("Cancel synchronization");
     await until(
@@ -884,6 +907,12 @@ try {
       throw new Error("Cancellation acknowledgement exceeded one second");
     await waitSync();
     await restart();
+    if (
+      readProfile(
+        "SELECT json_extract(value_json,'$.network_console_enabled') AS enabled FROM settings WHERE key='app'",
+      )[0]?.enabled !== 1
+    )
+      throw new Error("Network console toggle did not survive restart");
     await route("/wallets");
     await delay(3500); // allow the normal startup scheduler to enter its sweep
     await waitSync();
@@ -971,6 +1000,43 @@ try {
     record(
       "OS-enforced offline failure retains cached amounts and stale UI; reconnect refreshes without duplicates",
       "PASS",
+    );
+    await until(() =>
+      execute(
+        "const status=document.querySelector('.content .sync-status');return status && !status.querySelector('.spinner') && ['Synchronization completed','Updated with partial coverage','Completed with errors'].includes(status.querySelector('strong')?.textContent.trim());",
+      ),
+    );
+    record("Native synchronization spinner, shared phase and final outcome", "PASS");
+    await route("/settings/console");
+    await until(() =>
+      execute(
+        "return [...document.querySelectorAll('.network-console-table tbody tr')].some(row=>row.cells[1].textContent==='esplora' && row.cells[4].textContent.includes('HTTP 200') && row.cells[5].textContent.includes('ms'));",
+      ),
+    );
+    const origins = await execute(
+      "return [...document.querySelectorAll('.network-console-table tbody tr')].map(row=>row.cells[3].textContent);",
+    );
+    if (origins.some((origin) => !/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(origin)))
+      throw new Error("Network console exposed more than a server origin");
+    if ((await body()).includes(target))
+      throw new Error("Network console exposed the wallet address");
+    await screenshot("network-console-live");
+    await clickText("Pause display");
+    await until(async () => (await body()).includes("Display paused; requests are still recorded"));
+    await clickText("Clear log");
+    await until(async () => (await body()).includes("No requests yet."));
+    await clickText("Enable network console");
+    await until(async () => (await body()).includes("The console is off."));
+    await until(
+      () =>
+        readProfile(
+          "SELECT json_extract(value_json,'$.network_console_enabled') AS enabled FROM settings WHERE key='app'",
+        )[0]?.enabled === 0,
+    );
+    record(
+      "Native network console opt-in, restart persistence, actual HTTP statuses, sanitized origins, pause/clear/off",
+      "PASS",
+      "Observed existing public BTC requests; no extra API calls for diagnostics",
     );
   } else {
     record(

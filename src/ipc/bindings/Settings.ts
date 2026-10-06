@@ -12,6 +12,10 @@ export type Settings = {
    */
   timezone: string | null;
   privacy_mode: boolean;
+  /**
+   * Opt-in, process-local network diagnostics. Older settings retain defaults.
+   */
+  network_console_enabled: boolean;
   price_refresh_seconds: number;
   sweep_interval_minutes: number;
 };

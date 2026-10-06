@@ -132,6 +132,8 @@
     "allow-export-csv",
     "allow-add-accounts",
     "allow-list-asset-policies",
-    "allow-set-asset-policy"
+    "allow-set-asset-policy",
+    "allow-get-network-log",
+    "allow-clear-network-log"
   ]
 }

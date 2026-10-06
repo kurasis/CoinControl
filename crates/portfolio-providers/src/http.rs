@@ -17,6 +17,7 @@ use tokio::sync::Mutex;
 use url::Url;
 
 use crate::error::ProviderError;
+use crate::network_log::NetworkLog;
 
 /// Transport policy for one provider.
 #[derive(Debug, Clone)]
@@ -146,6 +147,7 @@ pub struct HttpClient {
     usage: StdMutex<Usage>,
     cancelled: StdMutex<Arc<AtomicBool>>,
     forbidden: StdMutex<std::collections::BTreeMap<String, ProviderError>>,
+    network_log: StdMutex<Arc<NetworkLog>>,
 }
 
 /// A successful (2xx) response body.
@@ -204,11 +206,15 @@ impl HttpClient {
             usage: StdMutex::new(Usage::default()),
             cancelled: StdMutex::new(Arc::new(AtomicBool::new(false))),
             forbidden: StdMutex::new(std::collections::BTreeMap::new()),
+            network_log: StdMutex::new(Arc::new(NetworkLog::default())),
         })
     }
 
     pub fn provider(&self) -> &'static str {
         self.provider
+    }
+    pub fn set_network_log(&self, log: Arc<NetworkLog>) {
+        *self.network_log.lock().expect("network log attachment") = log;
     }
     pub fn rpc_retry_policy(&self) -> (u32, Duration) {
         (self.config.max_retries, self.config.backoff)
@@ -347,10 +353,47 @@ impl HttpClient {
             if let Some(body) = json {
                 request = request.json(body);
             }
+            let log = self
+                .network_log
+                .lock()
+                .expect("network log attachment")
+                .clone();
+            let request_id = log.begin(provider, method.as_str(), &url, endpoint, attempt + 1);
+            let started = Instant::now();
+            let mut http_status = None;
             let outcome = match request.send().await {
-                Ok(response) => self.read(endpoint, response).await,
+                Ok(response) => {
+                    http_status = Some(response.status().as_u16());
+                    self.read(endpoint, response).await
+                }
                 Err(e) => Err(transport_error(provider, endpoint, &e)),
             };
+            if let Some(id) = request_id {
+                let rpc_error = outcome.as_ref().ok().and_then(|body| {
+                    if !matches!(provider, "helius" | "alchemy") {
+                        return None;
+                    }
+                    let value: serde_json::Value = serde_json::from_slice(&body.bytes).ok()?;
+                    let error = value.get("error").filter(|e| !e.is_null())?;
+                    Some(error.get("code").and_then(serde_json::Value::as_i64))
+                });
+                let rpc_code = rpc_error.flatten();
+                let status = match &outcome {
+                    Ok(_) if rpc_error.is_some() => "rpc_error",
+                    Ok(_) => "success",
+                    Err((ProviderError::Timeout { .. }, _)) => "timeout",
+                    Err((ProviderError::Network { .. }, _)) => "connection_error",
+                    Err((error, wait))
+                        if error.is_retryable()
+                            && attempt < self.config.max_retries
+                            && wait.is_none_or(|w| w <= self.config.max_retry_after) =>
+                    {
+                        "retrying"
+                    }
+                    Err(_) => "failed",
+                };
+                log.finish(id, status, http_status, rpc_code, started);
+            }
             self.count_request();
             let (error, retry_after) = match outcome {
                 Ok(body) => return Ok(body),

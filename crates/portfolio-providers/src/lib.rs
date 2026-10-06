@@ -13,6 +13,7 @@ pub mod esplora;
 pub mod helius;
 pub mod http;
 pub mod livecoinwatch;
+pub mod network_log;
 mod rpc;
 pub mod sync;
 pub mod tonapi;

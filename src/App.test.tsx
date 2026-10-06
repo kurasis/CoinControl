@@ -9,6 +9,8 @@ import { resetMock } from "./ipc/mock";
 import { api } from "./ipc/client";
 import type { ImportPreview } from "./ipc/bindings/ImportPreview";
 import type { ImportResult } from "./ipc/bindings/ImportResult";
+import type { SyncProgress } from "./ipc/bindings/SyncProgress";
+import type { NetworkRequest } from "./ipc/bindings/NetworkRequest";
 
 function renderApp() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -26,6 +28,99 @@ beforeEach(async () => {
 });
 
 afterEach(() => vi.restoreAllMocks());
+
+describe("sync visibility and network console", () => {
+  it("keeps background progress visible across pages and shows a final error result", async () => {
+    const user = userEvent.setup();
+    let progress: SyncProgress = {
+      running: true,
+      cancel_requested: false,
+      details: {
+        active_account: null,
+        completed_accounts: 3,
+        total_accounts: 5,
+        pages_fetched: 8,
+        phase: "accounts",
+        kind: "accounts",
+        outcome: "running",
+        error_count: 0,
+        started_at: 1791278000,
+        finished_at: null,
+      },
+    };
+    vi.spyOn(api, "syncProgress").mockImplementation(async () => progress);
+    window.location.hash = "#/wallets";
+    renderApp();
+    const panel = await screen.findByRole("status", { name: "Synchronization status" });
+    await within(panel).findByText("Accounts: 3 / 5");
+    expect(panel.querySelector(".spinner")).toHaveAttribute("aria-hidden", "true");
+    await user.click(screen.getByRole("link", { name: "Settings" }));
+    expect(
+      await screen.findByRole("link", { name: "Updating balances and history…" }),
+    ).toBeInTheDocument();
+    progress = {
+      ...progress,
+      running: false,
+      details: {
+        ...progress.details,
+        phase: "idle",
+        outcome: "errors",
+        error_count: 2,
+        finished_at: 1791278010,
+      },
+    };
+    await screen.findByRole("link", { name: "Completed with errors" }, { timeout: 3000 });
+    expect(
+      screen.queryByRole("link", { name: "Updating balances and history…" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("starts console polling only after opt-in, paginates, filters and clears requests", async () => {
+    const user = userEvent.setup();
+    let requests: NetworkRequest[] = Array.from({ length: 61 }, (_, i) => ({
+      id: i + 1,
+      started_at_ms: 1791278000000 + i,
+      provider: "alchemy",
+      method: "POST",
+      operation: "eth_chainId",
+      origin: "https://eth-mainnet.g.alchemy.com",
+      attempt: 1,
+      status: i === 0 ? "pending" : i === 1 ? "rpc_error" : "success",
+      http_status: i === 0 ? null : 200,
+      rpc_code: i === 1 ? -32016 : null,
+      duration_ms: i === 0 ? null : 25,
+    }));
+    const log = vi.spyOn(api, "networkLog").mockImplementation(async () => requests);
+    const clear = vi.spyOn(api, "clearNetworkLog").mockImplementation(async () => {
+      requests = [];
+    });
+    window.location.hash = "#/settings/console";
+    renderApp();
+    await screen.findByText(/The console is off/);
+    expect(log).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(screen.getByRole("checkbox", { name: "Enable network console" })).toBeEnabled(),
+    );
+    await user.click(screen.getByRole("checkbox", { name: "Enable network console" }));
+    const region = await screen.findByRole("region", { name: "Network requests" });
+    expect(within(region).getAllByRole("row")).toHaveLength(51);
+    expect(within(region).getByText(/RPC -32016/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(within(region).getAllByRole("row")).toHaveLength(12);
+    await user.click(screen.getByRole("checkbox", { name: "Errors and retries only" }));
+    expect(within(region).getAllByRole("row")).toHaveLength(2);
+    await user.click(screen.getByRole("button", { name: "Pause display" }));
+    expect(
+      await screen.findByText("Display paused; requests are still recorded"),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Clear log" }));
+    await screen.findByText(/No requests yet/);
+    expect(clear).toHaveBeenCalledOnce();
+    await user.click(screen.getByRole("checkbox", { name: "Enable network console" }));
+    await screen.findByText(/The console is off/);
+    expect(screen.queryByRole("region", { name: "Network requests" })).not.toBeInTheDocument();
+  });
+});
 
 describe("provider configuration", () => {
   it("updates primary network routing after adding and removing a Helius key", async () => {

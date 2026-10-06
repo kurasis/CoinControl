@@ -4,13 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { api, isCommandError, type NetworkId } from "../ipc/client";
 import type { AccountSyncStatus } from "../ipc/bindings/AccountSyncStatus";
-import type { SyncProgress } from "../ipc/bindings/SyncProgress";
 import type { NormalizedAddress } from "../ipc/bindings/NormalizedAddress";
 import type { Wallet } from "../ipc/bindings/Wallet";
 import { useApp } from "../app/AppContext";
 import { useNetworkNames } from "../app/hooks";
 import { Page } from "../components/Layout";
 import { PlusIcon } from "../components/Icons";
+import { Spinner, SyncStatus } from "../components/SyncStatus";
 import { MASK, formatDateTime } from "../lib/format";
 
 export function WalletsPage() {
@@ -34,6 +34,7 @@ export function WalletsPage() {
       }
     >
       {adding && <AddAddressForm onDone={() => setParams({})} />}
+      <SyncStatus />
       <WalletList />
       <GroupsManager />
     </Page>
@@ -43,29 +44,20 @@ export function WalletsPage() {
 /** Synchronizes every active account now (the real profile only). */
 function SyncButton() {
   const { t } = useTranslation();
-  const { profile } = useApp();
+  const { profile, syncProgress: progress } = useApp();
   const queryClient = useQueryClient();
   const sync = useMutation({
     mutationFn: () => api.syncNow(),
     onSettled: () => queryClient.invalidateQueries(),
   });
-  const progress = useQuery({
-    queryKey: ["sync-progress"],
-    queryFn: api.syncProgress,
-    refetchInterval: 1000,
-    enabled: profile === "real",
-  });
   const cancel = useMutation({
     mutationFn: api.cancelSync,
     onSuccess: () => {
-      queryClient.setQueryData<SyncProgress>(["sync-progress"], (previous) =>
-        previous ? { ...previous, cancel_requested: true } : previous,
-      );
       void queryClient.invalidateQueries({ queryKey: ["sync-progress"] });
     },
   });
   if (profile !== "real") return null;
-  const running = sync.isPending || progress.data?.running;
+  const running = sync.isPending || progress?.running;
   const failed = sync.data?.accounts.some((a) => a.error !== null) ?? false;
   return (
     <>
@@ -74,27 +66,19 @@ function SyncButton() {
         {sync.isError && errorText(sync.error, t)}
       </span>
       <button className="btn" onClick={() => sync.mutate()} disabled={running}>
+        {running && <Spinner />}
         {running ? t("sync.running") : t("sync.now")}
       </button>
-      {running && progress.data && (
-        <span role="status">
-          {t("ops.syncProgress", {
-            done: progress.data.details.completed_accounts,
-            total: progress.data.details.total_accounts,
-            pages: progress.data.details.pages_fetched,
-          })}
-        </span>
-      )}
       {running && (
         <button
           className="btn"
           onClick={() => cancel.mutate()}
-          disabled={progress.data?.cancel_requested}
+          disabled={cancel.isPending || progress?.cancel_requested}
         >
           {t("ops.cancelSync")}
         </button>
       )}
-      {progress.data?.cancel_requested && running && (
+      {progress?.cancel_requested && running && (
         <span role="status">{t("ops.pauseRequested")}</span>
       )}
     </>
@@ -114,6 +98,10 @@ function SyncLine({ status }: { status: AccountSyncStatus | undefined }) {
   const parts: string[] = [];
   if (status.coverage === "complete") {
     parts.push(t("sync.complete", { count: status.transaction_count }));
+  } else if (status.coverage === "partial") {
+    parts.push(t("sync.partialHistory", { count: status.transaction_count }));
+  } else if (status.coverage === "paused") {
+    parts.push(t("sync.pausedHistory", { count: status.transaction_count }));
   } else if (status.coverage !== null) {
     parts.push(t("sync.loading", { count: status.transaction_count }));
   }

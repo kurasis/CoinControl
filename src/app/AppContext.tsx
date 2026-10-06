@@ -12,11 +12,13 @@ import { useTranslation } from "react-i18next";
 import { api, DATA_CHANGED_EVENT, isTauri, type Scope } from "../ipc/client";
 import type { ProfileKind } from "../ipc/bindings/ProfileKind";
 import type { Settings } from "../ipc/bindings/Settings";
+import type { SyncProgress } from "../ipc/bindings/SyncProgress";
 import { resolveLanguage } from "../i18n";
 import { refreshCachedViews } from "./refreshCachedViews";
 
 interface AppContextValue {
   settings: Settings | undefined;
+  syncProgress: SyncProgress | undefined;
   updateSettings: (patch: Partial<Settings>) => void;
   privacy: boolean;
   togglePrivacy: () => void;
@@ -49,10 +51,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const settingsQuery = useQuery({ queryKey: ["settings"], queryFn: api.getSettings });
   const infoQuery = useQuery({ queryKey: ["app-info"], queryFn: api.appInfo });
   const settings = settingsQuery.data;
+  const syncQuery = useQuery({
+    queryKey: ["sync-progress"],
+    queryFn: api.syncProgress,
+    enabled: infoQuery.data?.profile === "real",
+    refetchInterval: 1000,
+  });
 
   const mutation = useMutation({
     mutationFn: api.updateSettings,
-    onSuccess: (next) => queryClient.setQueryData(["settings"], next),
+    onSuccess: (next) => {
+      queryClient.setQueryData(["settings"], next);
+      if (!next.network_console_enabled) queryClient.setQueryData(["network-log"], []);
+    },
+    onError: () => void queryClient.invalidateQueries({ queryKey: ["settings"] }),
   });
 
   const updateSettings = useCallback(
@@ -110,6 +122,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppContextValue>(
     () => ({
       settings,
+      syncProgress: infoQuery.data?.profile === "real" ? syncQuery.data : undefined,
       updateSettings,
       privacy: settings?.privacy_mode ?? false,
       togglePrivacy: () => updateSettings({ privacy_mode: !(settings?.privacy_mode ?? false) }),
@@ -120,7 +133,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       profile: infoQuery.data?.profile,
       switchProfile,
     }),
-    [settings, updateSettings, language, scope, infoQuery.data?.profile, switchProfile],
+    [
+      settings,
+      syncQuery.data,
+      updateSettings,
+      language,
+      scope,
+      infoQuery.data?.profile,
+      switchProfile,
+    ],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

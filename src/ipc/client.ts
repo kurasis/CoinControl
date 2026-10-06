@@ -32,6 +32,7 @@ import type { Settings } from "./bindings/Settings";
 import type { SyncProgress } from "./bindings/SyncProgress";
 import type { SyncSummary } from "./bindings/SyncSummary";
 import type { Wallet } from "./bindings/Wallet";
+import type { NetworkRequest } from "./bindings/NetworkRequest";
 
 export function isTauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -140,6 +141,8 @@ export const api = {
   syncNow: (accountId?: string) => call<SyncSummary>("sync_now", { accountId: accountId ?? null }),
   cancelSync: () => call<void>("cancel_sync"),
   syncProgress: () => call<SyncProgress>("get_sync_progress"),
+  networkLog: () => call<NetworkRequest[]>("get_network_log"),
+  clearNetworkLog: () => call<void>("clear_network_log"),
   testProvider: (provider: string) => call<void>("test_provider", { provider }),
   exportBackup: () => call<boolean>("export_backup"),
   inspectBackup: (content: string) => call<string>("inspect_backup", { content }),

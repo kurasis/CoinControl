@@ -317,6 +317,9 @@ pub struct Settings {
     /// IANA timezone override; `None` follows the operating system.
     pub timezone: Option<String>,
     pub privacy_mode: bool,
+    /// Opt-in, process-local network diagnostics. Older settings retain defaults.
+    #[serde(default)]
+    pub network_console_enabled: bool,
     pub price_refresh_seconds: u32,
     pub sweep_interval_minutes: u32,
 }
@@ -328,6 +331,7 @@ impl Default for Settings {
             theme: ThemePreference::Dark,
             timezone: None,
             privacy_mode: false,
+            network_console_enabled: false,
             price_refresh_seconds: 60,
             sweep_interval_minutes: 60,
         }

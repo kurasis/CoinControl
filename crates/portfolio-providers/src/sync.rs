@@ -72,6 +72,11 @@ pub struct Providers {
 }
 
 impl Providers {
+    pub fn set_network_log(&self, log: Arc<crate::network_log::NetworkLog>) {
+        for client in self.clients() {
+            client.set_network_log(log.clone());
+        }
+    }
     fn clients(&self) -> Vec<&HttpClient> {
         let mut out = Vec::new();
         if let Some(p) = &self.esplora {

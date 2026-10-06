@@ -190,7 +190,7 @@ try {
       result: "PASS",
     });
     report.checks.push({
-      name: "11 pages and 2 modal panels across 24 size/language/theme combinations",
+      name: "12 pages and 2 modal panels across 24 size/language/theme combinations",
       result: "PASS",
     });
   } catch (error) {

@@ -43,6 +43,8 @@ const COMMANDS: &[&str] = &[
     "list_sync_status",
     "cancel_sync",
     "get_sync_progress",
+    "get_network_log",
+    "clear_network_log",
     "test_provider",
     "export_backup",
     "inspect_backup",

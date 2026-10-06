@@ -47,6 +47,24 @@ No automatic fallback hides a rejected key or unavailable method.
 
 Charts include **View chart data**, a keyboard-accessible table of the same observations with date/time, USD values and missing/estimated/partial coverage. Tables use 50-row pages, honor English/Russian settings and mask private values. Observations remain usable while the plot loads. Public market prices remain visible in privacy mode. Chart animation follows the operating system's reduced-motion preference.
 
+## Sync status and network console (0.1.5)
+
+The sidebar shows a spinner and the current sync phase across pages. Wallets
+shows account/page progress and the final outcome: completed, incomplete data,
+errors, cancelled or failed. Scheduled price refreshes use the same status and
+identify their result as a price update. Partial provider coverage is shown
+explicitly even when all requests succeed.
+
+Enable **Settings → Network console → Enable network console** before a sync
+or connection test. It lists actual provider HTTP attempts, server origins,
+HTTP/RPC statuses, retries and response times. All provider adapters share the
+console. The newest 500 attempts remain in memory only, with 50-row pages,
+an errors/retries filter, display pause and clear controls. Disabling clears
+the log. Keys, wallet addresses, URL paths, request headers and bodies are
+excluded. The toggle survives restart; request records do not. This console
+covers application provider requests. The provider connection test also fixes
+a lock acquisition that previously could leave the button waiting indefinitely.
+
 ## Synchronization (stage B)
 
 | Network / data      | Source                                    | Key                                   |
@@ -63,7 +81,7 @@ Charts include **View chart data**, a keyboard-accessible table of the same obse
 - History downloads newest first. Each run reads at most 8 pages per account;
   older history continues from a saved cursor on later runs, so a large wallet
   imports over several sweeps without exhausting free quotas. The Wallets
-  screen shows "Loading history" until the import completes.
+  screen distinguishes loading, paused, complete and partial provider history.
 - All writes are idempotent: repeated pages, overlapping runs and restarts
   never duplicate transactions. Pending Bitcoin transactions are kept apart and
   marked `reorged` if they disappear.
@@ -320,7 +338,7 @@ $env:RUN_LIVE_API_TESTS = "1"
 npm run test:e2e:windows -- --live-btc
 ```
 
-The separate production job tests an upgrade from the pinned, SHA-256-verified `0.1.0` NSIS artifact (main `f0603fd`, CI `37345501830`) to the current version in `tauri.conf.json` (now `0.1.4`). The old installed app creates schema 6; an external offline fixture utility fills the closed database with two synthetic owned accounts, an internal transfer, one fee, two audit versions and overlapping groups. Both installed versions open and replay that data. The check compares exact source/derived table fingerprints and balance quantities after migration to schema 7, another restart and normal uninstall. The baseline CI artifact must remain available; expiry is an explicit prerequisite failure, never a silently substituted baseline. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
+The separate production job tests an upgrade from the pinned, SHA-256-verified `0.1.0` NSIS artifact (main `f0603fd`, CI `37345501830`) to the current version in `tauri.conf.json` (now `0.1.5`). The old installed app creates schema 6; an external offline fixture utility fills the closed database with two synthetic owned accounts, an internal transfer, one fee, two audit versions and overlapping groups. Both installed versions open and replay that data. The check compares exact source/derived table fingerprints and balance quantities after migration to schema 7, another restart and normal uninstall. The baseline CI artifact must remain available; expiry is an explicit prerequisite failure, never a silently substituted baseline. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
 
 Native acceptance adds the two synthetic addresses and overlapping groups through the actual UI; only deterministic chain evidence is seeded externally while the app is closed. Expected values are independently checked against the production Store APIs: 1.99 ETH at $3000 gives $5970, with one $30 fee. The viewport matrix resizes the actual Windows HWND client area to 1440×900, 1280×800 and 1024×720 CSS pixels, captures EN/RU and dark/light combinations, and checks that all six asset and eight activity columns remain reachable by scrolling. It records WebView2 pixel ratio and Windows window DPI. This does not substitute for changing Windows display scaling to 125%, 150% and 200%; that release gate remains separate. The hosted monitor can be smaller than a requested test window, so the report also records available screen size.
 

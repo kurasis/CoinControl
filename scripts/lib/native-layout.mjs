@@ -42,6 +42,7 @@ export async function verifyNativePages(ui, { name, capture }, report) {
     "/settings/sources",
     "/settings/networks",
     "/settings/data",
+    "/settings/console",
   ];
   await ui.route("/wallets");
   await ready(ui);

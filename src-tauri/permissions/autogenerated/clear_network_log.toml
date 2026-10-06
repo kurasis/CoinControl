@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-clear-network-log"
+description = "Enables the clear_network_log command without any pre-configured scope."
+commands.allow = ["clear_network_log"]
+
+[[permission]]
+identifier = "deny-clear-network-log"
+description = "Denies the clear_network_log command without any pre-configured scope."
+commands.deny = ["clear_network_log"]

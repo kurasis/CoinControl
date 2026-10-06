@@ -15,6 +15,7 @@ import {
   WalletIcon,
 } from "./Icons";
 import { ScopeSelector } from "./ScopeSelector";
+import { SyncStatus } from "./SyncStatus";
 
 export function Layout() {
   const { t } = useTranslation();
@@ -62,6 +63,7 @@ export function Layout() {
           {groups.data?.length === 0 && <span className="meta nav-note">{t("groups.none")}</span>}
         </nav>
         <div className="sidebar-bottom nav">
+          <SyncStatus compact />
           {profile === "demo" && (
             <div className="profile-badge" role="status">
               {t("demo.badge")}{" "}

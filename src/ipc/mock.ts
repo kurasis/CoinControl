@@ -70,6 +70,7 @@ function emptyState(profile: ProfileKind): State {
       theme: "dark",
       timezone: null,
       privacy_mode: false,
+      network_console_enabled: false,
       price_refresh_seconds: 60,
       sweep_interval_minutes: 60,
     },
@@ -553,10 +554,18 @@ export async function mockInvoke(
           total_accounts: 0,
           pages_fetched: 0,
           phase: "idle",
+          kind: "accounts",
+          outcome: "idle",
+          error_count: 0,
+          started_at: null,
+          finished_at: null,
         },
       };
     case "cancel_sync":
+    case "clear_network_log":
       return null;
+    case "get_network_log":
+      return [];
     case "test_provider":
       return null;
     case "export_backup":
