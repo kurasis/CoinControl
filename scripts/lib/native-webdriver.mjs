@@ -79,13 +79,17 @@ export class NativeWebDriver {
 
   async open() {
     this.spawnRequestedUtcMs = Date.now();
+    const environment = { ...this.environment, TAURI_WEBVIEW_AUTOMATION: "true" };
+    for (const key of Object.keys(environment))
+      if (/^WEBVIEW2_(ADDITIONAL_BROWSER_ARGUMENTS|USER_DATA_FOLDER)$/i.test(key))
+        delete environment[key];
+    if (process.env.E2E_WEBVIEW2_POLICY !== "1") {
+      environment.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = `--remote-debugging-port=${this.debugPort}`;
+      environment.WEBVIEW2_USER_DATA_FOLDER = this.webviewDirectory;
+    }
     this.app = spawn(this.application, [], {
-      env: {
-        ...this.environment,
-        // Official WebView2 runtime environment options, outside production code.
-        WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${this.debugPort}`,
-        WEBVIEW2_USER_DATA_FOLDER: this.webviewDirectory,
-      },
+      // Official external WebView2 options, applied via per-app policy or environment.
+      env: environment,
       stdio: ["ignore", "pipe", "pipe"],
     });
     let error;
@@ -97,17 +101,32 @@ export class NativeWebDriver {
         log = (log + chunk.toString()).slice(-100000);
         writeFileSync(join(this.output, "application.log"), log);
       });
-    await until(async () => {
-      if (error) throw error;
+    try {
+      await until(async () => {
+        if (error) throw error;
+        try {
+          const response = await fetch(`http://127.0.0.1:${this.debugPort}/json/version`, {
+            signal: AbortSignal.timeout(2000),
+          });
+          return response.ok;
+        } catch {
+          return false;
+        }
+      }, 60000);
+    } catch (e) {
+      // Record only executable/process identifiers and numeric debug ports, never full command lines.
       try {
-        const response = await fetch(`http://127.0.0.1:${this.debugPort}/json/version`, {
-          signal: AbortSignal.timeout(2000),
-        });
-        return response.ok;
+        const processes = this.powershell(
+          "Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(portfolio-desk|msedgewebview2)\\.exe$' } | ForEach-Object { $port=$null;if($_.CommandLine -match '--remote-debugging-port[= ](\\d+)'){$port=[int]$Matches[1]};[pscustomobject]@{name=$_.Name;pid=$_.ProcessId;parent=$_.ParentProcessId;debugPort=$port} } | ConvertTo-Json",
+        );
+        writeFileSync(join(this.output, "debug-processes.json"), processes || "[]");
       } catch {
-        return false;
+        /* Preserve the original attachment failure. */
       }
-    }, 60000);
+      throw new Error(
+        `Production WebView2 debug port ${this.debugPort} did not become reachable: ${e.message}`,
+      );
+    }
     const created = await this.request("/session", "POST", {
       capabilities: {
         alwaysMatch: {
@@ -180,7 +199,7 @@ export class NativeWebDriver {
     this.powershell(
       remove
         ? "$ErrorActionPreference='Stop'; Get-NetFirewallRule -Name $env:COINCONTROL_FIREWALL_RULE -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction Stop; exit 0"
-        : "New-NetFirewallRule -Name $env:COINCONTROL_FIREWALL_RULE -DisplayName 'CoinControl isolated native load' -Direction Outbound -Program $env:COINCONTROL_FIREWALL_APP -Action Block -Profile Any -ErrorAction Stop | Out-Null",
+        : "New-NetFirewallRule -Name $env:COINCONTROL_FIREWALL_RULE -DisplayName 'CoinControl isolated native load' -Direction Outbound -Program $env:COINCONTROL_FIREWALL_APP -RemoteAddress @('0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::2-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff') -Action Block -Profile Any -ErrorAction Stop | Out-Null",
       {
         COINCONTROL_FIREWALL_RULE: this.firewallName,
         COINCONTROL_FIREWALL_APP: this.application,

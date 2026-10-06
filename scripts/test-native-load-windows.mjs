@@ -31,7 +31,7 @@ const report = {
     "First sample uses a fresh WebView2 data folder; later samples retain that browser cache.",
     "First useful paint means cached balance and navigation, after two animation frames; not all charts/rows finished.",
     "Closing a pending CSV preview acknowledges cancellation immediately; background calculation can finish before its staging is discarded.",
-    "Production binary uses only external documented WebView2 environment options for driver attachment; no native-e2e feature.",
+    "Production binary uses external documented per-app WebView2 policy/environment options for driver attachment; original policy values are restored; no native-e2e feature.",
   ],
 };
 function record(name, ok, detail = "") {

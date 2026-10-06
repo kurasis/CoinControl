@@ -984,7 +984,7 @@ try {
   }
   record("Native scenario execution", "FAIL", e instanceof Error ? e.message : "Unknown failure");
 } finally {
-  if (report.desktop?.prepared) {
+  if (report.desktop?.prepared?.originalWidth) {
     try {
       report.desktop.restored = changeDesktop("restore", report.desktop.prepared);
       record(
