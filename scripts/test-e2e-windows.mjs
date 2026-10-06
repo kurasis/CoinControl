@@ -416,6 +416,12 @@ async function ownedAccountScenarios() {
 }
 
 async function viewportScenarios() {
+  const desktop = changeDesktop("prepare");
+  report.desktop = { prepared: desktop };
+  if (desktop.result !== "PASS") {
+    record("Native desktop supports the required viewport matrix", "BLOCKED", desktop.detail);
+    return;
+  }
   const layoutUi = {
     execute,
     route,
@@ -549,6 +555,26 @@ async function viewportScenarios() {
     "PASS",
     "Actual WebView2 CSS dimensions measured; hosted Windows DPI recorded, no display-scale emulation",
   );
+}
+function changeDesktop(action, original = {}) {
+  const result = spawnSync(
+    "powershell.exe",
+    [
+      "-NoProfile",
+      "-File",
+      resolve("scripts/native-desktop.ps1"),
+      "-Action",
+      action,
+      "-Width",
+      String(original.originalWidth ?? 0),
+      "-Height",
+      String(original.originalHeight ?? 0),
+    ],
+    { encoding: "utf8", timeout: 30000 },
+  );
+  if (result.status !== 0)
+    throw new Error(`Native desktop preparation failed: ${result.stderr.slice(-500)}`);
+  return JSON.parse(result.stdout);
 }
 try {
   await until(async () => {
@@ -958,6 +984,18 @@ try {
   }
   record("Native scenario execution", "FAIL", e instanceof Error ? e.message : "Unknown failure");
 } finally {
+  if (report.desktop?.prepared) {
+    try {
+      report.desktop.restored = changeDesktop("restore", report.desktop.prepared);
+      record(
+        "Restore original physical desktop resolution",
+        report.desktop.restored.result,
+        report.desktop.restored.detail,
+      );
+    } catch (e) {
+      record("Restore original physical desktop resolution", "FAIL", e.message);
+    }
+  }
   if (session) {
     try {
       await request(`/session/${session}`, "DELETE");
