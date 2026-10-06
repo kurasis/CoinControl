@@ -1,0 +1,94 @@
+{
+  "provider": "publicnode",
+  "started_at": 1791293448,
+  "duration_ms": 23316,
+  "requests": 22,
+  "endpoints": ["balance reserve"],
+  "checks": [
+    {
+      "name": "ethereum native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "ethereum integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "base native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "base integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "arbitrum native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "arbitrum integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "optimism native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "optimism integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "polygon native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "polygon integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "bsc native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "bsc integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "solana token discovery limitation",
+      "result": "PASS",
+      "detail": "native balance retained; token access partial: publicnode getTokenAccountsByOwner: network access forbidden (HTTP 403)"
+    },
+    {
+      "name": "solana native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "solana integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "tron native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "tron integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    }
+  ]
+}

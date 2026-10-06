@@ -1,0 +1,71 @@
+{
+  "ciSha": "463faf7ec8175490233887ac2e9da66a0ce20dc9",
+  "mode": "windows-production-installer",
+  "at": "2026-10-06T13:11:51.1899919Z",
+  "targetVersion": "0.1.6",
+  "checks": [
+    {
+      "detail": "main f0603fd; CI 37345501830; SHA-256 verified before execution",
+      "name": "Pinned previous production artifact",
+      "result": "PASS"
+    },
+    {
+      "detail": "Program-specific outbound firewall rule; removed in finally; live API acceptance is separate",
+      "name": "Installer fixture network isolated",
+      "result": "PASS"
+    },
+    {
+      "detail": "version 0.1.0",
+      "name": "Install previous production 0.1.0",
+      "result": "PASS"
+    },
+    {
+      "detail": "Production app creates and opens SQLite; no native-e2e feature",
+      "name": "Previous app creates an empty schema 6 portfolio",
+      "result": "PASS"
+    },
+    {
+      "detail": "2 accounts; 2 owned-transfer legs; 1 fee; 2 audit versions; overlapping groups",
+      "name": "Previous app replays populated synthetic portfolio",
+      "result": "PASS"
+    },
+    {
+      "detail": "version 0.1.6",
+      "name": "Upgrade installs production 0.1.6",
+      "result": "PASS"
+    },
+    {
+      "detail": "Migration and accounting readiness checked after actual installed app launch",
+      "name": "Production launch migrates schema 6 to 7",
+      "result": "PASS"
+    },
+    {
+      "detail": "19 source/derived table fingerprints plus exact balance quantities, including groups, lots, history, settings and audit versions",
+      "name": "Populated upgrade preserves exact portfolio and audit",
+      "result": "PASS"
+    },
+    {
+      "detail": "No duplicated balance, movement, fee or accounting record",
+      "name": "Upgraded portfolio survives another process restart",
+      "result": "PASS"
+    },
+    {
+      "detail": "NSIS uninstall executable",
+      "name": "Uninstaller exists",
+      "result": "PASS"
+    },
+    {
+      "detail": "Data and WAL-backed evidence retained without an opt-in deletion request; exact fingerprints and quantities verified after uninstall",
+      "name": "Normal uninstall preserves populated portfolio",
+      "result": "PASS"
+    }
+  ],
+  "sourceSha": "463faf7ec8175490233887ac2e9da66a0ce20dc9",
+  "baseline": {
+    "sha256": "00b4dc04679d3de435a6c91d494ef1960361a999a01a63b80978915bd621b7c5",
+    "runId": "37345501830",
+    "schema": 6,
+    "sourceSha": "f0603fde8a7f4e13d60509ee2c188ffe2486d136",
+    "version": "0.1.0"
+  }
+}
