@@ -77,7 +77,18 @@
     "gap": "No data",
     "empty": "No value history yet. History appears once balances are synchronized.",
     "summary": "Portfolio value chart from {{from}} to {{to}}",
-    "summaryOf": "{{label}} chart from {{from}} to {{to}}"
+    "summaryOf": "{{label}} chart from {{from}} to {{to}}",
+    "viewData": "View chart data: {{label}}",
+    "dataTitle": "{{label}} observations",
+    "dataSummary": "Observations: {{count}}; gaps: {{gaps}}.",
+    "observedAt": "Date and time",
+    "usdValue": "Value (USD)",
+    "quality": "Data coverage",
+    "available": "Available",
+    "dataPages": "{{label}} data pages",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageNumber": "Page {{page}} of {{pages}}"
   },
   "assets": {
     "title": "Assets",

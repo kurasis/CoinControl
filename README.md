@@ -28,6 +28,10 @@ returns. The separate
 **demo profile** uses synthetic data, is labeled as such, and never contacts a
 provider.
 
+## Chart data and accessibility
+
+Charts include **View chart data**, a keyboard-accessible table of the same observations with date/time, USD values and missing/estimated/partial coverage. Tables use 50-row pages, honor English/Russian settings and mask private values. Public market prices remain visible in privacy mode. Chart animation follows the operating system's reduced-motion preference.
+
 ## Synchronization (stage B)
 
 | Network / data      | Source                                   | Key                     |

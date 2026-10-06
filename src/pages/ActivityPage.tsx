@@ -172,7 +172,7 @@ export function ActivityPage() {
             <button
               className="btn"
               onClick={() => void pages.fetchNextPage()}
-              disabled={pages.isFetchingNextPage}
+              disabled={pages.isFetching}
             >
               {t("activity.loadMore")}
             </button>

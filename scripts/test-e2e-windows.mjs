@@ -416,6 +416,8 @@ async function ownedAccountScenarios() {
 }
 
 async function viewportScenarios() {
+  const desktop = changeDesktop("prepare");
+  report.desktop = { prepared: desktop };
   const layoutUi = {
     execute,
     route,
@@ -433,6 +435,45 @@ async function viewportScenarios() {
       });
     },
   };
+  const appearance = async (language, theme) => {
+    await route("/settings");
+    await until(() => execute("return Boolean(document.querySelector('#language'));"));
+    await select("#language", language);
+    await until(() => execute("return document.documentElement.lang===arguments[0];", [language]));
+    await execute(
+      "document.querySelectorAll('[aria-labelledby=theme-label] button')[arguments[0]==='dark'?0:1].click();return true;",
+      [theme],
+    );
+    await until(() =>
+      execute(
+        "return document.documentElement.lang===arguments[0] && document.documentElement.dataset.theme===arguments[1];",
+        [language, theme],
+      ),
+    );
+  };
+  if (desktop.result !== "PASS") {
+    record("Native desktop supports the required viewport matrix", "BLOCKED", desktop.detail);
+    // Exercise independent UI gates at the actual hosted size, without claiming
+    // the unavailable 1440/1280/1024 matrix or substituting browser zoom for DPI.
+    report.availableViewports = [];
+    for (const language of ["en", "ru"]) {
+      for (const theme of ["dark", "light"]) {
+        await appearance(language, theme);
+        const actual = await execute(
+          "return {width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio};",
+        );
+        const name = `available-${actual.width}x${actual.height}-${language}-${theme}`;
+        report.availableViewports.push({ name, ...actual });
+        await verifyNativePages(layoutUi, { name, capture: language === "ru" }, report);
+      }
+    }
+    record("Native pages, panels and chart data at the available physical viewport", "PASS");
+    if (process.argv.includes("--display-scaling"))
+      await verifyDisplayScaling(layoutUi, record, report);
+    await appearance("en", "dark");
+    await route("/");
+    return;
+  }
   report.viewports = [];
   for (const [width, height] of [
     [1440, 900],
@@ -468,30 +509,15 @@ async function viewportScenarios() {
     const native = JSON.parse(result.stdout);
     for (const language of ["en", "ru"]) {
       for (const theme of ["dark", "light"]) {
-        await route("/settings");
-        await until(() => execute("return Boolean(document.querySelector('#language'));"));
-        await select("#language", language);
-        await until(() =>
-          execute("return document.documentElement.lang===arguments[0];", [language]),
-        );
-        await execute(
-          "document.querySelectorAll('[aria-labelledby=theme-label] button')[arguments[0]==='dark'?0:1].click();return true;",
-          [theme],
-        );
-        await until(() =>
-          execute(
-            "return document.documentElement.lang===arguments[0] && document.documentElement.dataset.theme===arguments[1];",
-            [language, theme],
-          ),
-        );
+        await appearance(language, theme);
         await route("/");
         await until(() =>
           execute(
-            "return document.querySelectorAll('.table').length>=2 && !document.querySelector('.skeleton-balance');",
+            "return [...document.querySelectorAll('.table-scroll')].filter(e=>e.checkVisibility()).length>=2 && !document.querySelector('.skeleton-balance');",
           ),
         );
         const layout = await execute(
-          "const main=document.querySelector('.main');const tables=[...document.querySelectorAll('.table-scroll')].map(e=>{e.scrollLeft=e.scrollWidth;const last=e.querySelector('th:last-child').getBoundingClientRect();const bounds=e.getBoundingClientRect();return {columns:e.querySelectorAll('th').length,scrollable:e.scrollWidth>e.clientWidth,lastColumnReachable:last.right<=bounds.right+2};});return {width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio,screen:{width:screen.width,height:screen.height,availableWidth:screen.availWidth,availableHeight:screen.availHeight},mainOverflow:main.scrollWidth>main.clientWidth+2,tables};",
+          "const main=document.querySelector('.main');const tables=[...document.querySelectorAll('.table-scroll')].filter(e=>e.checkVisibility()).map(e=>{e.scrollLeft=e.scrollWidth;const last=e.querySelector('thead th:last-child').getBoundingClientRect();const bounds=e.getBoundingClientRect();return {columns:e.querySelectorAll('thead th').length,scrollable:e.scrollWidth>e.clientWidth,lastColumnReachable:last.right<=bounds.right+2};});return {width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio,screen:{width:screen.width,height:screen.height,availableWidth:screen.availWidth,availableHeight:screen.availHeight},mainOverflow:main.scrollWidth>main.clientWidth+2,tables};",
         );
         if (
           layout.mainOverflow ||
@@ -516,7 +542,7 @@ async function viewportScenarios() {
           ]) {
             for (const edge of ["left", "right"]) {
               await execute(
-                "const main=document.querySelector('.main');const table=document.querySelectorAll('.table-scroll')[arguments[0]];main.scrollTop+=table.getBoundingClientRect().top-main.getBoundingClientRect().top-72;table.scrollLeft=arguments[1]==='right'?table.scrollWidth:0;return true;",
+                "const main=document.querySelector('.main');const table=[...document.querySelectorAll('.table-scroll')].filter(e=>e.checkVisibility())[arguments[0]];main.scrollTop+=table.getBoundingClientRect().top-main.getBoundingClientRect().top-72;table.scrollLeft=arguments[1]==='right'?table.scrollWidth:0;return true;",
                 [index, edge],
               );
               await screenshot(`${name}-${kind}-${edge}`);
@@ -549,6 +575,26 @@ async function viewportScenarios() {
     "PASS",
     "Actual WebView2 CSS dimensions measured; hosted Windows DPI recorded, no display-scale emulation",
   );
+}
+function changeDesktop(action, original = {}) {
+  const result = spawnSync(
+    "powershell.exe",
+    [
+      "-NoProfile",
+      "-File",
+      resolve("scripts/native-desktop.ps1"),
+      "-Action",
+      action,
+      "-Width",
+      String(original.originalWidth ?? 0),
+      "-Height",
+      String(original.originalHeight ?? 0),
+    ],
+    { encoding: "utf8", timeout: 30000 },
+  );
+  if (result.status !== 0)
+    throw new Error(`Native desktop preparation failed: ${result.stderr.slice(-500)}`);
+  return JSON.parse(result.stdout);
 }
 try {
   await until(async () => {
@@ -958,6 +1004,18 @@ try {
   }
   record("Native scenario execution", "FAIL", e instanceof Error ? e.message : "Unknown failure");
 } finally {
+  if (report.desktop?.prepared?.originalWidth) {
+    try {
+      report.desktop.restored = changeDesktop("restore", report.desktop.prepared);
+      record(
+        "Restore original physical desktop resolution",
+        report.desktop.restored.result,
+        report.desktop.restored.detail,
+      );
+    } catch (e) {
+      record("Restore original physical desktop resolution", "FAIL", e.message);
+    }
+  }
   if (session) {
     try {
       await request(`/session/${session}`, "DELETE");

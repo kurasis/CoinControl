@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { until } from "./lib/native-webdriver.mjs";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { verifyNativePages } from "./lib/native-layout.mjs";
+import { stripVTControlCharacters } from "node:util";
 const output = "target/browser-layout-report";
 mkdirSync(output, { recursive: true });
 const report = {
@@ -25,15 +26,23 @@ const server = spawn(
     "4175",
     "--strictPort",
   ],
-  { env: environment, stdio: "ignore" },
+  { env: environment, stdio: ["ignore", "pipe", "pipe"] },
 );
 let serverError;
+let serverStarted = false;
+server.stdout.on("data", (chunk) => {
+  if (stripVTControlCharacters(chunk.toString()).includes("http://127.0.0.1:4175/"))
+    serverStarted = true;
+});
+// Drain stderr, without including environment or application data in the report.
+server.stderr.on("data", () => {});
 server.on("error", (error) => (serverError = error));
 server.on("exit", (code) => (serverError = new Error(`Dev server exited (${code})`)));
 let browser;
 try {
   await until(async () => {
     if (serverError) throw serverError;
+    if (!serverStarted) return false;
     try {
       return (await fetch("http://127.0.0.1:4175/")).ok;
     } catch {
@@ -67,7 +76,10 @@ try {
       await page.screenshot({ path: `${output}/${name}.png` });
     },
     key: (value, shift = false) =>
-      page.keyboard.press((shift ? "Shift+" : "") + (value === "\uE004" ? "Tab" : "Escape")),
+      page.keyboard.press(
+        (shift ? "Shift+" : "") +
+          ({ "\uE004": "Tab", "\uE007": "Enter", "\uE00C": "Escape" }[value] ?? value),
+      ),
   };
   try {
     await page.goto("http://127.0.0.1:4175/");

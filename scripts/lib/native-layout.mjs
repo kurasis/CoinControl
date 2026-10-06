@@ -15,10 +15,10 @@ const sideNavigationReachable=linkBounds.top>=navBounds.top-2 && linkBounds.bott
 sidebar.scrollTop=0;
 const tables=[...document.querySelectorAll('.table-scroll')].filter(visible).map(e=>{
   e.scrollLeft=e.scrollWidth;
-  const last=e.querySelector('th:last-child')?.getBoundingClientRect();
+  const last=e.querySelector('thead th:last-child')?.getBoundingClientRect();
   const reach=!last || last.right<=e.getBoundingClientRect().right+2;
   e.scrollLeft=0;
-  return {columns:e.querySelectorAll('th').length,lastColumnReachable:reach};
+  return {columns:e.querySelectorAll('thead th').length,lastColumnReachable:reach};
 });
 return {path:location.hash,width:innerWidth,height:innerHeight,pixelRatio:devicePixelRatio,
 mainOverflow:main.scrollWidth>main.clientWidth+2,sideNavigationReachable,
@@ -76,6 +76,31 @@ export async function verifyNativePages(ui, { name, capture }, report) {
     report.pageLayouts ??= [];
     report.pageLayouts.push({ scenario: name, ...layout });
     if (capture) await ui.screenshot(`${name}-page-${index}`);
+    await until(() => ui.execute("return !document.querySelector('.chart.skeleton');"));
+    const charts = await ui.execute("return document.querySelectorAll('.chart-data').length;");
+    for (let chart = 0; chart < charts; chart++) {
+      await ui.execute(
+        "document.querySelectorAll('.chart-data summary')[arguments[0]].focus();return true;",
+        [chart],
+      );
+      await ui.key("\uE007");
+      await until(() =>
+        ui.execute("return document.querySelectorAll('.chart-data')[arguments[0]].open;", [chart]),
+      );
+      const data = await ui.execute(
+        `const e=document.querySelectorAll('.chart-data')[arguments[0]],b=e.querySelector('[role=region]');return {rows:e.querySelectorAll('tbody tr').length,label:b.getAttribute('aria-label'),overflow:document.querySelector('.main').scrollWidth>document.querySelector('.main').clientWidth+2};`,
+        [chart],
+      );
+      if (!data.rows || data.rows > 50 || !data.label || data.overflow)
+        throw new Error(`Inaccessible chart data: ${name}${route}`);
+      if (capture) await ui.screenshot(`${name}-page-${index}-chart-data-${chart}`);
+      await ui.key(" ");
+      await until(() =>
+        ui.execute("return !document.querySelectorAll('.chart-data')[arguments[0]].open;", [chart]),
+      );
+      report.chartData ??= [];
+      report.chartData.push({ scenario: name, route, chart, ...data, keyboard: "PASS" });
+    }
   }
   // Verify actual Tab/Shift+Tab and Escape, including restoration to the opening control.
   await ui.route("/review");
@@ -98,13 +123,16 @@ export async function verifyNativePages(ui, { name, capture }, report) {
     const geometry =
       await ui.execute(`const p=document.querySelector('[role=dialog]'),b=p.querySelector('.drawer-body');
 const r=p.getBoundingClientRect(),h=p.querySelector('.drawer-head').getBoundingClientRect();
-return {width:r.width,height:r.height,bodyOverflow:b.scrollWidth>b.clientWidth+2,closeReachable:h.bottom<=innerHeight+2 && h.right<=innerWidth+2};`);
+const viewportWidth=visualViewport?.width??innerWidth,viewportHeight=visualViewport?.height??innerHeight;
+return {width:r.width,height:r.height,viewportWidth,viewportHeight,bodyOverflow:b.scrollWidth>b.clientWidth+2,closeReachable:h.bottom<=viewportHeight+2 && h.right<=viewportWidth+2};`);
     if (
       geometry.bodyOverflow ||
       !geometry.closeReachable ||
-      geometry.width > (await ui.execute("return innerWidth;"))
+      // innerWidth is integer-rounded; a physical viewport / 150% DPI can be
+      // fractional CSS pixels. Compare actual viewport geometry to the panel.
+      geometry.width > geometry.viewportWidth + 0.05
     )
-      throw new Error(`Panel overflow: ${name}/${panel}`);
+      throw new Error(`Panel overflow: ${name}/${panel}: ${JSON.stringify(geometry)}`);
     await ui.execute(
       `const p=document.querySelector('[role=dialog]');window.__panelTabStops=[...p.querySelectorAll('button,a[href],input,select,textarea,summary,[tabindex]')].filter(e=>e.tabIndex>=0&&!e.matches(':disabled')&&e.checkVisibility());window.__panelTabStops.at(-1).focus();return true;`,
     );
@@ -133,10 +161,61 @@ return {width:r.width,height:r.height,bodyOverflow:b.scrollWidth>b.clientWidth+2
     report.panelLayouts ??= [];
     report.panelLayouts.push({ scenario: name, panel, ...geometry, keyboard: "PASS" });
   }
+  if (!report.chartPrivacy && report.chartData?.length) {
+    await ui.route("/settings");
+    await until(() => ui.execute("return Boolean(document.querySelector('#privacy'));"));
+    const original = await ui.execute("return document.querySelector('#privacy').checked;");
+    try {
+      if (!original) await ui.execute("document.querySelector('#privacy').click();return true;");
+      await until(() => ui.execute("return document.querySelector('#privacy').checked;"));
+      await ui.route("/");
+      await until(() =>
+        ui.execute("return Boolean(document.querySelector('.chart-data summary'));"),
+      );
+      await ui.execute("document.querySelector('.chart-data summary').focus();return true;");
+      await ui.key("\uE007");
+      const privateValues = await ui.execute(
+        "return [...document.querySelectorAll('.chart-data tbody td.num')].map(e=>e.textContent.trim());",
+      );
+      if (!privateValues.length || privateValues.some((v) => v !== "•••••" && v !== "—"))
+        throw new Error("Chart observations expose private values");
+      await ui.route("/wallets");
+      await ready(ui);
+      await ui.route("/");
+      await ready(ui);
+      const asset = await ui.execute(
+        "return document.querySelector('a[href^=\"#/assets/\"]')?.getAttribute('href').slice(1);",
+      );
+      await ui.route(asset);
+      await until(() =>
+        ui.execute("return Boolean(document.querySelector('.chart-data tbody td.num'));"),
+      );
+      const publicValues = await ui.execute(
+        "return [...document.querySelectorAll('.chart-data tbody td.num')].map(e=>e.textContent.trim());",
+      );
+      if (publicValues.every((v) => v === "•••••" || v === "—"))
+        throw new Error("Privacy incorrectly hid public market prices");
+      report.chartPrivacy = {
+        result: "PASS",
+        privateObservations: privateValues.length,
+        publicPrices: publicValues.length,
+      };
+    } finally {
+      await ui.route("/settings");
+      await until(() => ui.execute("return Boolean(document.querySelector('#privacy'));"));
+      await ui.execute(
+        "const e=document.querySelector('#privacy');if(e.checked!==arguments[0])e.click();return true;",
+        [original],
+      );
+      await until(() =>
+        ui.execute("return document.querySelector('#privacy').checked===arguments[0];", [original]),
+      );
+    }
+  }
 }
 
 export async function verifyDisplayScaling(ui, record, report) {
-  const change = (percent) => {
+  const change = (percent, measureOnly = false) => {
     const response = spawnSync(
       "powershell.exe",
       [
@@ -147,6 +226,7 @@ export async function verifyDisplayScaling(ui, record, report) {
         String(ui.pid()),
         "-Percent",
         String(percent),
+        ...(measureOnly ? ["-MeasureOnly"] : []),
       ],
       { encoding: "utf8", timeout: 60000 },
     );
@@ -171,8 +251,13 @@ export async function verifyDisplayScaling(ui, record, report) {
       await until(() =>
         ui.execute("return Math.abs(devicePixelRatio-arguments[0])<0.01;", [percent / 100]),
       );
-      const [l, t, r, b] = result.outerPhysical;
-      const [wl, wt, wr, wb] = result.workAreaPhysical;
+      // Selection changes HWND DPI before queued frame/minimum/work-area updates.
+      // Measure again after WebView2 observes the actual OS scale.
+      const measured = change(percent, true);
+      result.settledMeasurement = measured;
+      if (measured.result !== "PASS") throw new Error(measured.detail);
+      const [l, t, r, b] = measured.outerPhysical;
+      const [wl, wt, wr, wb] = measured.workAreaPhysical;
       if (l < wl || t < wt || r > wr || b > wb)
         throw new Error(`Scaled window exceeds physical work area at ${percent}%`);
       await verifyNativePages(ui, { name: `os-scale-${percent}`, capture: true }, report);

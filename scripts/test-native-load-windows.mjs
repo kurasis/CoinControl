@@ -1,5 +1,5 @@
 // Production installed EXE + native WebView2. Run only in a disposable CI user.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { cpus, release, totalmem } from "node:os";
 import { createHash } from "node:crypto";
@@ -29,9 +29,10 @@ const report = {
     "Synthetic 50-account/500-asset/100000-leg normalized SQL fixture; not a production provider import.",
     "Cold application processes; operating-system disk/page caches are not flushed.",
     "First sample uses a fresh WebView2 data folder; later samples retain that browser cache.",
+    "Initial normal-network startup is measured and gated before the three offline samples; its browser folder is preserved separately; OS runtime/certificate caches are not reset.",
     "First useful paint means cached balance and navigation, after two animation frames; not all charts/rows finished.",
     "Closing a pending CSV preview acknowledges cancellation immediately; background calculation can finish before its staging is discarded.",
-    "Production binary uses only external documented WebView2 environment options for driver attachment; no native-e2e feature.",
+    "Production binary uses external documented per-app WebView2 policy/environment options for driver attachment; original policy values are restored; no native-e2e feature.",
   ],
 };
 function record(name, ok, detail = "") {
@@ -103,6 +104,7 @@ async function startupSample(index) {
     spawnRequestedUtcMs: native.spawnRequestedUtcMs,
     processToUsefulMs,
     browserCache: index === 0 ? "fresh" : "retained",
+    launchLog: `application-launch-${native.launchCount - 1}.log`,
   };
 }
 async function beginPreview() {
@@ -123,15 +125,15 @@ try {
   );
   report.applicationSha256 = createHash("sha256").update(readFileSync(application)).digest("hex");
   if (
-    !releaseReport.checks.some(
+    !releaseReport.packagedApplications?.some(
       (c) =>
-        c.result === "PASS" &&
-        c.name.startsWith("PE artifact:") &&
-        c.detail === `sha256 ${report.applicationSha256}`,
+        c.filename === "portfolio-desk.exe" &&
+        c.installerSha256 === process.env.E2E_INSTALLER_SHA256 &&
+        c.applicationSha256 === report.applicationSha256,
     )
   )
-    throw new Error("Installed binary does not match inspected production artifact");
-  record("Installed production binary matches inspected release hash", true);
+    throw new Error("Installed binary does not match inspected NSIS application payload");
+  record("Installed production binary matches inspected NSIS payload hash", true);
   const initial = counts();
   if (
     initial.accounts !== 50 ||
@@ -141,8 +143,21 @@ try {
   )
     throw new Error("Native load fixture does not match the specified dataset");
   record("Real profile has exactly 50 accounts, 500 assets and 100000 legs", true);
-  native.firewall();
   await native.startDriver();
+  if (existsSync(native.webviewDirectory))
+    throw new Error("Startup measurements require a fresh disposable browser folder");
+  // Keep the same 2-second target for the very first normal launch and every
+  // offline launch. This separates SDK initialization from application-outbound
+  // blocking, without silently excluding the initial process from acceptance.
+  report.initialNormalNetworkStartup = await startupSample(0);
+  record(
+    "First useful native screen with normal runtime networking within 2 seconds",
+    report.initialNormalNetworkStartup.processToUsefulMs <= 2000,
+    `${report.initialNormalNetworkStartup.processToUsefulMs.toFixed(2)} ms`,
+  );
+  await native.stopApplication();
+  renameSync(native.webviewDirectory, native.webviewDirectory + "-initial-normal-network");
+  native.firewall();
   report.startupSamples = [];
   for (let i = 0; i < 3; i++) {
     report.startupSamples.push(await startupSample(i));
@@ -295,6 +310,13 @@ try {
   );
   await native.screenshot("load-reopened");
 } catch (e) {
+  try {
+    report.failureUi = await native.execute(
+      "return {route:location.hash,tables:[...document.querySelectorAll('tbody')].map(e=>({rowCount:e.dataset.rowCount??null,windowed:e.dataset.windowed??null,mounted:e.querySelectorAll('tr[data-index]').length})),loadMore:[...document.querySelectorAll('button')].filter(e=>e.textContent.trim()==='Load more').map(e=>({disabled:e.disabled})),dialog:Boolean(document.querySelector('.dialog'))};",
+    );
+  } catch {
+    /* Driver/startup failure can precede a usable renderer. */
+  }
   try {
     await native.screenshot("failure");
   } catch {

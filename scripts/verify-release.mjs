@@ -68,6 +68,7 @@ const sentinels = [
 ];
 const artifacts = files("target/release/bundle/nsis").filter((p) => p.endsWith(".exe"));
 const application = join("target", "release", "portfolio-desk.exe");
+const packagedApplications = [];
 if (!sourceOnly) {
   check("Windows release application exists", existsSync(application));
   check("NSIS installer exists", artifacts.length > 0);
@@ -89,6 +90,32 @@ if (!sourceOnly) {
         ),
       listed.status === 0 ? "No credential or backup files" : "7z listing unavailable",
     );
+    // Inspect the bytes actually shipped by NSIS, independently of the compiler output.
+    const payload = spawnSync("7z", ["x", "-so", path, "portfolio-desk.exe"], {
+      maxBuffer: 128 * 1024 * 1024,
+    });
+    const bytes = payload.stdout ?? Buffer.alloc(0);
+    const valid =
+      payload.status === 0 && bytes.length > 1024 && bytes.subarray(0, 2).toString() === "MZ";
+    const applicationSha256 = createHash("sha256").update(bytes).digest("hex");
+    check(
+      `NSIS application payload: ${path}`,
+      valid,
+      valid ? `sha256 ${applicationSha256}` : "Cannot extract the packaged production executable",
+    );
+    check(
+      `No sentinels or test-only code in NSIS payload: ${path}`,
+      valid &&
+        sentinels.every(
+          (s) => !bytes.includes(Buffer.from(s)) && !bytes.includes(Buffer.from(s, "utf16le")),
+        ),
+    );
+    if (valid)
+      packagedApplications.push({
+        filename: "portfolio-desk.exe",
+        installerSha256: createHash("sha256").update(readFileSync(path)).digest("hex"),
+        applicationSha256,
+      });
   }
 }
 for (const path of [
@@ -108,6 +135,7 @@ const report = {
   mode: sourceOnly ? "source-and-frontend" : "windows-release",
   at: new Date().toISOString(),
   signed: false,
+  packagedApplications,
   checks,
 };
 writeFileSync("target/release-report/RELEASE_REPORT.json", JSON.stringify(report, null, 2) + "\n");

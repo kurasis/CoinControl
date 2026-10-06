@@ -6,6 +6,7 @@ import { GridComponent, TooltipComponent } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 import { useApp } from "../app/AppContext";
 import { MASK, formatDateTime, formatPrice, formatUsd } from "../lib/format";
+import { ChartDataTable } from "./ChartDataTable";
 
 echarts.use([LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
 
@@ -46,7 +47,9 @@ export function SeriesChart({
     const accent = cssVar("--accent");
     const secondary = cssVar("--text-secondary");
     const border = cssVar("--border");
+    const motion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     instance.setOption({
+      animation: !motion?.matches,
       animationDuration: 150,
       grid: { left: 8, right: 8, top: 16, bottom: 24, containLabel: true },
       xAxis: {
@@ -99,7 +102,10 @@ export function SeriesChart({
     });
     const resize = new ResizeObserver(() => instance.resize());
     resize.observe(el.current);
+    const updateMotion = () => instance.setOption({ animation: !motion?.matches });
+    motion?.addEventListener("change", updateMotion);
     return () => {
+      motion?.removeEventListener("change", updateMotion);
       resize.disconnect();
       instance.dispose();
     };
@@ -111,11 +117,19 @@ export function SeriesChart({
   const last = [...points].reverse().find((p) => p.value !== null);
   const show = (p?: SeriesPoint) => (!p?.value ? "—" : masked ? MASK : fmt(p.value));
   return (
-    <div
-      ref={el}
-      className="chart"
-      role="img"
-      aria-label={t("chart.summaryOf", { label, from: show(first), to: show(last) })}
-    />
+    <>
+      <div
+        ref={el}
+        className="chart"
+        role="img"
+        aria-label={t("chart.summaryOf", { label, from: show(first), to: show(last) })}
+      />
+      <ChartDataTable
+        key={`${points[0]?.t}:${points.at(-1)?.t}:${points.length}`}
+        points={points}
+        kind={kind}
+        label={label}
+      />
+    </>
   );
 }

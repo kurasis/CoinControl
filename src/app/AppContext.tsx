@@ -13,6 +13,7 @@ import { api, DATA_CHANGED_EVENT, isTauri, type Scope } from "../ipc/client";
 import type { ProfileKind } from "../ipc/bindings/ProfileKind";
 import type { Settings } from "../ipc/bindings/Settings";
 import { resolveLanguage } from "../i18n";
+import { refreshCachedViews } from "./refreshCachedViews";
 
 interface AppContextValue {
   settings: Settings | undefined;
@@ -86,7 +87,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     let unlisten: (() => void) | undefined;
     void import("@tauri-apps/api/event").then(({ listen }) =>
-      listen(DATA_CHANGED_EVENT, () => void queryClient.invalidateQueries()).then((stop) => {
+      listen(DATA_CHANGED_EVENT, () => void refreshCachedViews(queryClient)).then((stop) => {
         if (cancelled) stop();
         else unlisten = stop;
       }),

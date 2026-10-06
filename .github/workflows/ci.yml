@@ -185,7 +185,9 @@ jobs:
 
   windows-native:
     name: Windows native recovery and public BTC scenarios
-    runs-on: windows-latest
+    # Pin the automation OS/UI. Hosted virtual displays can still report
+    # unsupported physical resolution or DPI changes as BLOCKED.
+    runs-on: windows-2022
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -223,7 +225,7 @@ jobs:
   windows-native-load:
     name: Production native startup and 100000-leg UI/import
     needs: windows-installer
-    runs-on: windows-latest
+    runs-on: windows-2022
     timeout-minutes: 30
     env:
       ACCEPTANCE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -235,6 +237,8 @@ jobs:
       - name: Install Rust toolchain
         run: rustup show active-toolchain || rustup toolchain install
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - uses: actions/download-artifact@v4
         with:
           name: portfolio-desk-windows-nsis-unsigned

@@ -303,6 +303,26 @@ async fn unreviewed_history_keeps_basis_unknown_and_lists_review_items() {
     assert!(!s.accounting.realized.complete);
     assert_eq!(s.accounting.expenses.known_usd, "30");
     assert_eq!(s.accounting.total_accounted_pnl_usd, None);
+    assert_eq!(s.accounting.review_count, 2);
+    for account in [&w.a, &w.b] {
+        let scoped = w
+            .store
+            .portfolio_summary(&Scope::Accounts {
+                ids: vec![account.clone()],
+            })
+            .await
+            .unwrap();
+        assert_eq!(
+            scoped.accounting.review_count, 1,
+            "one unresolved movement in each account"
+        );
+    }
+    let empty = w
+        .store
+        .portfolio_summary(&Scope::Accounts { ids: vec![] })
+        .await
+        .unwrap();
+    assert_eq!(empty.accounting.review_count, 0);
 }
 
 #[tokio::test]
@@ -742,6 +762,21 @@ async fn overspending_and_balance_mismatch_become_reconciliation_items() {
         .unwrap();
     assert_eq!(b.accounting.unrealized_pnl_usd, None);
     assert_eq!(b.total_value_usd.as_deref(), Some("1500"));
+    assert_eq!(
+        b.accounting.reconciliation_count, 2,
+        "B has one inventory gap and one balance mismatch"
+    );
+    let a = w
+        .store
+        .portfolio_summary(&Scope::Accounts {
+            ids: vec![w.a.clone()],
+        })
+        .await
+        .unwrap();
+    assert_eq!(
+        a.accounting.reconciliation_count, 0,
+        "B's findings do not leak into A's scope"
+    );
 }
 
 #[tokio::test]
