@@ -219,6 +219,8 @@ pub struct CheckpointState {
     #[serde(default)]
     pub cooldown_network_only: bool,
     #[serde(default)]
+    pub cooldown_transient: bool,
+    #[serde(default)]
     pub fallback_reasons: Vec<String>,
     #[serde(default)]
     pub balance_only: bool,
@@ -1145,8 +1147,16 @@ impl Store {
         provider: &str,
         network: NetworkId,
     ) -> Result<Option<i64>> {
-        let row=sqlx::query("SELECT MAX(CAST(json_extract(c.retry_state, '$.cooldown_until') AS INTEGER)) AS until_at FROM sync_checkpoints c JOIN accounts a ON a.id=c.account_id WHERE c.provider=? AND c.category='history' AND (COALESCE(json_extract(c.retry_state, '$.cooldown_network_only'),0)=0 OR a.network_id=?)")
-            .bind(provider).bind(network.as_str()).fetch_one(&self.pool).await?;
+        self.provider_cooldown_policy(provider, network, true).await
+    }
+    pub async fn provider_cooldown_policy(
+        &self,
+        provider: &str,
+        network: NetworkId,
+        include_transient: bool,
+    ) -> Result<Option<i64>> {
+        let row=sqlx::query("SELECT MAX(CAST(json_extract(c.retry_state, '$.cooldown_until') AS INTEGER)) AS until_at FROM sync_checkpoints c JOIN accounts a ON a.id=c.account_id WHERE c.provider=? AND c.category='history' AND (COALESCE(json_extract(c.retry_state, '$.cooldown_network_only'),0)=0 OR a.network_id=?) AND (? OR COALESCE(json_extract(c.retry_state, '$.cooldown_transient'),0)=0)")
+            .bind(provider).bind(network.as_str()).bind(include_transient).fetch_one(&self.pool).await?;
         Ok(row.get("until_at"))
     }
     pub async fn clear_provider_cooldown(&self, provider: &str) -> Result<()> {

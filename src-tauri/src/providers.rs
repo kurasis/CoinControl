@@ -155,14 +155,12 @@ pub const PROVIDERS: &[ProviderSpec] = &[
         key: KeyRequirement::Optional,
         networks: &[
             NetworkId::Ethereum,
-            NetworkId::Base,
             NetworkId::Arbitrum,
             NetworkId::Optimism,
-            NetworkId::Polygon,
         ],
         docs_url: "https://docs.blockscout.com/devs/pro-api",
         key_url: Some("https://dev.blockscout.com/"),
-        free_allowance: "100K credits/day, 5 requests/sec; most calls cost 20 credits",
+        free_allowance: "100K credits/day, 5 requests/sec; free ETH/Arbitrum/Optimism, most calls 20 credits",
     },
     ProviderSpec {
         id: "etherscan",
@@ -186,7 +184,6 @@ pub const PROVIDERS: &[ProviderSpec] = &[
             NetworkId::Optimism,
             NetworkId::Polygon,
             NetworkId::Bsc,
-            NetworkId::Solana,
         ],
         docs_url: "https://drpc.org/docs/gettingstarted/firstrequest",
         key_url: Some("https://drpc.org/"),

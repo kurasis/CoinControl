@@ -271,6 +271,13 @@ fn notify(app: &AppHandle) {
 
 /// Runs one synchronization (all accounts, or one) followed by a price refresh.
 pub async fn run(app: &AppHandle, account_id: Option<&str>) -> CommandResult<SyncSummary> {
+    run_kind(app, account_id, true).await
+}
+async fn run_kind(
+    app: &AppHandle,
+    account_id: Option<&str>,
+    retry_transient: bool,
+) -> CommandResult<SyncSummary> {
     let state = app.state::<AppState>();
     let _guard = state
         .sync
@@ -314,6 +321,7 @@ pub async fn run(app: &AppHandle, account_id: Option<&str>) -> CommandResult<Syn
         SyncOptions::default(),
     )
     .with_cancellation(state.sync.cancelled.clone())
+    .with_transient_retry(retry_transient)
     .with_progress(Arc::new(move |account, pages, done| {
         let mut p = details.lock().expect("sync details");
         p.active_account = Some(account.to_owned());
@@ -460,7 +468,7 @@ async fn tick(app: &AppHandle) {
     let prices_due = now - state.sync.last_prices_at.load(Ordering::Relaxed)
         >= i64::from(settings.price_refresh_seconds.max(30));
     if sweep_due {
-        if let Err(e) = run(app, None).await {
+        if let Err(e) = run_kind(app, None, false).await {
             tracing::warn!(error = %e.message, "scheduled sweep skipped");
         }
     } else if prices_due {
@@ -471,7 +479,7 @@ async fn tick(app: &AppHandle) {
 /// Synchronizes a newly added account in the background.
 pub fn spawn_account_sync(app: AppHandle, account_id: String) {
     tauri::async_runtime::spawn(async move {
-        if let Err(e) = run(&app, Some(&account_id)).await {
+        if let Err(e) = run_kind(&app, Some(&account_id), false).await {
             tracing::warn!(error = %e.message, "initial account sync skipped");
         }
     });

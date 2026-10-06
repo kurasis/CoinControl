@@ -26,6 +26,11 @@ pub const EVM: [NetworkId; 6] = [
     NetworkId::Polygon,
     NetworkId::Bsc,
 ];
+pub const BLOCKSCOUT_FREE_NETWORKS: [NetworkId; 3] = [
+    NetworkId::Ethereum,
+    NetworkId::Arbitrum,
+    NetworkId::Optimism,
+];
 pub const ETHERSCAN_NETWORKS: [NetworkId; 3] =
     [NetworkId::Ethereum, NetworkId::Arbitrum, NetworkId::Polygon];
 const SOL_MAINNET: &str = "https://solana-mainnet.core.chainstack.com/";
@@ -67,7 +72,7 @@ impl Reserve {
                     HeaderValue::from_str(&format!("Bearer {}", key.trim()))
                         .map_err(|_| rpc::invalid(provider, "config", "invalid credential"))?,
                 );
-                for n in EVM.into_iter().filter(|n| *n != NetworkId::Bsc) {
+                for n in BLOCKSCOUT_FREE_NETWORKS {
                     endpoints.push((n, "https://api.blockscout.com/".to_owned()));
                 }
                 Kind::Blockscout
@@ -97,7 +102,6 @@ impl Reserve {
                 for (n, name) in EVM
                     .into_iter()
                     .zip(["ethereum", "base", "arbitrum", "optimism", "polygon", "bsc"])
-                    .chain([(NetworkId::Solana, "solana")])
                 {
                     let mut u =
                         Url::parse(&format!("https://lb.drpc.live/{name}/")).expect("static URL");

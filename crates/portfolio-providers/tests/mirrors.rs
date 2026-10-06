@@ -230,6 +230,17 @@ async fn failover_429_403_500_and_timeout_keeps_unknown_tokens_and_persists_brea
                 }
             )
         );
+        let manual = SyncEngine::new(s.clone(), make(), SyncOptions::default())
+            .with_transient_retry(true)
+            .sync_account(&a)
+            .await;
+        assert!(manual.error.is_none());
+        let attempted = primary.received_requests().await.unwrap().len();
+        assert_eq!(
+            attempted > n,
+            matches!(code, 500 | 408),
+            "manual retry bypasses only transient errors, never Retry-After or denied access"
+        );
         s.clear_provider_cooldown("alchemy").await.unwrap();
         assert_eq!(
             s.provider_cooldown("alchemy", NetworkId::Ethereum)
@@ -478,7 +489,7 @@ async fn solana_standard_rpc_checks_mainnet_and_aggregates_owned_token_accounts(
     )
     .await;
     rpc(&server, "getTokenAccountsByOwner", json!({"value":[]})).await;
-    for provider in ["drpc", "chainstack", "publicnode"] {
+    for provider in ["chainstack", "publicnode"] {
         let api = reserve(
             &server,
             provider,
@@ -619,4 +630,74 @@ async fn local_storage_failure_does_not_issue_backup_requests_and_monthly_counts
     let report = engine.sync_account(&a).await;
     assert!(report.error.is_some());
     assert!(server.received_requests().await.unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn paid_plan_402_advances_to_available_balance_reserve() {
+    let gated = MockServer::start().await;
+    Mock::given(method("GET"))
+        .respond_with(
+            ResponseTemplate::new(402)
+                .set_body_json(json!({"message":format!("plan unavailable {SENTINEL_KEY}")})),
+        )
+        .mount(&gated)
+        .await;
+    let available = MockServer::start().await;
+    evm(&available).await;
+    let s = store().await;
+    let w = s.create_wallet("plan").await.unwrap();
+    let a = s
+        .add_account(&w.id, NetworkId::Ethereum, ETH, None)
+        .await
+        .unwrap();
+    let engine = SyncEngine::new(
+        s,
+        Providers {
+            reserves: vec![
+                reserve(
+                    &gated,
+                    "blockscout",
+                    Kind::Blockscout,
+                    NetworkId::Ethereum,
+                    Budget::limited(10),
+                ),
+                reserve(
+                    &available,
+                    "publicnode",
+                    Kind::Rpc,
+                    NetworkId::Ethereum,
+                    Budget::limited(10),
+                ),
+            ],
+            ..Providers::default()
+        },
+        SyncOptions::default(),
+    );
+    let r = engine.sync_account(&a).await;
+    assert!(r.error.is_none());
+    assert_eq!(r.provider.as_deref(), Some("publicnode"));
+    assert!(
+        r.fallback_reasons
+            .iter()
+            .any(|e| e.contains("capability unavailable"))
+    );
+    assert!(!r.fallback_reasons.join(" ").contains(SENTINEL_KEY));
+    let api = Reserve::new("blockscout", SENTINEL_KEY, Budget::limited(0)).unwrap();
+    assert!(!api.supports(NetworkId::Base));
+    assert!(!api.supports(NetworkId::Polygon));
+}
+#[test]
+fn drpc_free_scope_excludes_premium_solana() {
+    let api = Reserve::new("drpc", SENTINEL_KEY, Budget::limited(0)).unwrap();
+    for n in [
+        NetworkId::Ethereum,
+        NetworkId::Base,
+        NetworkId::Arbitrum,
+        NetworkId::Optimism,
+        NetworkId::Polygon,
+        NetworkId::Bsc,
+    ] {
+        assert!(api.supports(n));
+    }
+    assert!(!api.supports(NetworkId::Solana));
 }
