@@ -348,3 +348,25 @@ async fn authentication_failure_stops_every_client_sharing_the_credential_budget
     ));
     assert_eq!(budget.used(), 1);
 }
+
+#[tokio::test]
+async fn reserve_http_errors_do_not_echo_short_credentials() {
+    use portfolio_providers::http::HttpClient;
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .respond_with(
+            ResponseTemplate::new(422).set_body_json(serde_json::json!({"message":"tiny"})),
+        )
+        .mount(&server)
+        .await;
+    for provider in ["blockscout", "etherscan", "toncenter", "drpc", "chainstack"] {
+        let http =
+            HttpClient::new(provider, fast(), Budget::limited(1), Default::default()).unwrap();
+        let url = url::Url::parse(&(server.uri() + "/?apikey=tiny")).unwrap();
+        let error = http.get("balance", url).await.expect_err("HTTP 422");
+        assert!(matches!(error, ProviderError::Http { status: 422, .. }));
+        let text = format!("{error} {error:?}");
+        assert!(!text.contains("tiny"), "{provider} echoed a credential");
+        assert!(!text.contains("http://"));
+    }
+}
