@@ -1,0 +1,56 @@
+{
+  "sourceSha": "d7f97aab119c368466dbf733f35ed09021704376",
+  "mode": "windows-production-installer",
+  "targetVersion": "0.1.6",
+  "checks": [
+    {
+      "detail": "main f0603fd; CI 37345501830; SHA-256 verified before execution",
+      "name": "Pinned previous production artifact",
+      "result": "PASS"
+    },
+    {
+      "detail": "version 0.1.0",
+      "name": "Install previous production 0.1.0",
+      "result": "PASS"
+    },
+    {
+      "detail": "Production app creates and opens SQLite; no native-e2e feature",
+      "name": "Previous app creates an empty schema 6 portfolio",
+      "result": "PASS"
+    },
+    {
+      "detail": "2 accounts; 2 owned-transfer legs; 1 fee; 2 audit versions; overlapping groups",
+      "name": "Previous app replays populated synthetic portfolio",
+      "result": "PASS"
+    },
+    {
+      "detail": "version 0.1.6",
+      "name": "Upgrade installs production 0.1.6",
+      "result": "PASS"
+    },
+    {
+      "detail": "Migration and accounting readiness checked after actual installed app launch",
+      "name": "Production launch migrates schema 6 to 7",
+      "result": "PASS"
+    },
+    {
+      "detail": "19 source/derived table fingerprints plus exact balance quantities, including groups, lots, history, settings and audit versions",
+      "name": "Populated upgrade preserves exact portfolio and audit",
+      "result": "FAIL"
+    },
+    {
+      "detail": "Populated upgrade preserves exact portfolio and audit",
+      "name": "Installer scenario",
+      "result": "FAIL"
+    }
+  ],
+  "baseline": {
+    "version": "0.1.0",
+    "schema": 6,
+    "runId": "37345501830",
+    "sourceSha": "f0603fde8a7f4e13d60509ee2c188ffe2486d136",
+    "sha256": "00b4dc04679d3de435a6c91d494ef1960361a999a01a63b80978915bd621b7c5"
+  },
+  "ciSha": "d7f97aab119c368466dbf733f35ed09021704376",
+  "at": "2026-10-06T12:52:06.5363297Z"
+}

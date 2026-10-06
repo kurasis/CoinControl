@@ -1,0 +1,36 @@
+{
+  "targetVersion": "0.1.6",
+  "mode": "windows-production-installer",
+  "ciSha": "acb280dbe73c4b6c4b8ede81f8523516d9769cc9",
+  "checks": [
+    {
+      "detail": "main f0603fd; CI 37345501830; SHA-256 verified before execution",
+      "name": "Pinned previous production artifact",
+      "result": "PASS"
+    },
+    {
+      "detail": "Program-specific outbound firewall rule; removed in finally; live API acceptance is separate",
+      "name": "Installer fixture network isolated",
+      "result": "PASS"
+    },
+    {
+      "detail": "version 0.1.0",
+      "name": "Install previous production 0.1.0",
+      "result": "PASS"
+    },
+    {
+      "detail": "Installed production app failed to open its profile",
+      "name": "Installer scenario",
+      "result": "FAIL"
+    }
+  ],
+  "baseline": {
+    "sourceSha": "f0603fde8a7f4e13d60509ee2c188ffe2486d136",
+    "version": "0.1.0",
+    "sha256": "00b4dc04679d3de435a6c91d494ef1960361a999a01a63b80978915bd621b7c5",
+    "schema": 6,
+    "runId": "37345501830"
+  },
+  "at": "2026-10-06T13:37:05.6641567Z",
+  "sourceSha": "acb280dbe73c4b6c4b8ede81f8523516d9769cc9"
+}

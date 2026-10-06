@@ -1,0 +1,20 @@
+{
+  "mode": "local-anonymous-http-contract",
+  "provider": "toncenter",
+  "sourceSha": "acb280dbe73c4b6c4b8ede81f8523516d9769cc9",
+  "at": "2026-10-06T13:31:25.819664+00:00",
+  "requests": 2,
+  "checks": [
+    {
+      "name": "accountStates",
+      "result": "PASS",
+      "detail": "1 rows; exact integer balance strings; no API key/header supplied"
+    },
+    {
+      "name": "jetton/wallets",
+      "result": "PASS",
+      "detail": "119 rows; exact integer balance strings; no API key/header supplied"
+    }
+  ],
+  "limits": "HTTP contract probe only; adapter verification with key is in GitHub Actions. No full history claim."
+}

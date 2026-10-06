@@ -1,0 +1,23 @@
+   Compiling portfolio-store v0.1.0 (/workspace/CoinControl/crates/portfolio-store)
+   Compiling portfolio-providers v0.1.0 (/workspace/CoinControl/crates/portfolio-providers)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.19s
+     Running tests/http_failures.rs (target/debug/deps/http_failures-87b0161c3cf61ff9)
+
+running 1 test
+test reserve_http_errors_do_not_echo_short_credentials ... FAILED
+
+failures:
+
+---- reserve_http_errors_do_not_echo_short_credentials stdout ----
+
+thread 'reserve_http_errors_do_not_echo_short_credentials' (129277) panicked at crates/portfolio-providers/tests/http_failures.rs:369:9:
+blockscout echoed a credential
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    reserve_http_errors_do_not_echo_short_credentials
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `-p portfolio-providers --test http_failures`

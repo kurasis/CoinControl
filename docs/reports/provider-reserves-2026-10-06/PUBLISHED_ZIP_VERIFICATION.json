@@ -1,0 +1,49 @@
+{
+  "at": "2026-10-06T13:57:59.861143+00:00",
+  "publisherRunId": 37474555540,
+  "filename": "CoinControl-0.1.6-windows-x64.zip",
+  "sizeBytes": 8108206,
+  "sha256": "2180e9be116c5b77ef627f2603abe241ad97a6cde56a935136a0c44442f1649f",
+  "checks": [
+    {
+      "name": "External ZIP checksum",
+      "result": "PASS"
+    },
+    {
+      "name": "ZIP CRC",
+      "result": "PASS"
+    },
+    {
+      "name": "Exact four entries",
+      "result": "PASS"
+    },
+    {
+      "name": "Internal checksum: Portfolio Desk_0.1.6_x64-setup.exe",
+      "result": "PASS"
+    },
+    {
+      "name": "Internal checksum: README.txt",
+      "result": "PASS"
+    },
+    {
+      "name": "Internal checksum: BUILD_INFO.json",
+      "result": "PASS"
+    },
+    {
+      "name": "Exact tested source and CI",
+      "result": "PASS"
+    },
+    {
+      "name": "Version/platform/prerelease",
+      "result": "PASS"
+    },
+    {
+      "name": "Inspected installer payload matches ZIP",
+      "result": "PASS"
+    },
+    {
+      "name": "Reserve instructions included",
+      "result": "PASS"
+    }
+  ]
+}

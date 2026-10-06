@@ -1,6 +1,27 @@
 # Verification report — 2026-10-06
 
-## Current 0.1.5 verification
+## Current 0.1.6 verification
+
+Automatic provider reserves are merged in main. Exact application source [acb280dbe73c4b6c4b8ede81f8523516d9769cc9](https://github.com/kurasis/CoinControl/commit/acb280dbe73c4b6c4b8ede81f8523516d9769cc9), [CI 37471182519](https://github.com/kurasis/CoinControl/actions/runs/37471182519), attempt 2: **six application/build jobs passed; the live job failed on external API restrictions**. The installer retry retained the same source and every assertion after a failure launching pinned previous 0.1.0, before any upgrade. Full [sanitized reports, failure history and native screenshot](docs/reports/provider-reserves-2026-10-06/README.md).
+
+| Scope                                   | Result                                                                                                                            |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Static/offline/build/bindings           | PASS; 172 deterministic Rust / 37 frontend tests                                                                                  |
+| Browser with mock IPC                   | PASS; 24 combinations, 12 pages, 2 panels, bounded 10000-row table                                                                |
+| Native Windows / actual display scaling | 26 PASS; recovery, independent source status, network console and bounded public reads                                            |
+| Production upgrade / EXE inspection     | 11 / 64 PASS                                                                                                                      |
+| Installed startup / large UI / CSV      | 12 PASS; normal 1567.90 ms, offline 969.50 / 823.00 / 840.50 ms; unchanged ≤2000 ms target                                        |
+| Release Store load, Linux and Windows   | PASS; 50 accounts / 500 assets / 100000 normalized legs; cached query p95 <300 ms                                                 |
+| New live reserves                       | PASS: mempool, PublicNode, Blockscout free ETH/ARB/OP, Etherscan ETH/ARB/POL, TON Center; engine budget-to-reserve routing passed |
+| dRPC / Chainstack                       | Five EVM chains passed; BNB throttled. Chainstack Solana credential rejected with 401; needs its mainnet node endpoint            |
+| Existing live services                  | Helius/Alchemy Ethereum passed; four other Alchemy mainnets remain blocked by 403 and Zerion suites by 429                        |
+| Physical Windows 11                     | BLOCKED; hosted Windows Server is separate evidence                                                                               |
+
+Reserves keep cached history, fees and cost-basis data. Non-BTC reserves expose balance-only partial coverage, exact observed amounts and stale omitted assets. Keyless public quotes are supported; keys stay in the OS credential store and are not included in builds. [Routing and free-plan contracts](docs/PROVIDER_MIRRORS.md).
+
+[Download Windows x64 ZIP — v0.1.6](https://github.com/kurasis/CoinControl/releases/download/v0.1.6/CoinControl-0.1.6-windows-x64.zip). [Publisher 37474555540](https://github.com/kurasis/CoinControl/actions/runs/37474555540) passed, using the exact inspected installer and tested application payload. Re-downloaded ZIP CRC, four contents, internal/external checksums and source/installer matching passed. SHA-256: `2180e9be116c5b77ef627f2603abe241ad97a6cde56a935136a0c44442f1649f` (8108206 bytes). [Build manifest](docs/reports/provider-reserves-2026-10-06/BUILD_INFO.json) · [verification](docs/reports/provider-reserves-2026-10-06/PUBLISHED_ZIP_VERIFICATION.json). This remains an unsigned prerelease; API and physical Windows 11 gates above are explicit.
+
+## Historical 0.1.5 verification
 
 [Sync status and console PR #16](https://github.com/kurasis/CoinControl/pull/16) is merged. Exact tested application code: [a1492978c4adf962dde4ec1af7a7e788c5495845](https://github.com/kurasis/CoinControl/commit/a1492978c4adf962dde4ec1af7a7e788c5495845), [CI 37449823930](https://github.com/kurasis/CoinControl/actions/runs/37449823930). **Six application/build jobs passed; the live job failed on existing Alchemy 403 and Zerion 429 gates.** Historical 0.1.4 evidence below remains source-specific.
 

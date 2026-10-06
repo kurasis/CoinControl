@@ -1,0 +1,29 @@
+{
+  "provider": "helius",
+  "started_at": 1791293415,
+  "duration_ms": 919,
+  "requests": 5,
+  "endpoints": ["getBalance/getTokenAccountsByOwner", "getTransactionsForAddress"],
+  "checks": [
+    {
+      "name": "SOL and SPL holdings",
+      "result": "PASS",
+      "detail": "814 distinct identities; finalized slot 453915520"
+    },
+    {
+      "name": "full related-account history",
+      "result": "PASS",
+      "detail": "20 normalized transactions"
+    },
+    {
+      "name": "keyset pagination",
+      "result": "PASS",
+      "detail": "20 second-page transactions; no duplicate signatures"
+    },
+    {
+      "name": "bounded credits",
+      "result": "PASS",
+      "detail": "23 estimated credits; ceiling 5000"
+    }
+  ]
+}
