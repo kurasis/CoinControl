@@ -2002,6 +2002,54 @@ impl Store {
         Ok(out)
     }
 
+    /// Exact, compact lot inputs for valuation only. Identical decimal strings
+    /// are counted by SQLite, then multiplied in Rust: SQL SUM would coerce
+    /// monetary text to floating point. No FIFO identity/order is needed here.
+    /// Detailed lot/audit views continue to use `scope_lots`.
+    pub(crate) async fn scope_valuation_lots(
+        &self,
+        accounts: &BTreeSet<String>,
+    ) -> Result<BTreeMap<(String, String), Vec<Lot>>> {
+        if accounts.is_empty() {
+            return Ok(BTreeMap::new());
+        }
+        let mut query = sqlx::QueryBuilder::<sqlx::Sqlite>::new(
+            "SELECT account_id, asset_id, remaining_quantity, remaining_basis_usd,
+                    basis_kind, COUNT(*) AS copies
+             FROM lots WHERE remaining_quantity != '0' AND account_id IN (",
+        );
+        let mut ids = query.separated(",");
+        for account in accounts {
+            ids.push_bind(account);
+        }
+        ids.push_unseparated(
+            ") GROUP BY account_id, asset_id, remaining_quantity, remaining_basis_usd, basis_kind",
+        );
+        let rows = query.build().fetch_all(&self.pool).await?;
+        let mut out: BTreeMap<(String, String), Vec<Lot>> = BTreeMap::new();
+        for row in rows {
+            let account: String = row.get("account_id");
+            let asset: String = row.get("asset_id");
+            let copies = Dec::from(row.get::<i64, _>("copies"));
+            out.entry((account.clone(), asset.clone()))
+                .or_default()
+                .push(Lot {
+                    id: 0,
+                    account,
+                    asset,
+                    quantity: parse_dec(&row.get::<String, _>("remaining_quantity"))? * &copies,
+                    basis_usd: parse_opt(&row.get("remaining_basis_usd"))?
+                        .map(|basis| basis * &copies),
+                    basis_kind: parse_basis_kind(&row.get::<String, _>("basis_kind")),
+                    acquired: order(0),
+                    arrived: order(0),
+                    source_event: String::new(),
+                    parent: None,
+                });
+        }
+        Ok(out)
+    }
+
     /// Remaining lots of the scope: `(account, asset) -> lots`.
     pub(crate) async fn scope_lots(
         &self,

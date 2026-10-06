@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "9f782af5aee62a644735c062e0280b7345716afa",
+  "ciRun": 37439865917,
+  "ciUrl": "https://github.com/kurasis/CoinControl/actions/runs/37439865917",
+  "pr": 11,
+  "date": "2026-10-06",
+  "scope": "Read-only provider contracts; keys supplied by GitHub Actions Secrets. No secret values or full authenticated URLs. JSON values preserved; formatting may be normalized.",
+  "earlierRuns": [
+    {
+      "id": 37436488521,
+      "source": "47a41b9f0629ab57bf26d300822967a39b3849eb",
+      "outcome": "Helius holdings/two history pages PASS; Alchemy Ethereum index PASS, Base HTTP 403."
+    },
+    {
+      "id": 37438412115,
+      "source": "77d663b1bc0ddc7aacbbb203173fa673d7ad44b6",
+      "outcome": "Alchemy Ethereum known payment/fee, USDC/index PASS; Base HTTP 403. Helius minimum-context-slot error -32016; bounded retry then implemented and controlled regression passed."
+    }
+  ],
+  "initialProductionLoad": {
+    "result": "FAIL",
+    "passedChecks": 11,
+    "failedChecks": 1,
+    "firstNormalUsefulMs": 2124.400146484375,
+    "unchangedGateMs": 2000,
+    "report": "INITIAL_NATIVE_LOAD_REPORT.json",
+    "note": "Historical failure preserved before compact valuation fix."
+  }
+}

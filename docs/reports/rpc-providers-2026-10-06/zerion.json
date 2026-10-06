@@ -1,0 +1,14 @@
+{
+  "provider": "zerion",
+  "started_at": 1791277290,
+  "duration_ms": 0,
+  "requests": 0,
+  "endpoints": ["positions"],
+  "checks": [
+    {
+      "name": "Suite completion",
+      "result": "FAIL",
+      "detail": "Provider request aborted; consult sanitized test output for status"
+    }
+  ]
+}
