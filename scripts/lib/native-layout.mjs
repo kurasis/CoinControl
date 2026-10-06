@@ -158,6 +158,57 @@ return {width:r.width,height:r.height,bodyOverflow:b.scrollWidth>b.clientWidth+2
     report.panelLayouts ??= [];
     report.panelLayouts.push({ scenario: name, panel, ...geometry, keyboard: "PASS" });
   }
+  if (!report.chartPrivacy && report.chartData?.length) {
+    await ui.route("/settings");
+    await until(() => ui.execute("return Boolean(document.querySelector('#privacy'));"));
+    const original = await ui.execute("return document.querySelector('#privacy').checked;");
+    try {
+      if (!original) await ui.execute("document.querySelector('#privacy').click();return true;");
+      await until(() => ui.execute("return document.querySelector('#privacy').checked;"));
+      await ui.route("/");
+      await until(() =>
+        ui.execute("return Boolean(document.querySelector('.chart-data summary'));"),
+      );
+      await ui.execute("document.querySelector('.chart-data summary').focus();return true;");
+      await ui.key("\uE007");
+      const privateValues = await ui.execute(
+        "return [...document.querySelectorAll('.chart-data tbody td.num')].map(e=>e.textContent.trim());",
+      );
+      if (!privateValues.length || privateValues.some((v) => v !== "•••••" && v !== "—"))
+        throw new Error("Chart observations expose private values");
+      await ui.route("/wallets");
+      await ready(ui);
+      await ui.route("/");
+      await ready(ui);
+      const asset = await ui.execute(
+        "return document.querySelector('a[href^=\"#/assets/\"]')?.getAttribute('href').slice(1);",
+      );
+      await ui.route(asset);
+      await until(() =>
+        ui.execute("return Boolean(document.querySelector('.chart-data tbody td.num'));"),
+      );
+      const publicValues = await ui.execute(
+        "return [...document.querySelectorAll('.chart-data tbody td.num')].map(e=>e.textContent.trim());",
+      );
+      if (publicValues.every((v) => v === "•••••" || v === "—"))
+        throw new Error("Privacy incorrectly hid public market prices");
+      report.chartPrivacy = {
+        result: "PASS",
+        privateObservations: privateValues.length,
+        publicPrices: publicValues.length,
+      };
+    } finally {
+      await ui.route("/settings");
+      await until(() => ui.execute("return Boolean(document.querySelector('#privacy'));"));
+      await ui.execute(
+        "const e=document.querySelector('#privacy');if(e.checked!==arguments[0])e.click();return true;",
+        [original],
+      );
+      await until(() =>
+        ui.execute("return document.querySelector('#privacy').checked===arguments[0];", [original]),
+      );
+    }
+  }
 }
 
 export async function verifyDisplayScaling(ui, record, report) {
