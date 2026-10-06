@@ -12,6 +12,10 @@ const report = {
   mode: "browser-preview",
   note: "Chromium with mock demo IPC; no Windows, native IPC, physical monitor or OS DPI assertion.",
   nativeLikePolicyIdentityFixture: "ethereum:token:0x00000000000000000000000000000000000d3e30",
+  nativeLikeAccountAddressFixture:
+    "0:0000000000000000000000000000000000000000000000000000000000000001",
+  scrollbarFixture:
+    "Chromium hide-scrollbars default removed; real scrollbars participate in layout.",
   scenarios: [],
   checks: [],
 };
@@ -50,7 +54,11 @@ try {
       return false;
     }
   }, 20000);
-  browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
+  browser = await chromium.launch({
+    headless: true,
+    args: ["--no-sandbox"],
+    ignoreDefaultArgs: ["--hide-scrollbars"],
+  });
   report.environment = {
     os: process.platform,
     osVersion: release(),
@@ -87,6 +95,14 @@ try {
           e.textContent = `DEMO · ${id} · unverified`;
           e.title = id;
         }, report.nativeLikePolicyIdentityFixture);
+      }
+      if (path.startsWith("/accounts/")) {
+        await page.waitForSelector(".content p.meta .address");
+        await page.evaluate((address) => {
+          const e = document.querySelector(".content p.meta .address");
+          // Preserve privacy masking; the fixture supplies a full raw TON address.
+          if (!e.textContent.includes("•")) e.textContent = address;
+        }, report.nativeLikeAccountAddressFixture);
       }
     },
     screenshot: async (name) => {

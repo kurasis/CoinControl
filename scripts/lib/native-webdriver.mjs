@@ -85,10 +85,10 @@ export class NativeWebDriver {
     for (const key of Object.keys(environment))
       if (/^WEBVIEW2_(ADDITIONAL_BROWSER_ARGUMENTS|USER_DATA_FOLDER)$/i.test(key))
         delete environment[key];
-    if (process.env.E2E_WEBVIEW2_POLICY !== "1") {
-      environment.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = `--remote-debugging-port=${this.debugPort}`;
-      environment.WEBVIEW2_USER_DATA_FOLDER = this.webviewDirectory;
-    }
+    // Keep documented child-process options aligned with per-app policy. Older
+    // runtimes may consume different documented override mechanisms.
+    environment.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = `--remote-debugging-port=${this.debugPort} --remote-debugging-address=127.0.0.1`;
+    environment.WEBVIEW2_USER_DATA_FOLDER = this.webviewDirectory;
     this.app = spawn(this.application, [], {
       // Official external WebView2 options, applied via per-app policy or environment.
       env: environment,
