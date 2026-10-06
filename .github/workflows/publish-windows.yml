@@ -1,0 +1,132 @@
+name: Publish verified Windows ZIP
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Completed main CI run with passing Windows build and production checks"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-windows-zip
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Require a verified production main build
+        id: source
+        uses: actions/github-script@v7
+        env:
+          BUILD_RUN_ID: ${{ inputs.run_id }}
+        with:
+          script: |
+            const id = process.env.BUILD_RUN_ID;
+            if (!/^\d+$/.test(id)) throw new Error('Invalid CI run ID');
+            const { owner, repo } = context.repo;
+            const { data: run } = await github.rest.actions.getWorkflowRun({ owner, repo, run_id: id });
+            if (run.name !== 'CI' || run.event !== 'push' || run.head_branch !== 'main' || run.status !== 'completed') {
+              throw new Error('Select a completed main push CI run');
+            }
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, { owner, repo, run_id: id });
+            for (const name of [
+              'Checks and offline tests (Linux)',
+              'Windows NSIS installer (unsigned)',
+              'Windows native recovery and public BTC scenarios',
+              'Production native startup and 100000-leg UI/import',
+              'Cached load measurements (ubuntu-24.04)',
+              'Cached load measurements (windows-latest)',
+            ]) {
+              if (!jobs.some(job => job.name === name && job.conclusion === 'success')) {
+                throw new Error('Required build verification missing: ' + name);
+              }
+            }
+            core.setOutput('sha', run.head_sha);
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: portfolio-desk-windows-nsis-unsigned
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: target/publish/installer
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-release-evidence
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: target/publish/release-report
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-native-load-evidence
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: target/publish/load-report
+
+      - name: Package and verify ZIP and checksums
+        env:
+          BUILD_RUN_ID: ${{ inputs.run_id }}
+          BUILD_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          python3 scripts/package-windows-release.py \
+            --run-id "$BUILD_RUN_ID" --build-sha "$BUILD_SHA" \
+            --installer target/publish/installer \
+            --release-report target/publish/release-report \
+            --load-report target/publish/load-report \
+            --output target/publish/output
+
+      - name: Upload assets and publish prerelease
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const dir = 'target/publish/output';
+            const info = JSON.parse(fs.readFileSync(dir + '/BUILD_INFO.json', 'utf8'));
+            const tag = 'v' + info.version;
+            const releases = await github.paginate(github.rest.repos.listReleases, { owner, repo });
+            let release = releases.find(r => r.tag_name === tag);
+            if (release && !release.draft) throw new Error('Published version already exists; preserve its assets');
+            if (!release) {
+              const created = await github.rest.repos.createRelease({ owner, repo, tag_name: tag,
+                target_commitish: info.buildSourceSha, draft: true, prerelease: true,
+                name: 'CoinControl ' + info.version + ' — Windows x64 (тестовая сборка)' });
+              release = created.data;
+            }
+            const files = fs.readdirSync(dir).filter(f => f.endsWith('.zip') || f.endsWith('.zip.sha256'));
+            if (files.length !== 2) throw new Error('Expected ZIP and SHA-256 file');
+            const existing = await github.paginate(github.rest.repos.listReleaseAssets, { owner, repo, release_id: release.id });
+            for (const name of files) {
+              const previous = existing.find(a => a.name === name);
+              if (previous) await github.rest.repos.deleteReleaseAsset({ owner, repo, asset_id: previous.id });
+              const data = fs.readFileSync(dir + '/' + name);
+              const uploaded = await github.rest.repos.uploadReleaseAsset({ owner, repo, release_id: release.id,
+                name, data, headers: { 'content-type': name.endsWith('.zip') ? 'application/zip' : 'text/plain',
+                  'content-length': data.length } });
+              if (uploaded.data.state !== 'uploaded' || uploaded.data.size !== data.length) {
+                throw new Error('Asset upload incomplete: ' + name);
+              }
+            }
+            const body = `Windows x64 ZIP с установщиком Portfolio Desk / CoinControl ${info.version}.
+
+            Скачайте ZIP, распакуйте и запустите setup EXE. Свои API-ключи добавьте в **Настройки → Источники данных**. Установщик не подписан; WebView2 загружается при необходимости. Ключей и пользовательских данных в архиве нет.
+
+            Проверки установщика, обновления и все production-сценарии прошли. Первый экран: ${(info.firstNormalUsefulScreenMs / 1000).toFixed(2)} с. Это тестовая версия: доступ Alchemy к четырём дополнительным mainnet, квота Zerion и физическая приёмка Windows 11 остаются отдельными ограничениями. Новые источники имеют частичное покрытие, показанное в приложении.
+
+            [Проверки сборки](${info.workflowUrl}) · [Полный отчёт](https://github.com/${owner}/${repo}/blob/main/TEST_REPORT.md)
+
+            Собранный код: ${info.buildSourceSha}. ZIP содержит инструкцию, сведения о сборке и контрольные суммы.`;
+            const published = await github.rest.repos.updateRelease({ owner, repo, release_id: release.id,
+              draft: false, prerelease: true, body: body.replace(/^ +/gm, '') });
+            await core.summary.addLink('Скачать Windows ZIP', published.data.html_url).write();
