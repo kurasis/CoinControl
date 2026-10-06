@@ -21,7 +21,9 @@ function ConfigureWebviewPolicy([string]$Option, [string]$Value) {
   $path = "HKCU:\Software\Policies\Microsoft\Edge\WebView2\$Option"
   $existed = Test-Path $path
   if (-not $existed) { New-Item $path -Force | Out-Null }
-  $key = Get-Item $path
+  # The PowerShell Registry provider returns a read-only handle from Get-Item.
+  $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($path.Substring(6), $true)
+  if (-not $key) { throw 'Cannot open the per-application WebView2 policy for writing' }
   try {
     foreach ($appId in @('com.coincontrol.portfoliodesk', 'portfolio-desk.exe')) {
       $hadValue = $key.GetValueNames() -contains $appId
@@ -45,14 +47,17 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Production native load acceptance failed; see NATIVE_LOAD_REPORT.json' }
 } finally {
   foreach ($saved in $webviewPolicies) {
-    $key = Get-Item $saved.path
+    $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($saved.path.Substring(6), $true)
+    if (-not $key) { throw 'Cannot reopen the per-application WebView2 policy for restoration' }
     try {
       if ($saved.hadValue) { $key.SetValue($saved.name, $saved.value, $saved.kind) }
       else { $key.DeleteValue($saved.name, $false) }
     } finally { $key.Close() }
   }
   foreach ($path in @($webviewPolicies | Where-Object { -not $_.keyExisted } | ForEach-Object path | Select-Object -Unique)) {
-    if ((Get-Item $path).GetValueNames().Count -eq 0) { Remove-Item $path }
+    $key = Get-Item $path
+    try { $empty = $key.GetValueNames().Count -eq 0 } finally { $key.Close() }
+    if ($empty) { Remove-Item $path }
   }
   $uninstaller = Get-ChildItem $installDir -Filter '*uninstall*.exe' | Select-Object -First 1
   if ($uninstaller) { Start-Process $uninstaller.FullName -ArgumentList @('/S') -Wait | Out-Null }

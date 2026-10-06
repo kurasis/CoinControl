@@ -49,12 +49,14 @@ try {
     $item = $items | Where-Object { $_.Current.Name -match ("^$Width\s*[x×]\s*$Height(?:\s|$)") } | Select-Object -First 1
     if (-not $item) { throw "Windows Settings does not offer physical $Width x $Height on this display" }
     $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+    $confirmed = $false
     for ($i = 0; $i -lt 20; $i++) {
       $buttons = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button))
       $keep = $buttons | Where-Object { $_.Current.Name -eq 'Keep changes' } | Select-Object -First 1
-      if ($keep) { $keep.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); break }
+      if ($keep) { $keep.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke(); $confirmed = $true; break }
       Start-Sleep -Milliseconds 250
     }
+    if (-not $confirmed) { throw 'Resolution change was not confirmed; Windows may revert it automatically' }
   }
   if ([DesktopPixels]::GetSystemMetrics(0) -ne $Width -or [DesktopPixels]::GetSystemMetrics(1) -ne $Height) { throw 'Physical screen readback differs from the selected resolution' }
   $result.width = $Width; $result.height = $Height

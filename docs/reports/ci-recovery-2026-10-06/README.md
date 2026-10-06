@@ -1,6 +1,6 @@
 # CI recovery baseline and local regression
 
-Baseline: main source `5a9f8f62db894b6f269d099bc48518dd80fd2830`, [CI 37373466945 attempt 2](https://github.com/kurasis/CoinControl/actions/runs/37373466945/attempts/2), 2026-10-06 UTC. Files with `BASELINE_` names are unchanged downloaded reports, not results of the fixes.
+Baseline: main source `5a9f8f62db894b6f269d099bc48518dd80fd2830`, [CI 37373466945 attempt 2](https://github.com/kurasis/CoinControl/actions/runs/37373466945/attempts/2), 2026-10-06 UTC. Files with `BASELINE_` names are downloaded reports with normalized formatting, not results of the fixes.
 
 - Five successful jobs: Linux checks/offline/browser; live providers; Windows installer; cached load on Linux and Windows.
 - Native Windows: 19 PASS, one BLOCKED invalid UI Automation method, one installer check skipped in this separate job.
