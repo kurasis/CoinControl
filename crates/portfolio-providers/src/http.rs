@@ -493,6 +493,12 @@ impl HttpClient {
             provider_message(&bytes)
         };
         let error = match status {
+            StatusCode::PAYMENT_REQUIRED => {
+                ProviderError::CapabilityUnavailable { provider, endpoint }
+            }
+            StatusCode::BAD_REQUEST if provider == "drpc" => {
+                ProviderError::CapabilityUnavailable { provider, endpoint }
+            }
             StatusCode::FORBIDDEN if matches!(provider, "alchemy" | "publicnode" | "drpc") => {
                 ProviderError::NetworkForbidden { provider, endpoint }
             }

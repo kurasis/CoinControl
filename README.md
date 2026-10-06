@@ -40,7 +40,8 @@ Settings → Data sources; release builds use the OS credential store.
 
 Both alternatives expose partial history/accounting limits. Existing foreign
 provider transactions are preserved rather than overwritten by partial data.
-No automatic fallback hides a rejected key or unavailable method.
+Automatic reserves preserve cached history and expose the original failure and
+partial balance coverage; see [provider reserves](docs/PROVIDER_MIRRORS.md).
 [Routing, request/credit budgets and verified official contracts](docs/PROVIDER_INTEGRATION.md).
 
 ## Chart data and accessibility

@@ -72,12 +72,14 @@ fn cap(
 ) -> NetworkCapability {
     let reserves: &[&str] = match network {
         NetworkId::Bitcoin => &["mempool"],
-        NetworkId::Ethereum | NetworkId::Arbitrum | NetworkId::Polygon => {
+        NetworkId::Ethereum | NetworkId::Arbitrum => {
             &["blockscout", "etherscan", "drpc", "publicnode"]
         }
-        NetworkId::Base | NetworkId::Optimism => &["blockscout", "drpc", "publicnode"],
+        NetworkId::Polygon => &["etherscan", "drpc", "publicnode"],
+        NetworkId::Optimism => &["blockscout", "drpc", "publicnode"],
+        NetworkId::Base => &["drpc", "publicnode"],
         NetworkId::Bsc => &["drpc", "publicnode"],
-        NetworkId::Solana => &["chainstack", "drpc", "publicnode"],
+        NetworkId::Solana => &["chainstack", "publicnode"],
         NetworkId::Tron => &["publicnode"],
         NetworkId::Ton => &["toncenter"],
     };

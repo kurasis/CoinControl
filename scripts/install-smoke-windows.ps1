@@ -42,6 +42,8 @@ function SamePortfolio($left, $right) {
 $installer = Get-ChildItem 'target/release/bundle/nsis/*.exe' | Select-Object -First 1
 $installDir = Join-Path $env:RUNNER_TEMP 'CoinControl-installed'
 $profile = Join-Path $env:APPDATA 'com.coincontrol.portfoliodesk/profiles/real.sqlite'
+$firewallName = "CoinControl-upgrade-offline-$env:GITHUB_RUN_ID"
+$firewallInstalled = $false
 $baselineHash = '00b4dc04679d3de435a6c91d494ef1960361a999a01a63b80978915bd621b7c5'
 try {
   if (-not $env:CI -or -not $env:RUNNER_TEMP) { throw 'Run only in the disposable Windows CI user profile' }
@@ -50,7 +52,11 @@ try {
   Record 'Pinned previous production artifact' ((Get-FileHash $PreviousInstaller -Algorithm SHA256).Hash.ToLowerInvariant() -eq $baselineHash) 'main f0603fd; CI 37345501830; SHA-256 verified before execution'
   Install (Resolve-Path $PreviousInstaller).Path
   $binary = Get-ChildItem $installDir -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
-  Record 'Install previous production 0.1.0' ($binary.VersionInfo.ProductVersion -match '^0\.1\.0(?:\.|$)') "version $($binary.VersionInfo.ProductVersion)"
+  # The synthetic migration fixture must never be refreshed by public chain data.
+  New-NetFirewallRule -Name $firewallName -DisplayName 'CoinControl isolated production upgrade fixture' -Direction Outbound -Program $binary.FullName -Action Block -Profile Any -ErrorAction Stop | Out-Null
+  $firewallInstalled = $true
+  Record 'Installer fixture network isolated' $true 'Program-specific outbound firewall rule; removed in finally; live API acceptance is separate'
+  Record 'Install previous production 0.1.0'  ($binary.VersionInfo.ProductVersion -match '^0\.1\.0(?:\.|$)') "version $($binary.VersionInfo.ProductVersion)"
   $empty = LaunchSnapshot 'upgrade-empty-baseline'
   Record 'Previous app creates an empty schema 6 portfolio' ($empty.schema -eq 6 -and $empty.integrity -eq 'ok' -and $empty.fingerprints.wallets.rows -eq 0) 'Production app creates and opens SQLite; no native-e2e feature'
   NodeCommand @('scripts/acceptance-fixture.mjs', 'seed', $profile)
@@ -75,6 +81,7 @@ try {
   $checks.Add(@{ name = 'Installer scenario'; result = 'FAIL'; detail = $_.Exception.Message })
 } finally {
   StopApplication
+  if ($firewallInstalled) { Remove-NetFirewallRule -Name $firewallName -ErrorAction Stop }
   @{ mode = 'windows-production-installer'; at = (Get-Date).ToUniversalTime().ToString('o'); sourceSha = $env:ACCEPTANCE_SOURCE_SHA; ciSha = $env:GITHUB_SHA; baseline = @{ version = '0.1.0'; schema = 6; sourceSha = 'f0603fde8a7f4e13d60509ee2c188ffe2486d136'; runId = '37345501830'; sha256 = $baselineHash }; targetVersion = $targetVersion; checks = $checks } | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $reportDir 'INSTALLER_REPORT.json')
 }
 $checks | Format-Table name, result, detail

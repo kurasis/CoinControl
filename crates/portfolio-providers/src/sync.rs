@@ -220,6 +220,7 @@ struct HistoryOutcome {
 type ProgressHook = Arc<dyn Fn(&str, u32, bool) + Send + Sync>;
 
 pub struct SyncEngine {
+    retry_transient_now: bool,
     progress_hook: Option<ProgressHook>,
     cancelled: Arc<AtomicBool>,
     store: Store,
@@ -237,6 +238,7 @@ impl SyncEngine {
             .take()
             .map(|a| a.with_metadata_store(store.clone()));
         SyncEngine {
+            retry_transient_now: false,
             progress_hook: None,
             cancelled: Arc::new(AtomicBool::new(false)),
             store,
@@ -247,6 +249,12 @@ impl SyncEngine {
         }
     }
 
+    /// Explicit user refresh may retry a connection/server failure immediately.
+    /// Provider throttling, credential/plan rejection and hard budgets remain respected.
+    pub fn with_transient_retry(mut self, retry: bool) -> Self {
+        self.retry_transient_now = retry;
+        self
+    }
     pub fn with_progress(mut self, hook: ProgressHook) -> Self {
         self.progress_hook = Some(hook);
         self
@@ -418,7 +426,7 @@ impl SyncEngine {
             };
             match self
                 .store
-                .provider_cooldown(provider, account.network)
+                .provider_cooldown_policy(provider, account.network, !self.retry_transient_now)
                 .await
             {
                 Ok(Some(until)) if until > now => {
@@ -501,6 +509,13 @@ impl SyncEngine {
                                 _ => 30,
                             };
                             cp.state.cooldown_until = Some(now.saturating_add(wait));
+                            cp.state.cooldown_transient = matches!(
+                                error,
+                                ProviderError::Timeout { .. }
+                                    | ProviderError::Network { .. }
+                                    | ProviderError::Server { .. }
+                                    | ProviderError::RpcUnavailable { .. }
+                            );
                             cp.state.cooldown_network_only =
                                 matches!(error, ProviderError::NetworkForbidden { .. })
                                     || !error.stops_provider();
