@@ -296,6 +296,13 @@ try {
   await native.screenshot("load-reopened");
 } catch (e) {
   try {
+    report.failureUi = await native.execute(
+      "return {route:location.hash,tables:[...document.querySelectorAll('tbody')].map(e=>({rowCount:e.dataset.rowCount??null,windowed:e.dataset.windowed??null,mounted:e.querySelectorAll('tr[data-index]').length})),loadMore:[...document.querySelectorAll('button')].filter(e=>e.textContent.trim()==='Load more').map(e=>({disabled:e.disabled})),dialog:Boolean(document.querySelector('.dialog'))};",
+    );
+  } catch {
+    /* Driver/startup failure can precede a usable renderer. */
+  }
+  try {
     await native.screenshot("failure");
   } catch {
     /* Preserve a missing-window failure. */

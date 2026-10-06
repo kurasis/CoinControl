@@ -1,5 +1,5 @@
 # Exercise the Windows Display Settings UI. Never substitute browser zoom for OS DPI.
-param([int]$ApplicationPid, [int]$Percent = 0)
+param([int]$ApplicationPid, [int]$Percent = 0, [switch]$MeasureOnly)
 $ErrorActionPreference = 'Stop'
 if (-not $env:CI -or -not $env:RUNNER_TEMP) { throw 'Display changes are allowed only on the disposable CI desktop' }
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
@@ -20,6 +20,12 @@ public class DisplayMeasurement {
 $priorSettings = @(Get-Process SystemSettings -ErrorAction SilentlyContinue | ForEach-Object Id)
 $result = @{ requestedPercent = $Percent; result = 'BLOCKED'; originalPercent = $null; selectedPercent = $null; detail = '' }
 try {
+  if ($MeasureOnly) {
+    $dpi = [DisplayMeasurement]::GetDpiForWindow((Get-Process -Id $ApplicationPid).MainWindowHandle)
+    if ($dpi -ne [int](96 * $Percent / 100)) { throw 'HWND DPI changed before the settled physical measurement' }
+    $result.result = 'PASS'
+    $result.detail = 'Physical bounds measured after renderer DPI settled'
+  } else {
   Start-Process 'ms-settings:display'
   $settings = $null
   for ($attempt = 0; $attempt -lt 40; $attempt++) {
@@ -63,14 +69,27 @@ try {
   if ($dpi -ne [int](96 * $target / 100)) { throw 'Scale selection did not change application HWND DPI; logoff or a physical display may be required' }
   $result.result = 'PASS'
   $result.detail = 'Windows Settings selection and application HWND DPI agree'
+  }
 } catch {
   $result.detail = $_.Exception.Message
 } finally {
   $handle = (Get-Process -Id $ApplicationPid).MainWindowHandle
   $rect = New-Object DisplayMeasurement+Rect
   $info = New-Object DisplayMeasurement+MonitorInfo
-  $info.Size = [System.Runtime.InteropServices.Marshal]::SizeOf($info)
-  if (-not [DisplayMeasurement]::GetWindowRect($handle, [ref]$rect) -or -not [DisplayMeasurement]::GetMonitorInfo([DisplayMeasurement]::MonitorFromWindow($handle, 2), [ref]$info)) { throw 'Cannot measure application physical bounds and work area' }
+  $info.Size = [System.Runtime.InteropServices.Marshal]::SizeOf([type][DisplayMeasurement+MonitorInfo])
+  $previous = ''
+  $settled = 0
+  for ($attempt = 0; $attempt -lt 40; $attempt++) {
+    if (-not [DisplayMeasurement]::GetWindowRect($handle, [ref]$rect) -or -not [DisplayMeasurement]::GetMonitorInfo([DisplayMeasurement]::MonitorFromWindow($handle, 2), [ref]$info)) { throw 'Cannot measure application physical bounds and work area' }
+    $current = "$($rect.Left),$($rect.Top),$($rect.Right),$($rect.Bottom);$($info.Work.Left),$($info.Work.Top),$($info.Work.Right),$($info.Work.Bottom)"
+    $inside = $rect.Left -ge $info.Work.Left -and $rect.Top -ge $info.Work.Top -and $rect.Right -le $info.Work.Right -and $rect.Bottom -le $info.Work.Bottom
+    if ($inside -and $current -eq $previous) { $settled++ } else { $settled = 0 }
+    if ($settled -ge 2) { break }
+    $previous = $current
+    Start-Sleep -Milliseconds 100
+  }
+  $result.physicalBoundsSettled = $settled -ge 2
+  if ($MeasureOnly -and -not $result.physicalBoundsSettled) { $result.result = 'FAIL'; $result.detail = 'Native window did not settle inside the physical work area within four seconds' }
   $result.dpi = [DisplayMeasurement]::GetDpiForWindow($handle)
   $result.outerPhysical = @($rect.Left, $rect.Top, $rect.Right, $rect.Bottom)
   $result.workAreaPhysical = @($info.Work.Left, $info.Work.Top, $info.Work.Right, $info.Work.Bottom)

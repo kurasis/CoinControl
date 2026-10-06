@@ -70,6 +70,23 @@ pub fn fit_main<R: Runtime>(app: &impl Manager<R>, update_minimum: bool) {
     }
 }
 
+pub fn fit_after_scale<R: Runtime>(window: &tauri::Window<R>) {
+    fit_main(window, true);
+    let window = window.clone();
+    tauri::async_runtime::spawn(async move {
+        // Windows changes caption/border and taskbar metrics after WM_DPICHANGED.
+        // Recompute the minimum from the settled frame before constraining size;
+        // retaining the old-frame minimum can force the window outside the work area.
+        for delay_ms in [150, 350] {
+            tokio::time::sleep(std::time::Duration::from_millis(delay_ms)).await;
+            let update = window.clone();
+            if let Err(error) = window.run_on_main_thread(move || fit_main(&update, true)) {
+                tracing::warn!(%error, "could not schedule settled DPI window fit");
+            }
+        }
+    });
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

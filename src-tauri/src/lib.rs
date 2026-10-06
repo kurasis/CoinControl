@@ -91,7 +91,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::ScaleFactorChanged { .. }) {
-                window_geometry::fit_main(window, true);
+                window_geometry::fit_after_scale(window);
             } else if matches!(event, tauri::WindowEvent::Resized(_)) {
                 // Native size/minimum changes are queued; constrain the final decorated bounds.
                 window_geometry::fit_main(window, false);

@@ -14,6 +14,37 @@ public class DesktopPixels {
 [DesktopPixels]::SetThreadDpiAwarenessContext([IntPtr]::new(-4)) | Out-Null
 $prior = @(Get-Process SystemSettings -ErrorAction SilentlyContinue | ForEach-Object Id)
 $result = @{ result = 'BLOCKED'; method = 'Windows Settings UI Automation'; detail = '' }
+$result.originalWidth = [DesktopPixels]::GetSystemMetrics(0)
+$result.originalHeight = [DesktopPixels]::GetSystemMetrics(1)
+if ($Action -eq 'prepare') {
+  if ($result.originalWidth -ge 1920 -and $result.originalHeight -ge 1080) { $Width = $result.originalWidth; $Height = $result.originalHeight }
+  else { $Width = 1920; $Height = 1080 }
+}
+if ($Width -eq $result.originalWidth -and $Height -eq $result.originalHeight) {
+  $result.width = $Width; $result.height = $Height; $result.result = 'PASS'
+  $result.detail = 'Physical screen already matches the required mode'
+  $result | ConvertTo-Json -Depth 4 -Compress
+  exit 0
+}
+# Official Windows Server resolution command, when the image includes it.
+# Its result must still agree with actual physical screen metrics.
+$serverCommand = Get-Command Set-DisplayResolution -ErrorAction SilentlyContinue
+$result.serverCoreResolutionCommand = [bool]$serverCommand
+if ($serverCommand) {
+  try {
+    & $serverCommand -Width $Width -Height $Height -Force -ErrorAction Stop *> $null
+    for ($attempt = 0; $attempt -lt 20; $attempt++) {
+      if ([DesktopPixels]::GetSystemMetrics(0) -eq $Width -and [DesktopPixels]::GetSystemMetrics(1) -eq $Height) { break }
+      Start-Sleep -Milliseconds 100
+    }
+    if ([DesktopPixels]::GetSystemMetrics(0) -ne $Width -or [DesktopPixels]::GetSystemMetrics(1) -ne $Height) { throw 'Server resolution command did not change the physical screen to the requested mode' }
+    $result.width = $Width; $result.height = $Height; $result.result = 'PASS'
+    $result.method = 'Microsoft ServerCore Set-DisplayResolution'
+    $result.detail = 'Supported server resolution command verified against physical screen metrics'
+    $result | ConvertTo-Json -Depth 4 -Compress
+    exit 0
+  } catch { $result.serverCoreDetail = $_.Exception.Message }
+}
 try {
   Start-Process 'ms-settings:display'
   $settings = $null
@@ -31,17 +62,13 @@ try {
       if ($combo.TryGetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern, [ref]$selection)) {
         $selected = @($selection.Current.GetSelection())
         if ($selected.Count -eq 1 -and $selected[0].Current.Name -match '^(\d+)\s*[x×]\s*(\d+)') {
-          $resolution = $combo; $result.originalWidth = [int]$Matches[1]; $result.originalHeight = [int]$Matches[2]; break
+          $resolution = $combo; break
         }
       }
     }
     if (-not $resolution) { Start-Sleep -Milliseconds 250 }
   }
   if (-not $resolution) { throw 'No accessible physical resolution selector on this hosted display' }
-  if ($Action -eq 'prepare') {
-    if ($result.originalWidth -ge 1920 -and $result.originalHeight -ge 1080) { $Width = $result.originalWidth; $Height = $result.originalHeight }
-    else { $Width = 1920; $Height = 1080 }
-  }
   if ($Width -ne $result.originalWidth -or $Height -ne $result.originalHeight) {
     $resolution.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern).Expand()
     Start-Sleep -Milliseconds 300

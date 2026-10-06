@@ -212,7 +212,7 @@ return {width:r.width,height:r.height,bodyOverflow:b.scrollWidth>b.clientWidth+2
 }
 
 export async function verifyDisplayScaling(ui, record, report) {
-  const change = (percent) => {
+  const change = (percent, measureOnly = false) => {
     const response = spawnSync(
       "powershell.exe",
       [
@@ -223,6 +223,7 @@ export async function verifyDisplayScaling(ui, record, report) {
         String(ui.pid()),
         "-Percent",
         String(percent),
+        ...(measureOnly ? ["-MeasureOnly"] : []),
       ],
       { encoding: "utf8", timeout: 60000 },
     );
@@ -247,8 +248,13 @@ export async function verifyDisplayScaling(ui, record, report) {
       await until(() =>
         ui.execute("return Math.abs(devicePixelRatio-arguments[0])<0.01;", [percent / 100]),
       );
-      const [l, t, r, b] = result.outerPhysical;
-      const [wl, wt, wr, wb] = result.workAreaPhysical;
+      // Selection changes HWND DPI before queued frame/minimum/work-area updates.
+      // Measure again after WebView2 observes the actual OS scale.
+      const measured = change(percent, true);
+      result.settledMeasurement = measured;
+      if (measured.result !== "PASS") throw new Error(measured.detail);
+      const [l, t, r, b] = measured.outerPhysical;
+      const [wl, wt, wr, wb] = measured.workAreaPhysical;
       if (l < wl || t < wt || r > wr || b > wb)
         throw new Error(`Scaled window exceeds physical work area at ${percent}%`);
       await verifyNativePages(ui, { name: `os-scale-${percent}`, capture: true }, report);

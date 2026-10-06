@@ -237,6 +237,8 @@ jobs:
       - name: Install Rust toolchain
         run: rustup show active-toolchain || rustup toolchain install
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - uses: actions/download-artifact@v4
         with:
           name: portfolio-desk-windows-nsis-unsigned
