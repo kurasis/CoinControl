@@ -124,6 +124,7 @@ function DataSources() {
   return (
     <>
       <p className="notice meta">{t("sources.intro")}</p>
+      <p className="meta">{t("sources.routing")}</p>
       <div className="source-grid">
         {(providers.data ?? []).map((p) => (
           <SourceCard key={p.id} provider={p} />
@@ -258,6 +259,9 @@ function SourceCard({ provider: p }: { provider: ProviderStatus }) {
       )}
       <div className="row meta">
         <span>{t("sources.requestsToday", { count: p.requests_today })}</span>
+        {p.estimated_credits_today > 0 && (
+          <span>{t("sources.estimatedCreditsToday", { count: p.estimated_credits_today })}</span>
+        )}
         <div className="toolbar-spacer" />
         {p.key_url && (
           <button

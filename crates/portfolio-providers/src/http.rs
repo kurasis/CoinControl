@@ -53,6 +53,8 @@ impl Default for HttpConfig {
 pub struct Budget {
     limit: Option<u32>,
     used: AtomicU32,
+    credit_limit: Option<u32>,
+    credits: AtomicU32,
     stopped: StdMutex<Option<ProviderError>>,
     last_start: Mutex<Option<Instant>>,
 }
@@ -66,9 +68,34 @@ impl Budget {
         Arc::new(Budget {
             limit: Some(limit),
             used: AtomicU32::new(0),
+            credit_limit: None,
+            credits: AtomicU32::new(0),
             stopped: StdMutex::new(None),
             last_start: Mutex::new(None),
         })
+    }
+
+    pub fn limited_with_credits(requests: u32, credits: u32) -> Arc<Self> {
+        Arc::new(Budget {
+            limit: Some(requests),
+            credit_limit: Some(credits),
+            ..Budget::default()
+        })
+    }
+
+    fn take_cost(&self, cost: u32) -> bool {
+        self.credits
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |used| {
+                let next = used.checked_add(cost)?;
+                self.credit_limit
+                    .is_none_or(|limit| next <= limit)
+                    .then_some(next)
+            })
+            .is_ok()
+    }
+
+    pub fn credits(&self) -> u32 {
+        self.credits.load(Ordering::Relaxed)
     }
 
     /// Reserves one request; `false` when the budget is spent.
@@ -107,6 +134,7 @@ impl Budget {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Usage {
     pub requests: u32,
+    pub credits: u32,
     pub last_error: Option<String>,
 }
 
@@ -198,8 +226,15 @@ impl HttpClient {
         self.usage.lock().expect("usage lock").last_error = Some(error.to_string());
     }
 
+    pub fn record_rpc_failure(&self, error: &ProviderError) {
+        if error.stops_provider() {
+            self.budget.stop(error);
+        }
+        self.note_failure(error);
+    }
+
     pub async fn get(&self, endpoint: &'static str, url: Url) -> Result<Body, ProviderError> {
-        self.send(endpoint, Method::GET, url, None).await
+        self.send(endpoint, Method::GET, url, None, 0).await
     }
 
     pub async fn post_json(
@@ -208,7 +243,18 @@ impl HttpClient {
         url: Url,
         body: &serde_json::Value,
     ) -> Result<Body, ProviderError> {
-        self.send(endpoint, Method::POST, url, Some(body)).await
+        self.post_json_cost(endpoint, url, body, 0).await
+    }
+
+    pub async fn post_json_cost(
+        &self,
+        endpoint: &'static str,
+        url: Url,
+        body: &serde_json::Value,
+        cost: u32,
+    ) -> Result<Body, ProviderError> {
+        self.send(endpoint, Method::POST, url, Some(body), cost)
+            .await
     }
 
     async fn pace(&self) {
@@ -228,6 +274,7 @@ impl HttpClient {
         method: Method,
         url: Url,
         json: Option<&serde_json::Value>,
+        cost: u32,
     ) -> Result<Body, ProviderError> {
         let provider = self.provider;
         let mut attempt = 0u32;
@@ -237,7 +284,14 @@ impl HttpClient {
                 return Err(error);
             }
             self.pace().await;
+            if !self.budget.take_cost(cost) {
+                let error = ProviderError::BudgetExhausted { provider };
+                self.budget.stop(&error);
+                self.note_failure(&error);
+                return Err(error);
+            }
             if !self.budget.try_take() {
+                self.budget.credits.fetch_sub(cost, Ordering::Relaxed);
                 let error = self
                     .budget
                     .stopped_error()
@@ -245,6 +299,7 @@ impl HttpClient {
                 self.note_failure(&error);
                 return Err(error);
             }
+            self.usage.lock().expect("usage lock").credits += cost;
             let mut request = self.client.request(method.clone(), url.clone());
             if let Some(body) = json {
                 request = request.json(body);

@@ -26,6 +26,7 @@ use portfolio_providers::tonapi::{self, TonApi};
 use portfolio_providers::trongrid::{self, TronGrid};
 use portfolio_providers::zerion::{self, Positions, Window, Zerion};
 use portfolio_providers::{Providers, SyncEngine, SyncOptions};
+use portfolio_providers::{alchemy::Alchemy, helius::Helius};
 use portfolio_store::ingest::{FeeAttribution, TxStatus};
 use portfolio_store::{ChartRange, Coverage, ProfileKind, Scope, Store};
 use serde::Serialize;
@@ -59,7 +60,11 @@ fn budget(provider: &'static str) -> Arc<Budget> {
         .lock()
         .unwrap()
         .entry(provider)
-        .or_insert_with(|| Budget::limited(max))
+        .or_insert_with(|| match provider {
+            "helius" => Budget::limited_with_credits(max, 5_000),
+            "alchemy" => Budget::limited_with_credits(max, 10_000),
+            _ => Budget::limited(max),
+        })
         .clone()
 }
 fn budget_usage() -> std::collections::BTreeMap<&'static str, u32> {
@@ -69,6 +74,16 @@ fn budget_usage() -> std::collections::BTreeMap<&'static str, u32> {
         .unwrap()
         .iter()
         .map(|(p, b)| (*p, b.used()))
+        .collect()
+}
+
+fn credit_usage() -> std::collections::BTreeMap<&'static str, u32> {
+    BUDGETS
+        .get_or_init(Default::default)
+        .lock()
+        .unwrap()
+        .iter()
+        .map(|(p, b)| (*p, b.credits()))
         .collect()
 }
 
@@ -152,6 +167,11 @@ impl Report {
             serde_json::to_string_pretty(&budget_usage()).unwrap(),
         )
         .unwrap();
+        std::fs::write(
+            dir.join("estimated-credits.json"),
+            serde_json::to_string_pretty(&credit_usage()).unwrap(),
+        )
+        .unwrap();
         let file = dir.join(format!("{}.json", self.provider));
         std::fs::write(&file, serde_json::to_string_pretty(&self).unwrap()).unwrap();
         let failed: Vec<_> = self
@@ -196,11 +216,146 @@ impl Drop for Report {
         if let Ok(json) = serde_json::to_string_pretty(&usage) {
             let _ = std::fs::write(dir.join("usage.json"), json);
         }
+        if let Ok(json) = serde_json::to_string_pretty(&credit_usage()) {
+            let _ = std::fs::write(dir.join("estimated-credits.json"), json);
+        }
     }
 }
 
 fn s(v: &Value) -> &str {
     v.as_str().expect("string in manifest")
+}
+
+#[tokio::test]
+async fn helius_live() {
+    if !selected("helius") {
+        return;
+    }
+    let t = targets();
+    let b = budget("helius");
+    let before = b.used();
+    let api = Helius::new(&key("HELIUS_API_KEY"), b.clone()).unwrap();
+    let mut r = Report::new("helius");
+    let address = s(&t["solana"]["address"]);
+    r.endpoint("getBalance/getTokenAccountsByOwner");
+    let holdings = api.holdings(address).await.unwrap();
+    r.check(
+        "SOL and SPL holdings",
+        holdings
+            .assets
+            .iter()
+            .any(|(a, raw)| a.contract.is_none() && *raw > BigInt::from(0))
+            && holdings.assets.iter().any(|(a, _)| a.contract.is_some()),
+        format!(
+            "{} distinct identities; finalized slot {}",
+            holdings.assets.len(),
+            holdings.slot
+        ),
+    );
+    r.endpoint("getTransactionsForAddress");
+    let first = api.transactions(address, None).await.unwrap();
+    r.check(
+        "full related-account history",
+        !first.txs.is_empty(),
+        format!("{} normalized transactions", first.txs.len()),
+    );
+    let cursor = first
+        .next
+        .as_deref()
+        .expect("public target has multiple pages");
+    let second = api.transactions(address, Some(cursor)).await.unwrap();
+    let hashes: BTreeSet<_> = first.txs.iter().map(|tx| &tx.hash).collect();
+    r.check(
+        "keyset pagination",
+        !second.txs.is_empty() && second.txs.iter().all(|tx| !hashes.contains(&tx.hash)),
+        format!(
+            "{} second-page transactions; no duplicate signatures",
+            second.txs.len()
+        ),
+    );
+    r.check(
+        "bounded credits",
+        b.credits() <= 5_000,
+        format!("{} estimated credits; ceiling 5000", b.credits()),
+    );
+    r.finish(b.used() - before);
+}
+
+#[tokio::test]
+async fn alchemy_live() {
+    if !selected("alchemy") {
+        return;
+    }
+    let t = targets();
+    let b = budget("alchemy");
+    let before = b.used();
+    let api = Alchemy::new(&key("ALCHEMY_API_KEY"), b.clone()).unwrap();
+    let mut r = Report::new("alchemy");
+    let address = s(&t["ethereum"]["address"]);
+    for n in portfolio_providers::alchemy::NETWORKS {
+        r.endpoint("eth_chainId/eth_getBalance/alchemy_getAssetTransfers");
+        api.check_chain(n).await.unwrap();
+        let balance = api.native_balance(n, address).await.unwrap();
+        let page = api.transfer_index(n, address, true, None).await.unwrap();
+        let rows = page["transfers"].as_array().unwrap();
+        r.check(
+            &format!("{} mainnet balance/history", n.as_str()),
+            !rows.is_empty() && balance >= BigInt::from(0),
+            format!(
+                "correct chain ID; {} bounded transfer-index rows",
+                rows.len()
+            ),
+        );
+        if n == NetworkId::Ethereum {
+            let cursor = page["pageKey"]
+                .as_str()
+                .expect("public target has multiple pages");
+            let next = api
+                .transfer_index(n, address, true, Some(cursor))
+                .await
+                .unwrap();
+            let ids: BTreeSet<_> = rows
+                .iter()
+                .map(|v| v["uniqueId"].as_str().unwrap())
+                .collect();
+            let rows2 = next["transfers"].as_array().unwrap();
+            r.check(
+                "Ethereum index pagination",
+                !rows2.is_empty()
+                    && rows2
+                        .iter()
+                        .all(|v| !ids.contains(v["uniqueId"].as_str().unwrap())),
+                format!("{} second-page rows", rows2.len()),
+            );
+        }
+    }
+    r.endpoint("eth_getTransactionReceipt/eth_getTransactionByHash");
+    let known = &t["ethereum"]["known_transactions"][0];
+    let tx = api
+        .transaction(
+            NetworkId::Ethereum,
+            &address.to_ascii_lowercase(),
+            s(&known["hash"]),
+            parse_rfc3339(s(&known["mined_at"])).unwrap(),
+        )
+        .await
+        .unwrap();
+    r.check(
+        "known native payment and exact fee",
+        tx.legs.iter().any(|l| {
+            l.asset.contract.is_none() && l.signed_raw.to_string() == "-79000000000000000000"
+        }) && tx
+            .fee
+            .as_ref()
+            .is_some_and(|f| f.raw.to_string() == "6151018965000"),
+        "independent known 79 ETH principal; exact sender receipt fee",
+    );
+    r.check(
+        "bounded CU",
+        b.credits() <= 10_000,
+        format!("{} conservative estimated CU; ceiling 10000", b.credits()),
+    );
+    r.finish(b.used() - before);
 }
 
 #[tokio::test]

@@ -115,7 +115,7 @@ pub const PROVIDERS: &[ProviderSpec] = &[
     ProviderSpec {
         id: "helius",
         name: "Helius",
-        role: ProviderRole::Supplemental,
+        role: ProviderRole::AccountData,
         key: KeyRequirement::Optional,
         networks: &[NetworkId::Solana],
         docs_url: "https://www.helius.dev/docs",
@@ -125,7 +125,7 @@ pub const PROVIDERS: &[ProviderSpec] = &[
     ProviderSpec {
         id: "alchemy",
         name: "Alchemy",
-        role: ProviderRole::Supplemental,
+        role: ProviderRole::AccountData,
         key: KeyRequirement::Optional,
         networks: &[
             NetworkId::Ethereum,
@@ -158,6 +158,8 @@ const ADAPTERS: &[&str] = &[
     "defillama",
     "trongrid",
     "tonapi",
+    "helius",
+    "alchemy",
 ];
 
 pub fn find(id: &str) -> Option<&'static ProviderSpec> {
@@ -179,6 +181,7 @@ pub struct ProviderStatus {
     pub key_storage: Option<KeyStorage>,
     /// Requests counted by this app today (UTC); other apps sharing the key are not included.
     pub requests_today: u32,
+    pub estimated_credits_today: u32,
     pub last_error: Option<String>,
     /// Adapter availability in this build.
     pub adapter_available: bool,
@@ -197,6 +200,7 @@ impl ProviderStatus {
             free_allowance: spec.free_allowance.into(),
             key_storage,
             requests_today: 0,
+            estimated_credits_today: 0,
             last_error: None,
             adapter_available: ADAPTERS.contains(&spec.id),
         }

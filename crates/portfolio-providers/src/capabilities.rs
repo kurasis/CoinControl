@@ -8,7 +8,7 @@
 use portfolio_core::network::NetworkId;
 use serde::Serialize;
 
-use crate::{esplora, tonapi, trongrid, zerion};
+use crate::{alchemy, esplora, helius, tonapi, trongrid, zerion};
 
 /// How completely a capability is covered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -164,6 +164,42 @@ pub fn network_capabilities() -> Vec<NetworkCapability> {
             ),
         })
         .collect()
+}
+
+/// Reflects the configured primary adapters; new sources never inherit another's live evidence.
+pub fn configured_capabilities(use_alchemy: bool, use_helius: bool) -> Vec<NetworkCapability> {
+    let mut caps = network_capabilities();
+    for c in &mut caps {
+        if use_alchemy && alchemy::NETWORKS.contains(&c.network) {
+            c.provider = alchemy::PROVIDER.into();
+            c.token_discovery = Support::Partial;
+            c.history = vec![HistoryCategory::Native, HistoryCategory::Tokens];
+            c.fees = Support::Partial;
+            c.internal_transfers = Support::None;
+            c.limitations = vec![
+                "alchemy_transfer_index".into(),
+                "alchemy_bounded_discovery".into(),
+                "rpc_unverified_tokens".into(),
+                "confirmed_only".into(),
+            ];
+            c.live_verified_on = None;
+        } else if use_helius && c.network == NetworkId::Solana {
+            c.provider = helius::PROVIDER.into();
+            c.history = vec![
+                HistoryCategory::Native,
+                HistoryCategory::Tokens,
+                HistoryCategory::Failed,
+            ];
+            c.limitations = vec![
+                "helius_full_history".into(),
+                "helius_program_effects".into(),
+                "rpc_unverified_tokens".into(),
+                "confirmed_only".into(),
+            ];
+            c.live_verified_on = None;
+        }
+    }
+    caps
 }
 
 #[cfg(test)]
