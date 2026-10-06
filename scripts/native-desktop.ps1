@@ -57,8 +57,8 @@ if (-not $original) {
 }
 $result = @{ result = 'BLOCKED'; detail = ''; devices = @($devices | ForEach-Object { @{ name = $_.Name; description = $_.Description; flags = $_.Flags } }) }
 if (-not $original) {
-  $result.detail = 'Windows exposes no readable display mode, even for explicitly enumerated attached adapters'
-  $result | ConvertTo-Json -Depth 4 -Compress
+  # Indirect/headless adapters may only expose resolution changes through modern Settings.
+  & (Join-Path $PSScriptRoot 'native-desktop-settings.ps1') -Action $Action -Width $Width -Height $Height
   exit 0
 }
 $result.originalWidth = $original.PelsWidth
