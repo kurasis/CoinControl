@@ -18,6 +18,30 @@ pub async fn call(
     params: Value,
     cost: u32,
 ) -> Result<Value, ProviderError> {
+    let (retries, backoff) = http.rpc_retry_policy();
+    for attempt in 0..=retries {
+        let result = call_once(http, url.clone(), method, params.clone(), cost).await;
+        match result {
+            Err(ProviderError::RpcUnavailable { .. }) if attempt < retries => {
+                tokio::time::sleep(backoff * 2u32.saturating_pow(attempt)).await
+            }
+            Err(error) => {
+                http.record_rpc_failure(&error, &url);
+                return Err(error);
+            }
+            Ok(value) => return Ok(value),
+        }
+    }
+    unreachable!("bounded retry loop returns on final attempt")
+}
+
+async fn call_once(
+    http: &HttpClient,
+    url: Url,
+    method: &'static str,
+    params: Value,
+    cost: u32,
+) -> Result<Value, ProviderError> {
     let provider = http.provider();
     let body = http
         .post_json_cost(
@@ -37,7 +61,7 @@ pub async fn call(
             .unwrap_or("")
             .to_ascii_lowercase();
         let error = if code == 429
-            || code == -32005
+            || (code == -32005 && provider == "alchemy")
             || msg.contains("rate limit")
             || msg.contains("quota")
             || msg.contains("credits exceeded")
@@ -46,6 +70,17 @@ pub async fn call(
                 provider,
                 endpoint: method,
                 retry_after_secs: None,
+            }
+        } else if code == -32016 || (code == -32005 && provider == "helius") {
+            ProviderError::RpcUnavailable {
+                provider,
+                endpoint: method,
+                code,
+            }
+        } else if code == 403 && provider == "alchemy" {
+            ProviderError::NetworkForbidden {
+                provider,
+                endpoint: method,
             }
         } else if [401, 403, -32600].contains(&code)
             && (msg.contains("key") || msg.contains("auth"))
@@ -62,7 +97,6 @@ pub async fn call(
                 &format!("RPC code {code}; method or account entitlement unavailable"),
             )
         };
-        http.record_rpc_failure(&error);
         return Err(error);
     }
     if v.get("jsonrpc").and_then(Value::as_str) != Some("2.0") || v.get("id") != Some(&json!(1)) {

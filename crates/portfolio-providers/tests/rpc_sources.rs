@@ -508,3 +508,66 @@ async fn fresh_alchemy_history_is_idempotent_and_reuses_persisted_metadata() {
         .unwrap();
     assert!(incoming.state.completed_once && outgoing.state.completed_once);
 }
+
+#[tokio::test]
+async fn helius_minimum_context_lag_retries_with_accounted_cost() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST")).respond_with(ResponseTemplate::new(200).set_body_json(json!({"jsonrpc":"2.0","id":1,"error":{"code":-32016,"message":format!("Minimum context slot has not been reached {SENTINEL_KEY}")}}))).up_to_n_times(1).mount(&server).await;
+    mount(&server, "getSlot", json!(200)).await;
+    let b = Budget::limited_with_credits(50, 100);
+    let api = helius(&server, b.clone());
+    assert_eq!(api.slot().await.unwrap(), 200);
+    assert_eq!(b.used(), 2);
+    assert_eq!(b.credits(), 2);
+    assert!(api.http().take_usage().last_error.is_none());
+}
+
+#[tokio::test]
+async fn helius_unclassified_zero_decimal_assets_are_not_fungible_holdings() {
+    let server = MockServer::start().await;
+    sol_defaults(&server).await;
+    Mock::given(method("POST")).and(body_partial_json(json!({"method":"getTokenAccountsByOwner"})))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"jsonrpc":"2.0","id":1,"result":{"context":{"slot":101},"value":[{"account":{"data":{"parsed":{"info":{"owner":SOL,"mint":MINT,"tokenAmount":{"amount":"1","decimals":0}}}}}}]}})))
+        .with_priority(1).mount(&server).await;
+    let holdings = helius(&server, Budget::unlimited())
+        .holdings(SOL)
+        .await
+        .unwrap();
+    assert!(!holdings.complete);
+    assert_eq!(holdings.assets.len(), 1);
+    assert!(holdings.assets[0].0.contract.is_none());
+    let mut tx = sol_tx(false);
+    tx["meta"]["preTokenBalances"][0]["uiTokenAmount"]["decimals"] = json!(0);
+    tx["meta"]["postTokenBalances"][0]["uiTokenAmount"]["decimals"] = json!(0);
+    assert_eq!(helius::normalize(&tx, SOL).unwrap().legs.len(), 1);
+}
+
+#[tokio::test]
+async fn alchemy_forbidden_network_does_not_stop_other_enabled_mainnets() {
+    let ethereum = MockServer::start().await;
+    let base = MockServer::start().await;
+    mount(&ethereum, "eth_chainId", json!("0x1")).await;
+    Mock::given(method("POST"))
+        .respond_with(ResponseTemplate::new(403))
+        .expect(1)
+        .mount(&base)
+        .await;
+    let b = Budget::limited_with_credits(50, 10000);
+    let api = Alchemy::with_config(
+        &[
+            (NetworkId::Ethereum, ethereum.uri()),
+            (NetworkId::Base, base.uri()),
+        ],
+        SENTINEL_KEY,
+        b.clone(),
+        fast(),
+    )
+    .unwrap();
+    for _ in 0..2 {
+        api.check_chain(NetworkId::Ethereum).await.unwrap();
+        let error = api.check_chain(NetworkId::Base).await.unwrap_err();
+        assert!(matches!(error, ProviderError::NetworkForbidden { .. }));
+    }
+    assert_eq!(b.used(), 3);
+    assert_eq!(b.credits(), 1500);
+}

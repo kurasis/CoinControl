@@ -593,11 +593,14 @@ export async function mockInvoke(
           return {
             ...c,
             provider: "helius",
+            balances: "partial",
+            token_discovery: "partial",
             live_verified_on: null,
             history: ["native", "tokens", "failed"],
             limitations: [
               "helius_full_history",
               "helius_program_effects",
+              "helius_fungible_scope",
               "rpc_unverified_tokens",
               "confirmed_only",
             ],

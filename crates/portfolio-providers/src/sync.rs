@@ -895,13 +895,22 @@ impl SyncEngine {
                 provider: helius::PROVIDER,
             })?;
         let holdings = api.holdings(&account.canonical_address).await?;
-        self.record_holdings(
-            account,
-            helius::PROVIDER,
-            &holdings.assets,
-            Some(holdings.slot),
-        )
-        .await?;
+        if holdings.complete {
+            self.record_holdings(
+                account,
+                helius::PROVIDER,
+                &holdings.assets,
+                Some(holdings.slot),
+            )
+            .await?;
+        } else {
+            self.store.mark_balances_stale(&account.id).await?;
+            for (asset, raw) in &holdings.assets {
+                self.store
+                    .record_balance(&account.id, asset, raw, Some(holdings.slot), "fresh")
+                    .await?;
+            }
+        }
         report.balance_refreshed = true;
         let outcome = self
             .sync_history(

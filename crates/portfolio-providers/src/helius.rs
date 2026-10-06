@@ -29,6 +29,7 @@ pub struct Helius {
 pub struct Holdings {
     pub assets: Vec<(AssetSpec, BigInt)>,
     pub slot: i64,
+    pub complete: bool,
 }
 pub struct Page {
     pub txs: Vec<TxSpec>,
@@ -96,6 +97,7 @@ impl Helius {
             .as_u64()
             .ok_or_else(|| rpc::invalid(PROVIDER, M, "missing lamports"))?;
         let mut assets = BTreeMap::<String, (AssetSpec, BigInt)>::new();
+        let mut complete = true;
         for program in [TOKEN_PROGRAM, TOKEN_2022] {
             const M: &str = "getTokenAccountsByOwner";
             let response = rpc::call(&self.http,self.url.clone(),M,json!([address,{"programId":program},{"encoding":"jsonParsed","commitment":"finalized","minContextSlot":slot}]),1).await?;
@@ -114,6 +116,14 @@ impl Helius {
                     .ok_or_else(|| rpc::invalid(PROVIDER, M, "missing decimals"))?
                     as u32;
                 let raw = decimal_raw(&info["tokenAmount"]["amount"], M)?;
+                // Token-account RPC cannot distinguish NFTs from zero-decimal
+                // fungible mints. Expose and exclude this unclassified category.
+                if decimals == 0 {
+                    if raw != BigInt::from(0) {
+                        complete = false;
+                    }
+                    continue;
+                }
                 let asset = token(mint, decimals);
                 let entry = assets
                     .entry(mint.into())
@@ -129,7 +139,11 @@ impl Helius {
             AssetSpec::native(NetworkId::Solana, PROVIDER),
             BigInt::from(amount),
         ));
-        Ok(Holdings { assets, slot })
+        Ok(Holdings {
+            assets,
+            slot,
+            complete,
+        })
     }
     pub async fn transactions(
         &self,
@@ -298,6 +312,9 @@ pub fn normalize(v: &Value, address: &str) -> Result<TxSpec, ProviderError> {
                     .ok_or_else(|| rpc::invalid(PROVIDER, M, "missing token decimals"))?
                     as u32;
                 let raw = decimal_raw(&row["uiTokenAmount"]["amount"], M)?;
+                if decimals == 0 {
+                    continue;
+                }
                 let entry = tokens
                     .entry(mint.into())
                     .or_insert((decimals, BigInt::from(0)));

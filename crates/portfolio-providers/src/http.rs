@@ -145,6 +145,7 @@ pub struct HttpClient {
     budget: Arc<Budget>,
     usage: StdMutex<Usage>,
     cancelled: StdMutex<Arc<AtomicBool>>,
+    forbidden: StdMutex<std::collections::BTreeMap<String, ProviderError>>,
 }
 
 /// A successful (2xx) response body.
@@ -202,11 +203,15 @@ impl HttpClient {
             budget,
             usage: StdMutex::new(Usage::default()),
             cancelled: StdMutex::new(Arc::new(AtomicBool::new(false))),
+            forbidden: StdMutex::new(std::collections::BTreeMap::new()),
         })
     }
 
     pub fn provider(&self) -> &'static str {
         self.provider
+    }
+    pub fn rpc_retry_policy(&self) -> (u32, Duration) {
+        (self.config.max_retries, self.config.backoff)
     }
 
     pub fn set_cancellation(&self, flag: Arc<AtomicBool>) {
@@ -246,7 +251,13 @@ impl HttpClient {
         self.usage.lock().expect("usage lock").last_error = Some(error.to_string());
     }
 
-    pub fn record_rpc_failure(&self, error: &ProviderError) {
+    pub fn record_rpc_failure(&self, error: &ProviderError, url: &Url) {
+        if matches!(error, ProviderError::NetworkForbidden { .. }) {
+            self.forbidden
+                .lock()
+                .expect("network access lock")
+                .insert(url.origin().ascii_serialization(), error.clone());
+        }
         if error.stops_provider() {
             self.budget.stop(error);
         }
@@ -300,6 +311,16 @@ impl HttpClient {
         let mut attempt = 0u32;
         loop {
             self.check_cancelled()?;
+            let denied = self
+                .forbidden
+                .lock()
+                .expect("network access lock")
+                .get(&url.origin().ascii_serialization())
+                .cloned();
+            if let Some(error) = denied {
+                self.note_failure(&error);
+                return Err(error);
+            }
             if let Some(error) = self.budget.stopped_error() {
                 self.note_failure(&error);
                 return Err(error);
@@ -336,6 +357,12 @@ impl HttpClient {
                 Err(failure) => failure,
             };
             if !error.is_retryable() || attempt >= self.config.max_retries {
+                if matches!(error, ProviderError::NetworkForbidden { .. }) {
+                    self.forbidden
+                        .lock()
+                        .expect("network access lock")
+                        .insert(url.origin().ascii_serialization(), error.clone());
+                }
                 if error.stops_provider() {
                     self.budget.stop(&error);
                 }
@@ -397,6 +424,9 @@ impl HttpClient {
             provider_message(&bytes)
         };
         let error = match status {
+            StatusCode::FORBIDDEN if provider == "alchemy" => {
+                ProviderError::NetworkForbidden { provider, endpoint }
+            }
             StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => ProviderError::Auth {
                 provider,
                 endpoint,

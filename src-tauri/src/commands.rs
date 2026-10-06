@@ -495,6 +495,12 @@ pub fn get_sync_progress(state: State<'_, AppState>) -> sync::SyncProgress {
 
 #[tauri::command]
 pub async fn test_provider(state: State<'_, AppState>, provider: String) -> CommandResult<()> {
+    // Connection probes share the same persisted budget window as sweeps.
+    let _guard = state
+        .sync
+        .run_lock
+        .try_lock()
+        .map_err(|_| CommandError::new("sync_busy", "Synchronization is already running."))?;
     let _sync = state.sync.run_lock.lock().await;
     sync::test_provider(&state.store().await, state.secrets.as_ref(), &provider).await
 }

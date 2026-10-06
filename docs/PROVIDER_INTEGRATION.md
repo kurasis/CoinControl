@@ -27,7 +27,9 @@ No key readback, generic RPC command or arbitrary endpoint configuration is adde
 ## Holdings and history
 
 **Helius** uses `getBalance` plus parsed `getTokenAccountsByOwner` for the original
-SPL and Token-2022 programs. Multiple token accounts of the same case-sensitive
+SPL and Token-2022 programs. NFTs and unclassified zero-decimal mints are
+excluded from fungible holdings/history; omitted cached holdings remain stale,
+so this source advertises partial balance/discovery coverage. Multiple token accounts of the same case-sensitive
 mint aggregate with exact integers. Zero and missing data remain distinct.
 Finalized `getTransactionsForAddress` reads 20 full `jsonParsed` transactions per
 page with `filters.tokenAccounts=all`, all statuses and keyset pagination. It
@@ -78,12 +80,16 @@ does not reinterpret existing transactions with a less complete source.
 | Alchemy | 5000 requests and 150000 CU     | Transfers: 120; token balances: 20; metadata: 10; other shipped RPC reads reserve a conservative 500 CU each |
 
 All networks share one credential budget per provider; retries count again.
+Desktop connection probes and sweeps share the same run lock and persisted budget.
 Locally estimated credit/CU totals persist in the existing `provider_usage`
 column and are displayed alongside request counts. They are not the provider's
 remaining allocation and do not include another application's use of the key.
-RPC errors inside HTTP 200 are classified without echoing messages. Authentication,
+RPC errors inside HTTP 200 are classified without echoing messages. Helius
+minimum-context-slot lag / unhealthy-node responses receive at most two bounded
+retries using the transport backoff, counting each attempt. Authentication,
 rate limiting and exhausted local budgets stop further requests for that provider
-in the run. HTTP error bodies from these URL-key providers are not echoed either.
+in the run. Alchemy HTTP 403 instead stops that mainnet endpoint for the run;
+other enabled mainnets keep working, and the inaccessible network remains failed. HTTP error bodies from these URL-key providers are not echoed either.
 Cancellation prevents the next RPC; already started requests can finish before
 checkpointed cancellation. Neither source signs or broadcasts transactions.
 

@@ -329,7 +329,14 @@ async fn alchemy_live() {
     );
     for n in portfolio_providers::alchemy::NETWORKS {
         r.endpoint("eth_chainId/eth_getBalance/alchemy_getAssetTransfers");
-        api.check_chain(n).await.unwrap();
+        if let Err(error) = api.check_chain(n).await {
+            r.check(
+                &format!("{} mainnet access", n.as_str()),
+                false,
+                error.to_string(),
+            );
+            continue;
+        }
         let balance = api.native_balance(n, address).await.unwrap();
         let page = api.transfer_index(n, address, true, None).await.unwrap();
         let rows = page["transfers"].as_array().unwrap();

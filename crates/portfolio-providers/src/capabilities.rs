@@ -185,6 +185,8 @@ pub fn configured_capabilities(use_alchemy: bool, use_helius: bool) -> Vec<Netwo
             c.live_verified_on = None;
         } else if use_helius && c.network == NetworkId::Solana {
             c.provider = helius::PROVIDER.into();
+            c.balances = Support::Partial;
+            c.token_discovery = Support::Partial;
             c.history = vec![
                 HistoryCategory::Native,
                 HistoryCategory::Tokens,
@@ -193,6 +195,7 @@ pub fn configured_capabilities(use_alchemy: bool, use_helius: bool) -> Vec<Netwo
             c.limitations = vec![
                 "helius_full_history".into(),
                 "helius_program_effects".into(),
+                "helius_fungible_scope".into(),
                 "rpc_unverified_tokens".into(),
                 "confirmed_only".into(),
             ];
