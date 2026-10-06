@@ -4,7 +4,7 @@ A personal, read-only cryptocurrency portfolio tracker for Windows, built with
 Tauri 2, React, TypeScript, Rust, and SQLite. The working product name inside
 the application is **Portfolio Desk**.
 
-[Download Windows x64 ZIP — 0.1.4 prerelease](https://github.com/kurasis/CoinControl/releases/download/v0.1.4/CoinControl-0.1.4-windows-x64.zip) · [Release notes](https://github.com/kurasis/CoinControl/releases/tag/v0.1.4). Extract the ZIP and run the setup EXE. This unsigned test build includes no keys or user data; full release acceptance remains subject to the gates in [TEST_REPORT.md](TEST_REPORT.md).
+[Download Windows x64 ZIP — 0.1.5 prerelease](https://github.com/kurasis/CoinControl/releases/download/v0.1.5/CoinControl-0.1.5-windows-x64.zip) · [Release notes](https://github.com/kurasis/CoinControl/releases/tag/v0.1.5). Extract the ZIP and run the setup EXE. This unsigned test build includes no keys or user data; full release acceptance remains subject to the gates in [TEST_REPORT.md](TEST_REPORT.md).
 
 The authoritative product specification lives in [`docs/spec`](docs/spec/README.md).
 Start with its README, which lists the reading order.

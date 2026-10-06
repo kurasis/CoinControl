@@ -1,5 +1,27 @@
 # Verification report — 2026-10-06
 
+## Current 0.1.5 verification
+
+[Sync status and console PR #16](https://github.com/kurasis/CoinControl/pull/16) is merged. Exact tested application code: [a1492978c4adf962dde4ec1af7a7e788c5495845](https://github.com/kurasis/CoinControl/commit/a1492978c4adf962dde4ec1af7a7e788c5495845), [CI 37449823930](https://github.com/kurasis/CoinControl/actions/runs/37449823930). **Six application/build jobs passed; the live job failed on existing Alchemy 403 and Zerion 429 gates.** Historical 0.1.4 evidence below remains source-specific.
+
+| Scope                                         | Result                                                                                         |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Check/offline/build/bindings                  | PASS; 158 deterministic Rust / 36 frontend tests                                               |
+| Browser with mock IPC                         | PASS; 24 combinations including the console                                                    |
+| Native Windows / actual display scale         | 26 PASS, including sync spinner/final outcome and real network console controls/persistence    |
+| Production upgrade and EXE/NSIS inspection    | 10 / 64 PASS                                                                                   |
+| Installed production startup / large UI / CSV | 12 PASS; first normal 1643.30 ms, offline 902.00 / 858.50 / 840.90 ms, unchanged ≤2000 ms gate |
+| Release Store load, Linux and Windows         | PASS; 50 accounts / 500 assets / 100000 legs; cached query p95 <300 ms                         |
+| Helius / Alchemy Ethereum                     | PASS; real read-only evidence                                                                  |
+| Four other Alchemy mainnets / Zerion suites   | FAIL / external BLOCKED; HTTP 403 / 429                                                        |
+| Physical Windows 11                           | BLOCKED; hosted Windows Server is separate evidence                                            |
+
+[Full sanitized reports and inspected native console screenshot](docs/reports/sync-console-2026-10-06/README.md). The console uses bounded opt-in memory diagnostics with no keys, wallet addresses, URL paths, headers or bodies. Old settings remain compatible. Connection tests fix an existing double-lock wait.
+
+[Download Windows x64 ZIP — v0.1.5](https://github.com/kurasis/CoinControl/releases/download/v0.1.5/CoinControl-0.1.5-windows-x64.zip). [Publisher 37451154966](https://github.com/kurasis/CoinControl/actions/runs/37451154966) passed, reusing the inspected/tested production payload. Re-downloaded ZIP CRC, four contents, internal/external checksums and exact source/installer matching passed. SHA-256: `06d28b08c9037f648017ecf2285df31483d2798ba1bf2a6c01745f6bf567d046` (8032522 bytes). It remains an unsigned prerelease; API and physical Windows 11 gates are explicit.
+
+## Historical 0.1.4 verification
+
 Development version **0.1.4** is delivered on main through [provider PR #11](https://github.com/kurasis/CoinControl/pull/11) and [startup correction PR #12](https://github.com/kurasis/CoinControl/pull/12). Exact final tested code: [54e82df306aa19c1408a9fbc6f66761db27222c5](https://github.com/kurasis/CoinControl/commit/54e82df306aa19c1408a9fbc6f66761db27222c5), [CI 37442084560](https://github.com/kurasis/CoinControl/actions/runs/37442084560): **six jobs passed; only the live API job failed because four Alchemy mainnets returned 403 and Zerion returned 429**. Credential availability is established through authenticated reads. This is a development build; full release acceptance remains blocked by those API gates and physical Windows 11 verification. Evidence follow-up commits change documentation only.
 
 ## Published Windows prerelease ZIP
@@ -8,7 +30,7 @@ Development version **0.1.4** is delivered on main through [provider PR #11](htt
 
 The published ZIP was downloaded again: CRC, exact four-file contents, inner checksums and external SHA-256 passed. ZIP SHA-256: `12f2ae2273b6d544dc94adef2fd44e2cd61b25d66b7b91fb8c8dc343b9018af4` (8016340 bytes). It contains the unsigned setup EXE, README, build information and file checksums. A tampered installer was rejected in a local negative control. The release gate limitations below remain in force.
 
-## Final verification
+## 0.1.4 final verification
 
 | Scope                                                            | Result                                                                                   |
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -74,4 +96,4 @@ The corrective implementation groups identical remaining lot values in SQLite an
 
 Earlier source-specific evidence: [CI recovery](docs/reports/ci-recovery-2026-10-06/README.md), [responsive UI](docs/reports/responsive-ui-2026-10-05/README.md), [native upgrade](docs/reports/upgrade-and-native-2026-10-05/README.md), [release follow-up](docs/reports/release-acceptance-2026-10-05/README.md), [imported report](docs/reports/IMPORTED_TEST_REPORT.md).
 
-The current production startup gate passed. Full release acceptance still requires Alchemy network access, Zerion quota and physical Windows 11 verification. The v0.1.4 tag publishes a prerelease ZIP; no full release pass, physical Windows 11 pass or complete blockchain coverage is claimed.
+The 0.1.4 production startup gate passed. Full release acceptance still requires Alchemy network access, Zerion quota and physical Windows 11 verification. The v0.1.4 tag publishes a prerelease ZIP; no full release pass, physical Windows 11 pass or complete blockchain coverage is claimed.
