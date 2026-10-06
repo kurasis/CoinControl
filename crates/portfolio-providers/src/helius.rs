@@ -27,6 +27,7 @@ pub struct Helius {
     url: Url,
 }
 pub struct Holdings {
+    pub warnings: Vec<String>,
     pub assets: Vec<(AssetSpec, BigInt)>,
     pub slot: i64,
     pub complete: bool,
@@ -60,10 +61,30 @@ impl Helius {
         let mut url =
             Url::parse(base).map_err(|_| rpc::invalid(PROVIDER, "client", "invalid base"))?;
         url.query_pairs_mut().append_pair("api-key", key.trim());
+        Self::with_endpoint(PROVIDER, url, budget, config)
+    }
+    /// Standard Solana holdings RPC also works with independent node services.
+    pub fn with_endpoint(
+        provider: &'static str,
+        url: Url,
+        budget: Arc<Budget>,
+        config: HttpConfig,
+    ) -> Result<Self, ProviderError> {
         Ok(Self {
-            http: HttpClient::new(PROVIDER, config, budget, HeaderMap::new())?,
+            http: HttpClient::new(provider, config, budget, HeaderMap::new())?,
             url,
         })
+    }
+    pub async fn check_mainnet(&self) -> Result<(), ProviderError> {
+        let hash = rpc::call(&self.http, self.url.clone(), "getGenesisHash", json!([]), 1).await?;
+        if hash.as_str() != Some("5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d") {
+            return Err(rpc::invalid(
+                self.http.provider(),
+                "getGenesisHash",
+                "wrong Solana mainnet",
+            ));
+        }
+        Ok(())
     }
     pub fn http(&self) -> &HttpClient {
         &self.http
@@ -81,6 +102,16 @@ impl Helius {
         .ok_or_else(|| rpc::invalid(PROVIDER, "getSlot", "missing slot"))
     }
     pub async fn holdings(&self, address: &str) -> Result<Holdings, ProviderError> {
+        self.read_holdings(address, false).await
+    }
+    pub async fn reserve_holdings(&self, address: &str) -> Result<Holdings, ProviderError> {
+        self.read_holdings(address, true).await
+    }
+    async fn read_holdings(
+        &self,
+        address: &str,
+        allow_partial: bool,
+    ) -> Result<Holdings, ProviderError> {
         const M: &str = "getBalance";
         let native = rpc::call(
             &self.http,
@@ -98,9 +129,15 @@ impl Helius {
             .ok_or_else(|| rpc::invalid(PROVIDER, M, "missing lamports"))?;
         let mut assets = BTreeMap::<String, (AssetSpec, BigInt)>::new();
         let mut complete = true;
+        let mut warnings = Vec::new();
         for program in [TOKEN_PROGRAM, TOKEN_2022] {
             const M: &str = "getTokenAccountsByOwner";
-            let response = rpc::call(&self.http,self.url.clone(),M,json!([address,{"programId":program},{"encoding":"jsonParsed","commitment":"finalized","minContextSlot":slot}]),1).await?;
+            let response = match rpc::call(&self.http,self.url.clone(),M,json!([address,{"programId":program},{"encoding":"jsonParsed","commitment":"finalized","minContextSlot":slot}]),1).await {
+                Ok(v)=>v,
+                Err(ProviderError::Cancelled{provider})=>return Err(ProviderError::Cancelled{provider}),
+                Err(e) if allow_partial=>{complete=false;warnings.push(e.to_string());break;}
+                Err(e)=>return Err(e),
+            };
             let accounts = response["value"]
                 .as_array()
                 .ok_or_else(|| rpc::invalid(PROVIDER, M, "missing token accounts"))?;
@@ -140,6 +177,7 @@ impl Helius {
             BigInt::from(amount),
         ));
         Ok(Holdings {
+            warnings,
             assets,
             slot,
             complete,

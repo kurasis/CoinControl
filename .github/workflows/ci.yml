@@ -94,6 +94,11 @@ jobs:
       ZERION_API_KEY: ${{ secrets.ZERION_API_KEY }}
       HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
       ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+      BLOCKSCOUT_API_KEY: ${{ secrets.BLOCKSCOUT_API_KEY }}
+      DRPC_API_KEY: ${{ secrets.DRPC_API_KEY }}
+      CHAINSTACK_API_KEY: ${{ secrets.CHAINSTACK_API_KEY }}
+      TONCENTER_API_KEY: ${{ secrets.TONCENTER_API_KEY }}
+      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
       REQUESTED_LIVE_PROVIDERS: ${{ inputs.live_providers }}
       TRONGRID_API_KEY: ${{ secrets.TRONGRID_API_KEY }}
       TONAPI_API_KEY: ${{ secrets.TONAPI_API_KEY }}
@@ -113,11 +118,16 @@ jobs:
       # so a repository without them still gets the stage B/C live checks.
       - name: Select live providers
         run: |
-          providers=esplora,zerion,livecoinwatch,defillama
+          providers=esplora,mempool,publicnode,zerion,livecoinwatch,defillama
           if [ -n "$TRONGRID_API_KEY" ]; then providers="$providers,trongrid"; else echo "trongrid: TRONGRID_API_KEY secret not set, not selected"; fi
           if [ -n "$TONAPI_API_KEY" ]; then providers="$providers,tonapi"; else echo "tonapi: TONAPI_API_KEY secret not set, not selected"; fi
           if [ -n "$HELIUS_API_KEY" ]; then providers="$providers,helius"; else echo "helius: HELIUS_API_KEY secret not set, not selected"; fi
           if [ -n "$ALCHEMY_API_KEY" ]; then providers="$providers,alchemy"; else echo "alchemy: ALCHEMY_API_KEY secret not set, not selected"; fi
+          if [ -n "$BLOCKSCOUT_API_KEY" ]; then providers="$providers,blockscout"; else echo "blockscout: BLOCKSCOUT_API_KEY secret not set, not selected"; fi
+          if [ -n "$DRPC_API_KEY" ]; then providers="$providers,drpc"; else echo "drpc: DRPC_API_KEY secret not set, not selected"; fi
+          if [ -n "$CHAINSTACK_API_KEY" ]; then providers="$providers,chainstack"; else echo "chainstack: CHAINSTACK_API_KEY secret not set, not selected"; fi
+          if [ -n "$TONCENTER_API_KEY" ]; then providers="$providers,toncenter"; else echo "toncenter: TONCENTER_API_KEY secret not set, not selected"; fi
+          if [ -n "$ETHERSCAN_API_KEY" ]; then providers="$providers,etherscan"; else echo "etherscan: ETHERSCAN_API_KEY secret not set, not selected"; fi
           if [ -n "$REQUESTED_LIVE_PROVIDERS" ]; then providers="$REQUESTED_LIVE_PROVIDERS"; fi
           echo "LIVE_TEST_PROVIDERS=$providers" >> "$GITHUB_ENV"
 
@@ -170,6 +180,11 @@ jobs:
           TONAPI_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
           HELIUS_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
           ALCHEMY_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          BLOCKSCOUT_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          DRPC_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          CHAINSTACK_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          TONCENTER_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          ETHERSCAN_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
         run: npm run build:windows
 
       - name: Download pinned previous production installer
@@ -188,6 +203,15 @@ jobs:
         env:
           LIVECOINWATCH_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
           ZERION_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          TRONGRID_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          TONAPI_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          HELIUS_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          ALCHEMY_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          BLOCKSCOUT_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          DRPC_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          CHAINSTACK_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          TONCENTER_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
+          ETHERSCAN_API_KEY: CC_RELEASE_SENTINEL_SECRET_74fcbf7c
         run: npm run verify:release
 
       - uses: actions/upload-artifact@v4

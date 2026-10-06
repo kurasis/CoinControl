@@ -46,11 +46,17 @@ export async function verifyNativePages(ui, { name, capture }, report) {
   ];
   await ui.route("/wallets");
   await ready(ui);
+  await until(() =>
+    ui.execute("return Boolean(document.querySelector('a[href^=\"#/accounts/\"]'));"),
+  );
   const account = await ui.execute(
     "return document.querySelector('a[href^=\"#/accounts/\"]')?.getAttribute('href').slice(1);",
   );
   await ui.route("/");
   await ready(ui);
+  await until(() =>
+    ui.execute("return Boolean(document.querySelector('a[href^=\"#/assets/\"]'));"),
+  );
   const asset = await ui.execute(
     "return document.querySelector('a[href^=\"#/assets/\"]')?.getAttribute('href').slice(1);",
   );

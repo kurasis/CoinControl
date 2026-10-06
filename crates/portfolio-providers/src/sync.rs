@@ -69,6 +69,8 @@ pub struct Providers {
     pub defillama: Option<DefiLlama>,
     pub trongrid: Option<TronGrid>,
     pub tonapi: Option<TonApi>,
+    pub mempool: Option<Esplora>,
+    pub reserves: Vec<crate::mirrors::Reserve>,
 }
 
 impl Providers {
@@ -103,6 +105,12 @@ impl Providers {
         if let Some(p) = &self.tonapi {
             out.push(p.http());
         }
+        if let Some(p) = &self.mempool {
+            out.push(p.http());
+        }
+        for p in &self.reserves {
+            out.extend(p.clients());
+        }
         out
     }
 }
@@ -133,6 +141,8 @@ impl Default for SyncOptions {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct AccountSyncReport {
+    pub fallback_reasons: Vec<String>,
+    pub balance_only: bool,
     pub account_id: String,
     pub network: NetworkId,
     pub provider: Option<String>,
@@ -355,90 +365,223 @@ impl SyncEngine {
         self.report_progress(&account.id, 0, true);
         report
     }
+    fn candidates(&self, network: NetworkId) -> Vec<&'static str> {
+        let mut c = Vec::new();
+        if network == NetworkId::Bitcoin {
+            c.push(esplora::PROVIDER);
+            if self.providers.mempool.is_some() {
+                c.push("mempool");
+            }
+        } else {
+            if let Some(p) = self.selected_provider(network) {
+                c.push(p);
+            }
+            if (alchemy::NETWORKS.contains(&network) || network == NetworkId::Solana)
+                && !c.contains(&zerion::PROVIDER)
+                && self.providers.zerion.is_some()
+            {
+                c.push(zerion::PROVIDER);
+            }
+            for p in &self.providers.reserves {
+                if p.supports(network) {
+                    c.push(p.provider());
+                }
+            }
+        }
+        c
+    }
     async fn sync_account_inner(&self, account: &Account) -> AccountSyncReport {
-        let provider = self.selected_provider(account.network);
         let mut report = AccountSyncReport {
             account_id: account.id.clone(),
             network: account.network,
-            provider: provider.map(str::to_owned),
+            provider: None,
             balance_refreshed: false,
             new_transactions: 0,
             pages_fetched: 0,
             coverage: Coverage::Unsupported,
             error: None,
+            fallback_reasons: Vec::new(),
+            balance_only: false,
         };
-        let Some(provider) = provider else {
-            report.error = Some(format!(
-                "{} synchronization is not available in this build yet",
-                account.network.display_name()
-            ));
-            return report;
-        };
-
-        let mut checkpoint = match self.store.checkpoint(&account.id, provider, HISTORY).await {
-            Ok(c) => c,
-            Err(e) => {
-                report.error = Some(SyncError::from(e).to_string());
-                return report;
+        for provider in self.candidates(account.network) {
+            if self.is_cancelled() {
+                report.coverage = Coverage::Paused;
+                break;
             }
-        };
-        let now = self.store_now();
-        checkpoint.state.last_attempt_at = Some(now);
-
-        let result = match provider {
-            alchemy::PROVIDER => {
-                self.sync_alchemy(account, &mut checkpoint, &mut report)
-                    .await
-            }
-            helius::PROVIDER => {
-                self.sync_helius(account, &mut checkpoint, &mut report)
-                    .await
-            }
-            esplora::PROVIDER => {
-                self.sync_bitcoin(account, &mut checkpoint, &mut report)
-                    .await
-            }
-            trongrid::PROVIDER => self.sync_tron(account, &mut checkpoint, &mut report).await,
-            tonapi::PROVIDER => self.sync_ton(account, &mut checkpoint, &mut report).await,
-            _ => {
-                self.sync_zerion(account, &mut checkpoint, &mut report)
-                    .await
-            }
-        };
-        match result {
-            Err(SyncError::Provider(ProviderError::Cancelled { .. })) => {
-                checkpoint.coverage = Coverage::Paused;
-            }
-            Ok(()) => {
-                checkpoint.state.last_success_at = Some(now);
-                checkpoint.state.last_error = None;
-            }
-            Err(e) => {
-                self.observe(provider, &e);
-                if !report.balance_refreshed {
-                    let _ = self.store.mark_balances_stale(&account.id).await;
+            let now = self.store_now();
+            let mut cp = match self.store.checkpoint(&account.id, provider, HISTORY).await {
+                Ok(c) => c,
+                Err(e) => {
+                    report.error = Some(e.to_string());
+                    break;
                 }
-                checkpoint.state.last_error = Some(e.to_string());
+            };
+            match self
+                .store
+                .provider_cooldown(provider, account.network)
+                .await
+            {
+                Ok(Some(until)) if until > now => {
+                    report.provider = Some(provider.into());
+                    report.coverage = cp.coverage;
+                    report.error = cp
+                        .state
+                        .last_error
+                        .clone()
+                        .or_else(|| Some(format!("{provider}: temporarily paused")));
+                    report.fallback_reasons.push(format!(
+                        "{provider}: retry in {}s",
+                        until.saturating_sub(now)
+                    ));
+                    continue;
+                }
+                Err(e) => {
+                    report.error = Some(e.to_string());
+                    break;
+                }
+                _ => {}
+            }
+            report.provider = Some(provider.to_owned());
+            report.error = None;
+            report.balance_only = false;
+            cp.state.last_attempt_at = Some(now);
+            cp.state.balance_only = false;
+            let result = match provider {
+                alchemy::PROVIDER => self.sync_alchemy(account, &mut cp, &mut report).await,
+                helius::PROVIDER => self.sync_helius(account, &mut cp, &mut report).await,
+                esplora::PROVIDER | "mempool" => {
+                    self.sync_bitcoin(account, provider, &mut cp, &mut report)
+                        .await
+                }
+                trongrid::PROVIDER => self.sync_tron(account, &mut cp, &mut report).await,
+                tonapi::PROVIDER => self.sync_ton(account, &mut cp, &mut report).await,
+                zerion::PROVIDER => self.sync_zerion(account, &mut cp, &mut report).await,
+                _ => {
+                    self.sync_reserve(account, provider, &mut cp, &mut report)
+                        .await
+                }
+            };
+            let mut continue_fallback = false;
+            match result {
+                Ok(()) => {
+                    cp.state.last_success_at = Some(self.store_now());
+                    cp.state.last_error = None;
+                    cp.state.cooldown_until = None;
+                }
+                Err(SyncError::Provider(ProviderError::Cancelled { .. })) => {
+                    cp.coverage = Coverage::Paused;
+                }
+                Err(e) => {
+                    self.observe(provider, &e);
+                    cp.state.last_error = Some(e.to_string());
+                    report.error = Some(e.to_string());
+                    if let SyncError::Provider(error) = &e {
+                        // Malformed input/chain identity, local DB failures and cancellation do not get masked by a reserve.
+                        continue_fallback = error.is_retryable()
+                            || matches!(
+                                error,
+                                ProviderError::Auth { .. }
+                                    | ProviderError::MissingKey { .. }
+                                    | ProviderError::BudgetExhausted { .. }
+                                    | ProviderError::NetworkForbidden { .. }
+                                    | ProviderError::CapabilityUnavailable { .. }
+                            );
+                        if continue_fallback {
+                            let wait = match error {
+                                ProviderError::RateLimited {
+                                    retry_after_secs, ..
+                                } => retry_after_secs.unwrap_or(60).max(1).min(i64::MAX as u64)
+                                    as i64,
+                                ProviderError::BudgetExhausted { .. } => {
+                                    86_400 - now.rem_euclid(86_400)
+                                }
+                                ProviderError::Auth { .. }
+                                | ProviderError::NetworkForbidden { .. } => 3600,
+                                ProviderError::MissingKey { .. } => 0,
+                                _ => 30,
+                            };
+                            cp.state.cooldown_until = Some(now.saturating_add(wait));
+                            cp.state.cooldown_network_only =
+                                matches!(error, ProviderError::NetworkForbidden { .. })
+                                    || !error.stops_provider();
+                            report.fallback_reasons.push(e.to_string());
+                        }
+                    }
+                }
+            }
+            cp.state.fallback_reasons = report.fallback_reasons.clone();
+            cp.state.balance_only = report.balance_only;
+            cp.earliest_covered_at =
+                match self.store.earliest_account_transaction(&account.id).await {
+                    Ok(t) => t,
+                    Err(e) => {
+                        report.error = Some(e.to_string());
+                        break;
+                    }
+                };
+            report.coverage = cp.coverage;
+            if let Err(e) = self
+                .store
+                .save_checkpoint(&account.id, provider, HISTORY, &cp)
+                .await
+            {
                 report.error = Some(e.to_string());
+                break;
+            }
+            if !continue_fallback {
+                break;
             }
         }
-        checkpoint.earliest_covered_at = self
-            .store
-            .earliest_account_transaction(&account.id)
-            .await
-            .unwrap_or(None);
-        report.coverage = checkpoint.coverage;
-        if let Err(e) = self
-            .store
-            .save_checkpoint(&account.id, provider, HISTORY, &checkpoint)
-            .await
+        if report.provider.is_none() && report.error.is_none() && !self.is_cancelled() {
+            report.error =
+                Some("All account sources are temporarily paused; cached data is retained.".into());
+        }
+        if report.error.is_some()
+            && !report.balance_refreshed
+            && let Err(e) = self.store.mark_balances_stale(&account.id).await
         {
-            report.error.get_or_insert_with(|| e.to_string());
+            report.error = Some(e.to_string());
         }
         if let Err(e) = self.flush_usage().await {
-            tracing::warn!(error = %e, "cannot record provider usage");
+            report.error.get_or_insert_with(|| e.to_string());
         }
         report
+    }
+    async fn sync_reserve(
+        &self,
+        account: &Account,
+        provider: &'static str,
+        cp: &mut Checkpoint,
+        report: &mut AccountSyncReport,
+    ) -> Result<(), SyncError> {
+        self.check_stopped(provider)?;
+        let api = self
+            .providers
+            .reserves
+            .iter()
+            .find(|p| p.provider() == provider)
+            .ok_or(ProviderError::MissingKey { provider })?;
+        let mut known = Vec::new();
+        for id in self.store.nonzero_balance_assets(&account.id).await? {
+            if let Some(a) = self.store.asset_spec(&id, provider).await? {
+                known.push(a);
+            }
+        }
+        let snapshot = api
+            .snapshot(account.network, &account.canonical_address, &known)
+            .await?;
+        // A bounded balance reserve must neither zero unseen tokens nor rewrite history/fees/basis.
+        self.store.mark_balances_stale(&account.id).await?;
+        for (asset, raw) in snapshot.assets {
+            self.store
+                .record_balance(&account.id, &asset, &raw, snapshot.height, "fresh")
+                .await?;
+        }
+        report.fallback_reasons.extend(snapshot.warnings);
+        cp.coverage = Coverage::Partial;
+        report.balance_refreshed = true;
+        report.balance_only = true;
+        Ok(())
     }
 
     // ------------------------------------------------------------ history core
@@ -447,6 +590,7 @@ impl SyncEngine {
     async fn sync_history<F, Fut>(
         &self,
         account: &Account,
+        provider: &'static str,
         checkpoint: &mut Checkpoint,
         fingerprint: &str,
         mut fetch: F,
@@ -457,6 +601,7 @@ impl SyncEngine {
     {
         self.sync_history_limit(
             account,
+            provider,
             checkpoint,
             fingerprint,
             &mut fetch,
@@ -468,6 +613,7 @@ impl SyncEngine {
     async fn sync_history_limit<F, Fut>(
         &self,
         account: &Account,
+        provider: &'static str,
         checkpoint: &mut Checkpoint,
         fingerprint: &str,
         mut fetch: F,
@@ -545,7 +691,7 @@ impl SyncEngine {
                 self.store
                     .save_checkpoint(
                         &account.id,
-                        self.selected_provider(account.network).unwrap_or("sync"),
+                        provider,
                         history_category(fingerprint),
                         checkpoint,
                     )
@@ -602,7 +748,7 @@ impl SyncEngine {
             self.store
                 .save_checkpoint(
                     &account.id,
-                    self.selected_provider(account.network).unwrap_or("sync"),
+                    provider,
                     history_category(fingerprint),
                     checkpoint,
                 )
@@ -747,17 +893,17 @@ impl SyncEngine {
     async fn sync_bitcoin(
         &self,
         account: &Account,
+        provider: &'static str,
         checkpoint: &mut Checkpoint,
         report: &mut AccountSyncReport,
     ) -> Result<(), SyncError> {
-        self.check_stopped(esplora::PROVIDER)?;
-        let esplora = self
-            .providers
-            .esplora
-            .as_ref()
-            .ok_or(ProviderError::MissingKey {
-                provider: esplora::PROVIDER,
-            })?;
+        self.check_stopped(provider)?;
+        let esplora = if provider == "mempool" {
+            self.providers.mempool.as_ref()
+        } else {
+            self.providers.esplora.as_ref()
+        }
+        .ok_or(ProviderError::MissingKey { provider })?;
         let address = account.canonical_address.as_str();
         let owned: BTreeSet<String> = self
             .store
@@ -784,7 +930,7 @@ impl SyncEngine {
         self.store
             .record_balance(
                 &account.id,
-                &AssetSpec::native(NetworkId::Bitcoin, esplora::PROVIDER),
+                &AssetSpec::native(NetworkId::Bitcoin, provider),
                 &BigInt::from(balance),
                 Some(tip),
                 "fresh",
@@ -794,23 +940,34 @@ impl SyncEngine {
 
         let now = self.store_now();
         let outcome = self
-            .sync_history(account, checkpoint, "esplora;v1", |cursor| {
-                let owned = &owned;
-                async move {
-                    let txs = esplora.chain_txs(address, cursor.as_deref()).await?;
-                    let next = (txs.len() == esplora::CHAIN_PAGE_SIZE)
-                        .then(|| txs.last().map(|t| t.txid.clone()))
-                        .flatten();
-                    Ok(HistoryPage {
-                        txs: txs
-                            .iter()
-                            .filter_map(|t| esplora::tx_for_account(t, address, owned, now))
-                            .collect(),
-                        next,
-                        indexing: false,
-                    })
-                }
-            })
+            .sync_history(
+                account,
+                provider,
+                checkpoint,
+                &format!("{provider};v1"),
+                |cursor| {
+                    let owned = &owned;
+                    async move {
+                        let txs = esplora.chain_txs(address, cursor.as_deref()).await?;
+                        let next = (txs.len() == esplora::CHAIN_PAGE_SIZE)
+                            .then(|| txs.last().map(|t| t.txid.clone()))
+                            .flatten();
+                        Ok(HistoryPage {
+                            txs: txs
+                                .iter()
+                                .filter_map(|t| {
+                                    esplora::tx_for_account(t, address, owned, now).map(|mut t| {
+                                        t.provider = provider;
+                                        t
+                                    })
+                                })
+                                .collect(),
+                            next,
+                            indexing: false,
+                        })
+                    }
+                },
+            )
             .await?;
         report.pages_fetched = outcome.pages;
         report.new_transactions = outcome.new_transactions;
@@ -834,7 +991,8 @@ impl SyncEngine {
                             .invalidate_confirmation(NetworkId::Bitcoin, &hash, true)
                             .await?;
                     }
-                    if let Some(spec) = esplora::tx_for_account(&tx, address, &owned, now) {
+                    if let Some(mut spec) = esplora::tx_for_account(&tx, address, &owned, now) {
+                        spec.provider = provider;
                         self.store.ingest_transaction(&account.id, &spec).await?;
                     }
                 }
@@ -849,7 +1007,8 @@ impl SyncEngine {
         checkpoint.state.pending_incomplete = mempool.len() >= esplora::MEMPOOL_CAP;
         let mut in_mempool = BTreeSet::new();
         for tx in &mempool {
-            if let Some(spec) = esplora::tx_for_account(tx, address, &owned, now) {
+            if let Some(mut spec) = esplora::tx_for_account(tx, address, &owned, now) {
+                spec.provider = provider;
                 in_mempool.insert(spec.hash.clone());
                 if self.store.ingest_transaction(&account.id, &spec).await? {
                     report.new_transactions += 1;
@@ -869,7 +1028,8 @@ impl SyncEngine {
         for hash in stale {
             match esplora.tx(&hash).await? {
                 Some(tx) => {
-                    if let Some(spec) = esplora::tx_for_account(&tx, address, &owned, now) {
+                    if let Some(mut spec) = esplora::tx_for_account(&tx, address, &owned, now) {
+                        spec.provider = provider;
                         self.store.ingest_transaction(&account.id, &spec).await?;
                     }
                 }
@@ -920,6 +1080,7 @@ impl SyncEngine {
         let outcome = self
             .sync_history(
                 account,
+                helius::PROVIDER,
                 checkpoint,
                 "helius;full-v1;all-token-accounts;20",
                 |cursor| async move {
@@ -990,6 +1151,7 @@ impl SyncEngine {
             let result = self
                 .sync_history_limit(
                     account,
+                    alchemy::PROVIDER,
                     &mut cp,
                     fingerprint,
                     |cursor| async move {
@@ -1082,22 +1244,28 @@ impl SyncEngine {
         let page_size = self.options.zerion_page_size;
         let fingerprint = Zerion::fingerprint(network, page_size);
         let outcome = self
-            .sync_history(account, checkpoint, &fingerprint, |cursor| async move {
-                let page = zerion
-                    .transactions(
-                        network,
-                        address,
-                        cursor.as_deref(),
-                        page_size,
-                        Window::default(),
-                    )
-                    .await?;
-                Ok(HistoryPage {
-                    txs: page.txs,
-                    next: page.next_cursor,
-                    indexing: page.indexing,
-                })
-            })
+            .sync_history(
+                account,
+                zerion::PROVIDER,
+                checkpoint,
+                &fingerprint,
+                |cursor| async move {
+                    let page = zerion
+                        .transactions(
+                            network,
+                            address,
+                            cursor.as_deref(),
+                            page_size,
+                            Window::default(),
+                        )
+                        .await?;
+                    Ok(HistoryPage {
+                        txs: page.txs,
+                        next: page.next_cursor,
+                        indexing: page.indexing,
+                    })
+                },
+            )
             .await?;
         report.pages_fetched = outcome.pages;
         report.new_transactions = outcome.new_transactions;
@@ -1137,6 +1305,7 @@ impl SyncEngine {
         let native = self
             .sync_history(
                 account,
+                trongrid::PROVIDER,
                 checkpoint,
                 &TronGrid::fingerprint("native", size),
                 |cursor| async move {
@@ -1165,6 +1334,7 @@ impl SyncEngine {
         let result = self
             .sync_history(
                 account,
+                trongrid::PROVIDER,
                 &mut tokens,
                 &TronGrid::fingerprint("trc20", size),
                 |cursor| async move {
@@ -1288,6 +1458,7 @@ impl SyncEngine {
         let outcome = self
             .sync_history(
                 account,
+                tonapi::PROVIDER,
                 checkpoint,
                 &TonApi::fingerprint(size),
                 |cursor| async move {

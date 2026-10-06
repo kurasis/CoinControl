@@ -42,6 +42,7 @@ pub enum HistoryCategory {
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct NetworkCapability {
+    pub fallback_providers: Vec<String>,
     pub network: NetworkId,
     pub provider: String,
     /// The source needs an API key in this build.
@@ -69,7 +70,19 @@ fn cap(
     (balances, tokens, fees, internal): (Support, Support, Support, Support),
     limitations: &[&str],
 ) -> NetworkCapability {
+    let reserves: &[&str] = match network {
+        NetworkId::Bitcoin => &["mempool"],
+        NetworkId::Ethereum | NetworkId::Arbitrum | NetworkId::Polygon => {
+            &["blockscout", "etherscan", "drpc", "publicnode"]
+        }
+        NetworkId::Base | NetworkId::Optimism => &["blockscout", "drpc", "publicnode"],
+        NetworkId::Bsc => &["drpc", "publicnode"],
+        NetworkId::Solana => &["chainstack", "drpc", "publicnode"],
+        NetworkId::Tron => &["publicnode"],
+        NetworkId::Ton => &["toncenter"],
+    };
     NetworkCapability {
+        fallback_providers: reserves.iter().map(|p| (*p).to_owned()).collect(),
         network,
         provider: provider.to_owned(),
         key_required,
@@ -172,6 +185,7 @@ pub fn configured_capabilities(use_alchemy: bool, use_helius: bool) -> Vec<Netwo
     for c in &mut caps {
         if use_alchemy && alchemy::NETWORKS.contains(&c.network) {
             c.provider = alchemy::PROVIDER.into();
+            c.fallback_providers.insert(0, "zerion".into());
             c.token_discovery = Support::Partial;
             c.history = vec![HistoryCategory::Native, HistoryCategory::Tokens];
             c.fees = Support::Partial;
@@ -185,6 +199,7 @@ pub fn configured_capabilities(use_alchemy: bool, use_helius: bool) -> Vec<Netwo
             c.live_verified_on = None;
         } else if use_helius && c.network == NetworkId::Solana {
             c.provider = helius::PROVIDER.into();
+            c.fallback_providers.insert(0, "zerion".into());
             c.balances = Support::Partial;
             c.token_discovery = Support::Partial;
             c.history = vec![

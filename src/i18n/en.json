@@ -242,7 +242,8 @@
     "getKey": "Get a free key",
     "docs": "Documentation",
     "estimatedCreditsToday": "Estimated usage today: {{count}} credits/CU",
-    "routing": "Configured Alchemy takes priority for Ethereum, Base, Arbitrum, Optimism and Polygon; Helius takes priority for Solana. Zerion serves other covered networks. Source errors keep cached data."
+    "routing": "Configured Alchemy takes priority for Ethereum, Base, Arbitrum, Optimism and Polygon; Helius takes priority for Solana. Zerion serves other covered networks. Source errors keep cached data.",
+    "chainstackHint": "Enter the Solana node auth token or full HTTPS endpoint from Access and credentials. A platform management key cannot authenticate RPC. The endpoint is stored as a secret."
   },
   "sync": {
     "now": "Sync now",
@@ -257,7 +258,10 @@
     "done": "Synchronization finished",
     "doneWithErrors": "Synchronization finished with errors; see the accounts below",
     "partialHistory": "History partially available: {{count}} transactions",
-    "pausedHistory": "History download stopped: {{count}} transactions"
+    "pausedHistory": "History download stopped: {{count}} transactions",
+    "source": "Source: {{provider}}",
+    "balanceReserve": "reserve updated balances; cached history retained, coverage partial",
+    "reserveUsed": "Reserve used (hover for reason)"
   },
   "accounting": {
     "partial": "Partial",
@@ -545,7 +549,9 @@
       "helius_full_history": "History uses full finalized transactions and all related token accounts. Method access depends on the Helius account; unavailable access is reported.",
       "helius_program_effects": "SOL program/rent effects and token deltas require review. Wrapped SOL, rent and Token-2022 extensions are not fully classified.",
       "helius_fungible_scope": "NFTs and unclassified zero-decimal SPL mints are excluded from fungible holdings/history; omitted cached holdings remain stale."
-    }
+    },
+    "reserves": "Reserve sources",
+    "reserveIntro": "Sources switch automatically on limits, denied access or outages. mempool.space covers Bitcoin history. Other reserves update balances and retain cached history as partial. RPC reads known tokens; Solana discovers supported SPL/Token-2022; Blockscout reads up to 4 ERC-20 pages; TON Center reads up to 1000 Jetton wallets with exact decimals. Missing tokens remain stale. Keyed sources activate after adding a key in Data sources."
   },
   "ops": {
     "backup": "Save backup",

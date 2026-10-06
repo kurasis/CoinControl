@@ -1,5 +1,9 @@
 # Network coverage (stage D)
 
+The original-source matrix below retains its evidence dates. The 0.1.6
+[reserve matrix](PROVIDER_MIRRORS.md) adds independent balances and explicit
+partial history coverage; those reserves do not inherit these old live checks.
+
 The table below describes the original Zerion route. In 0.1.4 a configured
 Alchemy key takes priority for Ethereum, Base, Arbitrum, Optimism and Polygon;
 a configured Helius key takes priority for Solana. The application shows the

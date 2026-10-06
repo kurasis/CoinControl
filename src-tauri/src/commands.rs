@@ -449,22 +449,34 @@ pub async fn list_providers(state: State<'_, AppState>) -> CommandResult<Vec<Pro
 
 /// Stores a key. The response reports only where it was stored, never the key.
 #[tauri::command]
-pub fn save_provider_key(
+pub async fn save_provider_key(
     state: State<'_, AppState>,
     provider: String,
     key: String,
 ) -> CommandResult<ProviderStatus> {
     let spec = providers::find(&provider)
         .ok_or_else(|| CommandError::new("not_found", "Unknown data source."))?;
+    if matches!(
+        spec.id,
+        "chainstack" | "blockscout" | "etherscan" | "drpc" | "toncenter"
+    ) {
+        portfolio_providers::mirrors::Reserve::new(
+            spec.id,
+            &key,
+            portfolio_providers::http::Budget::limited(0),
+        )
+        .map_err(|e| CommandError::new("provider", e.to_string()))?;
+    }
     let storage = state
         .secrets
         .save(spec.id, Secret::new(key))
         .map_err(|m| CommandError::new("secret_store", m))?;
+    state.store().await.clear_provider_cooldown(spec.id).await?;
     Ok(ProviderStatus::from_spec(spec, Some(storage)))
 }
 
 #[tauri::command]
-pub fn remove_provider_key(
+pub async fn remove_provider_key(
     state: State<'_, AppState>,
     provider: String,
 ) -> CommandResult<ProviderStatus> {
@@ -474,6 +486,7 @@ pub fn remove_provider_key(
         .secrets
         .remove(spec.id)
         .map_err(|m| CommandError::new("secret_store", m))?;
+    state.store().await.clear_provider_cooldown(spec.id).await?;
     Ok(ProviderStatus::from_spec(spec, None))
 }
 

@@ -17,12 +17,12 @@ variables or the renderer. Debug builds can use the named development variables.
 
 Alchemy's key must have access to each selected mainnet. Saving a key activates
 the source; a rejected key, method entitlement failure or exhausted budget is
-reported and keeps cached data. There is no silent fallback after such an error.
+reported and keeps cached data. As of 0.1.6, [explicit reserves](PROVIDER_MIRRORS.md) keep balances usable and preserve history with truthful partial coverage after such failures.
 Removing the key returns that network to the original route.
 
 Settings → Networks changes with configuration and explains each source's
 coverage. New adapters do not inherit Zerion's historical live verification date.
-No key readback, generic RPC command or arbitrary endpoint configuration is added.
+No key readback or generic RPC command is exposed to the renderer. Chainstack accepts its own restricted HTTPS node endpoint as a stored secret in 0.1.6.
 
 ## Holdings and history
 

@@ -4,6 +4,7 @@ import type { NetworkId } from "./NetworkId";
 import type { Support } from "./Support";
 
 export type NetworkCapability = {
+  fallback_providers: Array<string>;
   network: NetworkId;
   provider: string;
   /**

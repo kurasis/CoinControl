@@ -11,6 +11,13 @@ const KNOWN = {
   helius: "HELIUS_API_KEY",
   alchemy: "ALCHEMY_API_KEY",
   esplora: null,
+  mempool: null,
+  publicnode: null,
+  blockscout: "BLOCKSCOUT_API_KEY",
+  drpc: "DRPC_API_KEY",
+  chainstack: "CHAINSTACK_API_KEY",
+  toncenter: "TONCENTER_API_KEY",
+  etherscan: "ETHERSCAN_API_KEY",
   defillama: null,
   trongrid: "TRONGRID_API_KEY",
   tonapi: "TONAPI_API_KEY",
@@ -85,6 +92,7 @@ const rows = [];
 let failed = cargo.status !== 0;
 const expected = [
   ...runnable,
+  ...(runnable.includes("publicnode") ? ["mirror-routing"] : []),
   ...(runnable.includes("esplora") ? ["vertical-slice"] : []),
   ...(["zerion", "trongrid", "tonapi"].every((p) => runnable.includes(p)) ? ["networks"] : []),
 ];

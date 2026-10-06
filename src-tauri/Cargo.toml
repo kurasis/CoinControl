@@ -1,6 +1,6 @@
 [package]
 name = "portfolio-desk"
-version = "0.1.5"
+version = "0.1.6"
 description = "Portfolio Desk desktop shell"
 edition.workspace = true
 rust-version.workspace = true

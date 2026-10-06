@@ -14,6 +14,7 @@ use portfolio_providers::defillama::{self, DefiLlama};
 use portfolio_providers::esplora::{self, Esplora};
 use portfolio_providers::http::Budget;
 use portfolio_providers::livecoinwatch::{self, LiveCoinWatch};
+use portfolio_providers::mirrors::Reserve;
 use portfolio_providers::tonapi::{self, TonApi};
 use portfolio_providers::trongrid::{self, TronGrid};
 use portfolio_providers::zerion::{self, Zerion};
@@ -138,6 +139,81 @@ async fn build_providers(
         .ok(),
         ..Providers::default()
     };
+    providers.mempool = Esplora::with_provider(
+        "mempool",
+        "https://mempool.space/api/",
+        Budget::limited(
+            remaining_today(
+                store,
+                "mempool",
+                if cfg!(feature = "native-e2e") {
+                    50
+                } else {
+                    5_000
+                },
+            )
+            .await,
+        ),
+        Esplora::default_config(),
+    )
+    .ok();
+    for (id, var) in [
+        ("publicnode", ""),
+        ("blockscout", "BLOCKSCOUT_API_KEY"),
+        ("etherscan", "ETHERSCAN_API_KEY"),
+        ("drpc", "DRPC_API_KEY"),
+        ("chainstack", "CHAINSTACK_API_KEY"),
+        ("toncenter", "TONCENTER_API_KEY"),
+    ] {
+        let key = credential(secrets, id, var);
+        if !matches!(id, "publicnode" | "toncenter") && key.is_none() {
+            continue;
+        }
+        let day = utc_day(SystemClock.now());
+        let daily = remaining_today(
+            store,
+            id,
+            if cfg!(feature = "native-e2e") {
+                50
+            } else {
+                1_000
+            },
+        )
+        .await;
+        let (monthly_requests, _) = store
+            .provider_usage_month(&day[..7], id)
+            .await
+            .unwrap_or((u32::MAX, u32::MAX));
+        let request_limit = if matches!(id, "chainstack" | "drpc") {
+            daily.min(30_000u32.saturating_sub(monthly_requests))
+        } else {
+            daily
+        };
+        let budget = if id == "blockscout" {
+            let used = match store.provider_usage(&day).await {
+                Ok(rows) => rows
+                    .into_iter()
+                    .find(|u| u.provider == id)
+                    .map_or(0, |u| u.credits),
+                Err(_) => u32::MAX,
+            };
+            Budget::limited_with_credits(request_limit, 80_000u32.saturating_sub(used))
+        } else {
+            Budget::limited(request_limit)
+        };
+        if let Ok(p) = Reserve::new(id, key.as_deref().map_or("", |k| k.as_str()), budget) {
+            providers.reserves.push(p);
+        }
+    }
+    // Prefer keyed reserves before the public node, which is the final option.
+    providers.reserves.sort_by_key(|p| match p.provider() {
+        "blockscout" => 0,
+        "etherscan" => 1,
+        "toncenter" => 2,
+        "drpc" => 3,
+        "chainstack" => 4,
+        _ => 5,
+    });
     if let Some(key) = credential(secrets, zerion::PROVIDER, "ZERION_API_KEY") {
         let budget = remaining_today(store, zerion::PROVIDER, ZERION_DAILY_BUDGET).await;
         providers.zerion = Zerion::new(zerion::DEFAULT_BASE, &key, Budget::limited(budget)).ok();
@@ -518,7 +594,33 @@ pub async fn test_provider(
     let _guard = probe_guard(state)?;
     let p = build_providers(store, secrets, state.network_log.clone()).await;
     let missing = || CommandError::new("missing_key", "Configure this provider's key first.");
+    let reserve = p.reserves.iter().find(|p| p.provider() == id);
     let outcome = match id {
+        "blockscout" | "etherscan" | "drpc" | "publicnode" | "chainstack" | "toncenter" => {
+            let api = reserve.ok_or_else(missing)?;
+            let (network, address) = match id {
+                "chainstack" => (
+                    portfolio_core::network::NetworkId::Solana,
+                    "Vote111111111111111111111111111111111111111",
+                ),
+                "toncenter" => (
+                    portfolio_core::network::NetworkId::Ton,
+                    "0:0000000000000000000000000000000000000000000000000000000000000000",
+                ),
+                _ => (
+                    portfolio_core::network::NetworkId::Ethereum,
+                    "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+                ),
+            };
+            api.snapshot(network, address, &[]).await.map(|_| ())
+        }
+        "mempool" => p
+            .mempool
+            .as_ref()
+            .ok_or_else(missing)?
+            .tip_height()
+            .await
+            .map(|_| ()),
         "helius" => p
             .helius
             .as_ref()

@@ -95,6 +95,15 @@ a lock acquisition that previously could leave the button waiting indefinitely.
 - Debug builds also read provider keys from the environment variables above for
   development. Release builds read keys only from the OS credential store.
 
+## Automatic provider reserves
+
+See [provider reserves](docs/PROVIDER_MIRRORS.md) for the routing matrix, coverage,
+limits and new key names. Bitcoin falls back to mempool.space with history.
+Blockscout, Etherscan, dRPC, Chainstack, TON Center and PublicNode retain cached
+history while updating supported balances and showing partial coverage.
+GitHub Actions secrets serve CI; add keys in the installed app separately.
+Chainstack requires the Solana node auth token or full HTTPS RPC endpoint.
+
 ## Required networks (stage D)
 
 | Network                           | Source                                     | Key                                   |

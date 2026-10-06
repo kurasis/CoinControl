@@ -214,6 +214,14 @@ pub struct CheckpointState {
     pub last_success_at: Option<i64>,
     #[serde(default)]
     pub last_error: Option<String>,
+    #[serde(default)]
+    pub cooldown_until: Option<i64>,
+    #[serde(default)]
+    pub cooldown_network_only: bool,
+    #[serde(default)]
+    pub fallback_reasons: Vec<String>,
+    #[serde(default)]
+    pub balance_only: bool,
     /// Full history was downloaded at least once.
     #[serde(default)]
     pub completed_once: bool,
@@ -284,6 +292,8 @@ pub struct HeldAsset {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct AccountSyncStatus {
+    pub fallback_reasons: Vec<String>,
+    pub balance_only: bool,
     pub account_id: String,
     pub provider: Option<String>,
     pub coverage: Option<Coverage>,
@@ -893,6 +903,7 @@ impl Store {
         let state = serde_json::to_string(&checkpoint.state)
             .map_err(|e| StoreError::Invalid(e.to_string()))?;
         let _guard = self.write_lock.lock().await;
+        let mut tx = self.pool.begin().await?;
         sqlx::query(
             "INSERT INTO sync_checkpoints (id, account_id, provider, category, backfill_cursor, forward_cursor, boundary, coverage, earliest_covered_at, retry_state, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5, NULL, ?6, ?7, ?8, ?9, ?10)
@@ -911,8 +922,13 @@ impl Store {
         .bind(checkpoint.earliest_covered_at)
         .bind(state)
         .bind(self.now())
-        .execute(&self.pool)
+        .execute(&mut *tx)
         .await?;
+        if category == "history" {
+            sqlx::query("INSERT INTO app_meta (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+                .bind(format!("sync_source:{account_id}")).bind(provider).execute(&mut *tx).await?;
+        }
+        tx.commit().await?;
         Ok(())
     }
 
@@ -934,7 +950,7 @@ impl Store {
                     c.provider, c.coverage, c.earliest_covered_at, c.retry_state,
                     (SELECT COUNT(*) FROM account_transactions x WHERE x.account_id = a.id) AS tx_count
              FROM accounts a
-             LEFT JOIN sync_checkpoints c ON c.account_id = a.id AND c.category = 'history'
+             LEFT JOIN sync_checkpoints c ON c.rowid = COALESCE((SELECT rowid FROM sync_checkpoints WHERE account_id=a.id AND category='history' AND provider=(SELECT value FROM app_meta WHERE key='sync_source:' || a.id) LIMIT 1), (SELECT rowid FROM sync_checkpoints WHERE account_id=a.id AND category='history' ORDER BY updated_at DESC, rowid DESC LIMIT 1))
              ORDER BY a.created_at, a.id",
         )
         .fetch_all(&self.pool)
@@ -946,6 +962,8 @@ impl Store {
                     .and_then(|s| serde_json::from_str(&s).ok())
                     .unwrap_or_default();
                 Ok(AccountSyncStatus {
+                    fallback_reasons: state.fallback_reasons,
+                    balance_only: state.balance_only,
                     account_id: r.get("id"),
                     provider: r.get("provider"),
                     coverage: r
@@ -1121,6 +1139,35 @@ impl Store {
         Ok(())
     }
 
+    /// A reserve breaker persists across sweeps/restarts. Network bans only affect that chain.
+    pub async fn provider_cooldown(
+        &self,
+        provider: &str,
+        network: NetworkId,
+    ) -> Result<Option<i64>> {
+        let row=sqlx::query("SELECT MAX(CAST(json_extract(c.retry_state, '$.cooldown_until') AS INTEGER)) AS until_at FROM sync_checkpoints c JOIN accounts a ON a.id=c.account_id WHERE c.provider=? AND c.category='history' AND (COALESCE(json_extract(c.retry_state, '$.cooldown_network_only'),0)=0 OR a.network_id=?)")
+            .bind(provider).bind(network.as_str()).fetch_one(&self.pool).await?;
+        Ok(row.get("until_at"))
+    }
+    pub async fn clear_provider_cooldown(&self, provider: &str) -> Result<()> {
+        let _guard = self.write_lock.lock().await;
+        sqlx::query("UPDATE sync_checkpoints SET retry_state=json_set(retry_state, '$.cooldown_until', NULL) WHERE provider=?")
+            .bind(provider).execute(&self.pool).await?;
+        Ok(())
+    }
+    /// Shared monthly counts; one key must not get a fresh allowance on every network.
+    pub async fn provider_usage_month(
+        &self,
+        month_utc: &str,
+        provider: &str,
+    ) -> Result<(u32, u32)> {
+        let row=sqlx::query("SELECT COALESCE(SUM(requests),0) AS requests, COALESCE(SUM(CAST(credits AS INTEGER)),0) AS credits FROM provider_usage WHERE provider=? AND substr(day_utc,1,7)=?")
+            .bind(provider).bind(month_utc).fetch_one(&self.pool).await?;
+        Ok((
+            u32::try_from(row.get::<i64, _>("requests")).unwrap_or(u32::MAX),
+            u32::try_from(row.get::<i64, _>("credits")).unwrap_or(u32::MAX),
+        ))
+    }
     /// Adds locally counted requests for a provider on a UTC day.
     pub async fn add_provider_usage(
         &self,

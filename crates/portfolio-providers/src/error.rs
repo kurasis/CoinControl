@@ -6,6 +6,11 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Error, PartialEq, Eq)]
 pub enum ProviderError {
+    #[error("{provider} {endpoint}: capability unavailable on this network or plan")]
+    CapabilityUnavailable {
+        provider: &'static str,
+        endpoint: &'static str,
+    },
     #[error("{provider} {endpoint}: network access forbidden (HTTP 403)")]
     NetworkForbidden {
         provider: &'static str,
