@@ -11,6 +11,7 @@ mkdirSync(output, { recursive: true });
 const report = {
   mode: "browser-preview",
   note: "Chromium with mock demo IPC; no Windows, native IPC, physical monitor or OS DPI assertion.",
+  nativeLikePolicyIdentityFixture: "ethereum:token:0x00000000000000000000000000000000000d3e30",
   scenarios: [],
   checks: [],
 };
@@ -71,6 +72,22 @@ try {
     route: async (path) => {
       await page.evaluate((hash) => (location.hash = hash), "#" + path);
       await page.waitForTimeout(300);
+      if (path === "/settings/data") {
+        // The lightweight browser demo uses short IDs. Exercise the same long
+        // public contract identity rendered by the real native demo instead.
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll(".card-pad span[title]")].some((e) =>
+            e.textContent.includes("DEMO"),
+          ),
+        );
+        await page.evaluate((id) => {
+          const e = [...document.querySelectorAll(".card-pad span[title]")].find((e) =>
+            e.textContent.includes("DEMO"),
+          );
+          e.textContent = `DEMO · ${id} · unverified`;
+          e.title = id;
+        }, report.nativeLikePolicyIdentityFixture);
+      }
     },
     screenshot: async (name) => {
       await page.screenshot({ path: `${output}/${name}.png` });

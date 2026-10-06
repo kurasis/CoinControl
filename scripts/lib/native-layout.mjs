@@ -69,6 +69,14 @@ export async function verifyNativePages(ui, { name, capture }, report) {
       !layout.sideNavigationReachable ||
       layout.tables.some((t) => !t.lastColumnReachable)
     ) {
+      report.failedLayout = {
+        scenario: name,
+        ...layout,
+        overflowElements:
+          await ui.execute(`const main=document.querySelector('.main'),r=main.getBoundingClientRect();
+return [...main.querySelectorAll('*')].filter(e=>e.checkVisibility()).filter(e=>e.getBoundingClientRect().right>r.right+2 || (getComputedStyle(e).overflowX==='visible' && e.scrollWidth>e.clientWidth+2)).slice(0,12).map(e=>({tag:e.tagName,className:e.className,clientWidth:e.clientWidth,scrollWidth:e.scrollWidth}));`),
+      };
+      await ui.screenshot(`${name}-page-${index}-failed`);
       throw new Error(
         `Unreachable native page content: ${name}${route}: ${JSON.stringify(layout)}`,
       );

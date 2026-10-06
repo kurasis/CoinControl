@@ -209,7 +209,7 @@ jobs:
         run: cargo install tauri-driver --version 2.0.5 --locked
       - name: Install matching WebView2 Edge WebDriver
         shell: pwsh
-        run: ./scripts/setup-webview-driver.ps1
+        run: ./scripts/setup-webview-driver.ps1 -RefreshEvergreen -ReportDirectory target/native-report
       - name: Native scenarios through real IPC and SQLite
         env:
           RUN_LIVE_API_TESTS: "1"
@@ -251,7 +251,7 @@ jobs:
         run: cargo install tauri-driver --version 2.0.5 --locked
       - name: Install matching WebView2 Edge WebDriver
         shell: pwsh
-        run: ./scripts/setup-webview-driver.ps1
+        run: ./scripts/setup-webview-driver.ps1 -RefreshEvergreen -ReportDirectory target/native-load-report
       - name: Installed production startup, large UI and CSV cancellation/replay
         shell: pwsh
         run: ./scripts/native-load-windows.ps1

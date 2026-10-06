@@ -639,6 +639,10 @@ select {
   text-overflow: ellipsis;
 }
 
+.asset-policy-identity {
+  overflow-wrap: anywhere;
+}
+
 .source-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));

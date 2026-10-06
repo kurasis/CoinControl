@@ -22,7 +22,7 @@ export function AssetPolicyControls() {
       )}
       {policies.data?.map((p) => (
         <div className="stack" key={p.asset_id}>
-          <span title={p.asset_id}>
+          <span className="asset-policy-identity" title={p.asset_id}>
             {p.symbol ?? p.name ?? p.asset_id} · {p.asset_id} · {p.verification}
           </span>
           <div className="row">
