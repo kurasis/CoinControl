@@ -1,8 +1,16 @@
-# Verification report — 2026-10-05
+# Verification report — 2026-10-06
 
 This report distinguishes current local verification from imported historical evidence. The original report is preserved in [docs/reports/IMPORTED_TEST_REPORT.md](docs/reports/IMPORTED_TEST_REPORT.md).
 
-The implementation covers accounting/replay fixes, recovery and exports, operational UI and Windows CI automation. Historical version **0.1.1** has executed populated production upgrade, overlapping owned-account/group and actual native viewport evidence, alongside recovery, public BTC/offline scenarios and store load measurements. Full release acceptance remains **BLOCKED** by Zerion HTTP 429 and the remaining native startup, large-dataset UI and display-scaling scopes.
+The implementation covers accounting/replay fixes, recovery and exports, operational UI and Windows CI automation. Full release acceptance remains **BLOCKED** while native startup/load/import and display-scaling gates are unresolved. Historical failures and passes below belong to their exact sources.
+
+## CI recovery and current executed baseline
+
+[Main CI 37373466945, attempt 2](https://github.com/kurasis/CoinControl/actions/runs/37373466945/attempts/2) executed source `5a9f8f62db894b6f269d099bc48518dd80fd2830`: five jobs PASS, two FAIL. Linux checks/offline/browser acceptance, all eight live suites (six providers plus vertical-slice/network integration), both cached Store load jobs and the production 0.1.2 installer passed. The installer has 10 passing checks; release inspection has 61. The native suite has 19 PASS checks, one BLOCKED display-scale check caused by the invalid UI Automation `GetCurrentSelection` call, and one installer item skipped within that separate suite. Production-native startup/load/import did not execute: its installed-EXE hash preflight failed; an attempted cleanup of a firewall rule not yet created also failed. The earlier Zerion HTTP 429 was not reproduced in this run.
+
+The CI recovery change uses `SelectionPattern.Current.GetSelection`, guards cleanup by actual firewall creation, fits final decorated bounds after queued native resize events, and inspects the actual uncompressed NSIS application payload. Local extraction proved that the installed application hash matches the payload exactly, although the separate compiler-output EXE hash differs. Release inspection now scans the payload for sentinels/test infrastructure and binds its hash to its installer hash; installed native acceptance requires both hashes, with no bypass of provenance checks.
+
+Local check/offline/build, PowerShell parsing and an actual-artifact provenance regression passed. Windows execution of these fixes remains pending; do not interpret this local validation as a passed display-scale or startup/load gate. [Baseline reports and provenance](docs/reports/ci-recovery-2026-10-06/README.md).
 
 ## Latest responsive windows, long tables and keyboard panels (0.1.2)
 

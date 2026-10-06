@@ -34,7 +34,7 @@ try {
     foreach ($combo in $settings.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)) {
       $selection = $null
       if ($combo.TryGetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern, [ref]$selection)) {
-        $selected = @($selection.GetCurrentSelection())
+        $selected = @($selection.Current.GetSelection())
         if ($selected.Count -eq 1 -and $selected[0].Current.Name -match '^(\d+)%') {
           $scale = $combo; $result.originalPercent = [int]$Matches[1]; break
         }

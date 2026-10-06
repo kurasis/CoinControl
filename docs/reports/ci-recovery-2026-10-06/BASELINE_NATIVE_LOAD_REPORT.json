@@ -1,0 +1,42 @@
+{
+  "mode": "windows-production-native-load",
+  "at": "2026-10-06T02:51:37.546Z",
+  "sourceSha": "5a9f8f62db894b6f269d099bc48518dd80fd2830",
+  "ciSha": "5a9f8f62db894b6f269d099bc48518dd80fd2830",
+  "buildMode": "production-release",
+  "checks": [
+    {
+      "name": "Production native load execution",
+      "result": "FAIL",
+      "detail": "Installed binary does not match inspected production artifact"
+    },
+    {
+      "name": "Remove isolated firewall rule",
+      "result": "FAIL",
+      "detail": "External Windows helper failed: "
+    }
+  ],
+  "startupTargetMs": 2000,
+  "environment": {
+    "os": "win32",
+    "osVersion": "10.0.26100",
+    "node": "v22.23.3",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "logicalCpus": 4,
+    "totalMemoryBytes": 17174360064
+  },
+  "limits": [
+    "Synthetic 50-account/500-asset/100000-leg normalized SQL fixture; not a production provider import.",
+    "Cold application processes; operating-system disk/page caches are not flushed.",
+    "First sample uses a fresh WebView2 data folder; later samples retain that browser cache.",
+    "First useful paint means cached balance and navigation, after two animation frames; not all charts/rows finished.",
+    "Closing a pending CSV preview acknowledges cancellation immediately; background calculation can finish before its staging is discarded.",
+    "Production binary uses only external documented WebView2 environment options for driver attachment; no native-e2e feature."
+  ],
+  "dataset": {
+    "accounts": 50,
+    "activity_legs": 100000,
+    "assets": 500
+  },
+  "applicationSha256": "1029fdfc4fe01cefbff71309a122a7214fe7efa1a7f03b5e8ea5fb95dfd45193"
+}

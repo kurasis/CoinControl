@@ -24,6 +24,7 @@ export class NativeWebDriver {
     this.port = Number(process.env.E2E_DRIVER_PORT ?? 4444);
     this.debugPort = this.port + 2;
     this.firewallName = `CoinControl-load-${process.pid}`;
+    this.firewallInstalled = false;
   }
 
   async request(path, method = "GET", body) {
@@ -175,15 +176,17 @@ export class NativeWebDriver {
   }
 
   firewall(remove = false) {
+    if (remove && !this.firewallInstalled) return;
     this.powershell(
       remove
-        ? "Remove-NetFirewallRule -Name $env:COINCONTROL_FIREWALL_RULE -ErrorAction SilentlyContinue"
+        ? "$ErrorActionPreference='Stop'; Get-NetFirewallRule -Name $env:COINCONTROL_FIREWALL_RULE -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction Stop; exit 0"
         : "New-NetFirewallRule -Name $env:COINCONTROL_FIREWALL_RULE -DisplayName 'CoinControl isolated native load' -Direction Outbound -Program $env:COINCONTROL_FIREWALL_APP -Action Block -Profile Any -ErrorAction Stop | Out-Null",
       {
         COINCONTROL_FIREWALL_RULE: this.firewallName,
         COINCONTROL_FIREWALL_APP: this.application,
       },
     );
+    this.firewallInstalled = !remove;
   }
 
   async stopApplication() {

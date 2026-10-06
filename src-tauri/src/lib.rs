@@ -86,11 +86,14 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::ScaleFactorChanged { .. }) {
-                window_geometry::fit_main(window);
+                window_geometry::fit_main(window, true);
+            } else if matches!(event, tauri::WindowEvent::Resized(_)) {
+                // Native size/minimum changes are queued; constrain the final decorated bounds.
+                window_geometry::fit_main(window, false);
             }
         })
         .setup(|app| {
-            window_geometry::fit_main(app);
+            window_geometry::fit_main(app, true);
             let data_dir = app.path().app_data_dir()?;
             #[cfg(feature = "native-e2e")]
             let data_dir = std::env::var_os("COINCONTROL_E2E_DATA_DIR")

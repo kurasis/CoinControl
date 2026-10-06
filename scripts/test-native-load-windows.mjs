@@ -123,15 +123,15 @@ try {
   );
   report.applicationSha256 = createHash("sha256").update(readFileSync(application)).digest("hex");
   if (
-    !releaseReport.checks.some(
+    !releaseReport.packagedApplications?.some(
       (c) =>
-        c.result === "PASS" &&
-        c.name.startsWith("PE artifact:") &&
-        c.detail === `sha256 ${report.applicationSha256}`,
+        c.filename === "portfolio-desk.exe" &&
+        c.installerSha256 === process.env.E2E_INSTALLER_SHA256 &&
+        c.applicationSha256 === report.applicationSha256,
     )
   )
-    throw new Error("Installed binary does not match inspected production artifact");
-  record("Installed production binary matches inspected release hash", true);
+    throw new Error("Installed binary does not match inspected NSIS application payload");
+  record("Installed production binary matches inspected NSIS payload hash", true);
   const initial = counts();
   if (
     initial.accounts !== 50 ||

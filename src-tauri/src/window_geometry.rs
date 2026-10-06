@@ -34,7 +34,7 @@ fn fitted_position(
     )
 }
 
-pub fn fit<R: Runtime>(window: &WebviewWindow<R>) -> tauri::Result<()> {
+fn fit<R: Runtime>(window: &WebviewWindow<R>, update_minimum: bool) -> tauri::Result<()> {
     let Some(monitor) = window.current_monitor()? else {
         return Ok(());
     };
@@ -45,8 +45,10 @@ pub fn fit<R: Runtime>(window: &WebviewWindow<R>) -> tauri::Result<()> {
         outer.width.saturating_sub(inner.width),
         outer.height.saturating_sub(inner.height),
     );
-    let minimum = LogicalSize::new(1024.0, 720.0).to_physical::<u32>(window.scale_factor()?);
-    window.set_min_size(Some(fitted_size(area.size, frame, minimum)))?;
+    if update_minimum {
+        let minimum = LogicalSize::new(1024.0, 720.0).to_physical::<u32>(window.scale_factor()?);
+        window.set_min_size(Some(fitted_size(area.size, frame, minimum)))?;
+    }
     let size = fitted_size(area.size, frame, inner);
     if size != inner {
         window.set_size(size)?;
@@ -60,9 +62,9 @@ pub fn fit<R: Runtime>(window: &WebviewWindow<R>) -> tauri::Result<()> {
     Ok(())
 }
 
-pub fn fit_main<R: Runtime>(app: &impl Manager<R>) {
+pub fn fit_main<R: Runtime>(app: &impl Manager<R>, update_minimum: bool) {
     if let Some(window) = app.get_webview_window("main")
-        && let Err(error) = fit(&window)
+        && let Err(error) = fit(&window, update_minimum)
     {
         tracing::warn!(%error, "could not fit window to monitor work area");
     }
