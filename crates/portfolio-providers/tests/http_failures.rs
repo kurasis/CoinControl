@@ -15,6 +15,61 @@ use portfolio_providers::zerion::{Window, Zerion};
 use wiremock::matchers::{header, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
+#[tokio::test]
+async fn opt_in_console_tracks_in_flight_retries_and_rpc_errors_without_payloads() {
+    use portfolio_providers::http::HttpClient;
+    use portfolio_providers::network_log::NetworkLog;
+    use std::sync::Arc;
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/v2/tiny"))
+        .respond_with(
+            ResponseTemplate::new(500)
+                .set_body_string("tiny")
+                .set_delay(Duration::from_millis(50)),
+        )
+        .up_to_n_times(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST")).and(path("/v2/tiny"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"jsonrpc":"2.0","id":1,"error":{"code":-32016,"message":"tiny"}})).set_delay(Duration::from_millis(50)))
+        .mount(&server).await;
+    let log = Arc::new(NetworkLog::default());
+    log.set_enabled(true);
+    let http = HttpClient::new("helius", fast(), Budget::unlimited(), Default::default()).unwrap();
+    http.set_network_log(log.clone());
+    let url = url::Url::parse(&(server.uri() + "/v2/tiny?api-key=tiny")).unwrap();
+    let payload = serde_json::json!({"secret":"tiny"});
+    let request = http.post_json("getBalance", url, &payload);
+    let check_pending = async {
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        assert!(log.entries().iter().any(|e| e.status == "pending"));
+    };
+    let (result, ()) = tokio::join!(request, check_pending);
+    result.unwrap();
+    let entries = log.entries();
+    assert_eq!(entries.len(), 2);
+    assert_eq!(
+        (
+            entries[1].status.as_str(),
+            entries[1].http_status,
+            entries[1].attempt
+        ),
+        ("retrying", Some(500), 1)
+    );
+    assert_eq!(
+        (
+            entries[0].status.as_str(),
+            entries[0].http_status,
+            entries[0].rpc_code,
+            entries[0].attempt
+        ),
+        ("rpc_error", Some(200), Some(-32016), 2)
+    );
+    assert!(entries.iter().all(|e| e.duration_ms.is_some()));
+    assert!(!serde_json::to_string(&entries).unwrap().contains("tiny"));
+}
+
 const ADDR: &str = "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6";
 
 fn assert_no_secret(e: &ProviderError) {

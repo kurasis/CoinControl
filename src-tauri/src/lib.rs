@@ -129,6 +129,10 @@ pub fn run() {
                 elapsed_ms = startup.elapsed().as_millis(),
                 "Startup local profile ready"
             );
+            let sync_state = sync::shared();
+            sync_state.network_log.set_enabled(
+                tauri::async_runtime::block_on(store.get_settings())?.network_console_enabled,
+            );
             let store = Arc::new(RwLock::new(store));
             // Gate initial IPC reads until this one calculation completes. An
             // owned guard lets the UI thread continue creating/painting its
@@ -150,7 +154,7 @@ pub fn run() {
                 store,
                 profiles_dir,
                 secrets: Arc::new(OsSecretStore::default()),
-                sync: sync::shared(),
+                sync: sync_state,
             });
             tauri::WebviewWindowBuilder::from_config(app, &main_window_config)?.build()?;
             tracing::info!(
@@ -203,6 +207,8 @@ pub fn run() {
             commands::list_sync_status,
             commands::cancel_sync,
             commands::get_sync_progress,
+            commands::get_network_log,
+            commands::clear_network_log,
             commands::test_provider,
             commands::export_backup,
             commands::inspect_backup,

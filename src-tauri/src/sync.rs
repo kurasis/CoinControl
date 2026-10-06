@@ -53,7 +53,7 @@ const TICK: Duration = Duration::from_secs(15);
 pub struct SyncState {
     pub(crate) run_lock: tokio::sync::Mutex<()>,
     pub(crate) cancelled: Arc<AtomicBool>,
-    pub(crate) running: AtomicBool,
+    pub(crate) network_log: Arc<portfolio_providers::network_log::NetworkLog>,
     details: Arc<std::sync::Mutex<SyncDetails>>,
     last_sweep_at: AtomicI64,
     last_prices_at: AtomicI64,
@@ -104,7 +104,11 @@ async fn remaining_today(store: &Store, provider: &str, limit: u32) -> u32 {
     limit.saturating_sub(used)
 }
 
-async fn build_providers(store: &Store, secrets: &dyn SecretStore) -> Providers {
+async fn build_providers(
+    store: &Store,
+    secrets: &dyn SecretStore,
+    log: Arc<portfolio_providers::network_log::NetworkLog>,
+) -> Providers {
     // Native live acceptance uses public BTC reads only, with one persisted
     // ceiling across restarts/sweeps. Production has its normal daily budgets.
     #[cfg(feature = "native-e2e")]
@@ -179,6 +183,7 @@ async fn build_providers(store: &Store, secrets: &dyn SecretStore) -> Providers 
         providers.livecoinwatch =
             LiveCoinWatch::new(livecoinwatch::DEFAULT_BASE, &key, Budget::limited(budget)).ok();
     }
+    providers.set_network_log(log);
     providers
 }
 
@@ -204,14 +209,7 @@ pub async fn run(app: &AppHandle, account_id: Option<&str>) -> CommandResult<Syn
         ));
     }
     state.sync.cancelled.store(false, Ordering::Relaxed);
-    state.sync.running.store(true, Ordering::Relaxed);
-    struct RunningGuard<'a>(&'a AtomicBool);
-    impl Drop for RunningGuard<'_> {
-        fn drop(&mut self) {
-            self.0.store(false, Ordering::Relaxed);
-        }
-    }
-    let _running = RunningGuard(&state.sync.running);
+    let mut run_status = RunStatus::begin(&state.sync, "preparing");
     let total = if account_id.is_some() {
         1
     } else {
@@ -222,15 +220,21 @@ pub async fn run(app: &AppHandle, account_id: Option<&str>) -> CommandResult<Syn
             .filter(|a| !a.archived)
             .count() as u32
     };
-    *state.sync.details.lock().expect("sync details") = SyncDetails {
-        total_accounts: total,
-        phase: "accounts".into(),
-        ..SyncDetails::default()
-    };
+    state
+        .sync
+        .details
+        .lock()
+        .expect("sync details")
+        .total_accounts = total;
     let details = state.sync.details.clone();
     let engine = SyncEngine::new(
         store.clone(),
-        build_providers(&store, state.secrets.as_ref()).await,
+        build_providers(
+            &store,
+            state.secrets.as_ref(),
+            state.sync.network_log.clone(),
+        )
+        .await,
         SyncOptions::default(),
     )
     .with_cancellation(state.sync.cancelled.clone())
@@ -242,6 +246,7 @@ pub async fn run(app: &AppHandle, account_id: Option<&str>) -> CommandResult<Syn
             p.completed_accounts += 1;
         }
     }));
+    state.sync.details.lock().expect("sync details").phase = "accounts".into();
     let accounts = match account_id {
         Some(id) => {
             let account = store.account(id).await?;
@@ -264,6 +269,7 @@ pub async fn run(app: &AppHandle, account_id: Option<&str>) -> CommandResult<Syn
         .last_prices_at
         .store(SystemClock.now(), Ordering::Relaxed);
     notify(app);
+    state.sync.details.lock().expect("sync details").phase = "price_history".into();
     let price_history = engine.refresh_price_history().await;
     state.sync.details.lock().expect("sync details").phase = "accounting".into();
     let (accounting, accounting_error) = match store.replay_if_dirty().await {
@@ -279,13 +285,25 @@ pub async fn run(app: &AppHandle, account_id: Option<&str>) -> CommandResult<Syn
             tracing::warn!(account = %report.account_id, %error, "synchronization incomplete");
         }
     }
-    Ok(SyncSummary {
+    let summary = SyncSummary {
         accounts,
         prices,
         price_history,
         accounting,
         accounting_error,
-    })
+    };
+    run_status.finish(
+        summary_outcome(&summary, state.sync.cancelled.load(Ordering::Relaxed)),
+        summary
+            .accounts
+            .iter()
+            .filter(|a| a.error.is_some())
+            .count()
+            + summary.prices.errors.len()
+            + summary.price_history.errors.len()
+            + usize::from(summary.accounting_error.is_some()),
+    );
+    Ok(summary)
 }
 
 /// Refreshes prices only (between sweeps).
@@ -298,11 +316,19 @@ async fn refresh_prices(app: &AppHandle) {
     if store.profile() != ProfileKind::Real {
         return;
     }
+    state.sync.cancelled.store(false, Ordering::Relaxed);
+    let mut run_status = RunStatus::begin(&state.sync, "prices");
     let engine = SyncEngine::new(
         store.clone(),
-        build_providers(&store, state.secrets.as_ref()).await,
+        build_providers(
+            &store,
+            state.secrets.as_ref(),
+            state.sync.network_log.clone(),
+        )
+        .await,
         SyncOptions::default(),
-    );
+    )
+    .with_cancellation(state.sync.cancelled.clone());
     let report = engine.refresh_prices().await;
     state
         .sync
@@ -311,6 +337,18 @@ async fn refresh_prices(app: &AppHandle) {
     if report.priced > 0 {
         notify(app);
     }
+    run_status.finish(
+        if state.sync.cancelled.load(Ordering::Relaxed) {
+            "cancelled"
+        } else if !report.errors.is_empty() {
+            "errors"
+        } else if !report.unpriced.is_empty() {
+            "partial"
+        } else {
+            "completed"
+        },
+        report.errors.len(),
+    );
 }
 
 /// Starts the background schedule. The first sweep runs shortly after launch;
@@ -375,6 +413,84 @@ pub struct SyncDetails {
     pub total_accounts: u32,
     pub pages_fetched: u32,
     pub phase: String,
+    pub kind: String,
+    pub outcome: String,
+    pub error_count: u32,
+    pub started_at: Option<i64>,
+    pub finished_at: Option<i64>,
+}
+
+/// Keeps final results visible for background runs and guarantees an error
+/// state when an early return or panic unwinds a run.
+struct RunStatus<'a> {
+    state: &'a SyncState,
+    finished: bool,
+}
+impl<'a> RunStatus<'a> {
+    fn begin(state: &'a SyncState, phase: &str) -> Self {
+        *state.details.lock().expect("sync details") = SyncDetails {
+            phase: phase.into(),
+            kind: if phase == "prices" {
+                "prices"
+            } else {
+                "accounts"
+            }
+            .into(),
+            outcome: "running".into(),
+            started_at: Some(SystemClock.now()),
+            ..SyncDetails::default()
+        };
+        Self {
+            state,
+            finished: false,
+        }
+    }
+    fn finish(&mut self, outcome: &str, errors: usize) {
+        let mut details = self.state.details.lock().expect("sync details");
+        details.phase = "idle".into();
+        details.active_account = None;
+        details.outcome = outcome.into();
+        details.error_count = u32::try_from(errors).unwrap_or(u32::MAX);
+        details.finished_at = Some(SystemClock.now());
+        self.finished = true;
+    }
+}
+impl Drop for RunStatus<'_> {
+    fn drop(&mut self) {
+        if !self.finished {
+            self.finish("failed", 1);
+        }
+    }
+}
+fn summary_outcome(summary: &SyncSummary, cancelled: bool) -> &'static str {
+    if cancelled {
+        "cancelled"
+    } else if summary.accounting_error.is_some() {
+        "failed"
+    } else if summary.accounts.iter().any(|a| a.error.is_some())
+        || !summary.prices.errors.is_empty()
+        || !summary.price_history.errors.is_empty()
+    {
+        "errors"
+    } else if summary
+        .accounts
+        .iter()
+        .any(|a| a.coverage != portfolio_store::Coverage::Complete)
+        || !summary.prices.unpriced.is_empty()
+        || summary.price_history.pending_assets > 0
+        || !summary.price_history.unavailable.is_empty()
+    {
+        "partial"
+    } else {
+        "completed"
+    }
+}
+
+pub(crate) fn probe_guard(state: &SyncState) -> CommandResult<tokio::sync::MutexGuard<'_, ()>> {
+    state
+        .run_lock
+        .try_lock()
+        .map_err(|_| CommandError::new("sync_busy", "Synchronization is already running."))
 }
 #[derive(Debug, Clone, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
@@ -384,20 +500,23 @@ pub struct SyncProgress {
     pub details: SyncDetails,
 }
 pub fn progress(state: &SyncState) -> SyncProgress {
+    let details = state.details.lock().expect("sync details").clone();
     SyncProgress {
-        running: state.running.load(Ordering::Relaxed),
+        running: details.outcome == "running",
         cancel_requested: state.cancelled.load(Ordering::Relaxed),
-        details: state.details.lock().expect("sync details").clone(),
+        details,
     }
 }
 
 /// One small read against the selected adapter; never starts a history import.
 pub async fn test_provider(
+    state: &SyncState,
     store: &Store,
     secrets: &dyn SecretStore,
     id: &str,
 ) -> CommandResult<()> {
-    let p = build_providers(store, secrets).await;
+    let _guard = probe_guard(state)?;
+    let p = build_providers(store, secrets, state.network_log.clone()).await;
     let missing = || CommandError::new("missing_key", "Configure this provider's key first.");
     let outcome = match id {
         "helius" => p
@@ -472,4 +591,82 @@ pub async fn test_provider(
     let engine = SyncEngine::new(store.clone(), p, SyncOptions::default());
     engine.flush_usage().await?;
     outcome.map_err(|e| CommandError::new("provider", e.to_string()))
+}
+
+#[cfg(test)]
+mod progress_tests {
+    use super::*;
+
+    fn summary() -> SyncSummary {
+        SyncSummary {
+            accounts: vec![],
+            prices: PriceReport::default(),
+            price_history: PriceHistoryReport::default(),
+            accounting: None,
+            accounting_error: None,
+        }
+    }
+    #[test]
+    fn results_distinguish_partial_errors_cancellation_and_early_failure() {
+        let mut s = summary();
+        assert_eq!(summary_outcome(&s, false), "completed");
+        s.price_history.pending_assets = 2;
+        assert_eq!(summary_outcome(&s, false), "partial");
+        s.prices.errors.push("rate limited".into());
+        assert_eq!(summary_outcome(&s, false), "errors");
+        s.accounting_error = Some("replay failed".into());
+        assert_eq!(summary_outcome(&s, false), "failed");
+        assert_eq!(summary_outcome(&s, true), "cancelled");
+        let state = SyncState::default();
+        {
+            let _run = RunStatus::begin(&state, "accounts");
+            assert!(progress(&state).running);
+        }
+        let ended = progress(&state);
+        assert!(!ended.running);
+        assert_eq!(ended.details.outcome, "failed");
+        assert!(ended.details.finished_at.is_some());
+    }
+    #[tokio::test]
+    async fn connection_probe_never_waits_on_an_already_held_run_lock() {
+        struct EmptySecrets;
+        impl SecretStore for EmptySecrets {
+            fn save(
+                &self,
+                _: &str,
+                _: crate::secrets::Secret,
+            ) -> Result<crate::secrets::KeyStorage, String> {
+                unreachable!()
+            }
+            fn remove(&self, _: &str) -> Result<(), String> {
+                unreachable!()
+            }
+            fn status(&self, _: &str) -> Option<crate::secrets::KeyStorage> {
+                None
+            }
+            fn get(&self, _: &str) -> Option<crate::secrets::Secret> {
+                None
+            }
+        }
+        let state = SyncState::default();
+        let guard = probe_guard(&state).unwrap();
+        assert!(probe_guard(&state).is_err());
+        drop(guard);
+        assert!(probe_guard(&state).is_ok());
+        let store = Store::open_in_memory(
+            ProfileKind::Test,
+            Arc::new(portfolio_core::clock::FixedClock(1)),
+        )
+        .await
+        .unwrap();
+        // Unknown provider never makes a network call. The actual probe must
+        // return immediately instead of acquiring its held run lock again.
+        let result = tokio::time::timeout(
+            Duration::from_secs(1),
+            test_provider(&state, &store, &EmptySecrets, "unknown"),
+        )
+        .await
+        .unwrap();
+        assert_eq!(result.unwrap_err().code, "unsupported");
+    }
 }

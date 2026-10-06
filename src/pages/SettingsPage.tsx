@@ -11,6 +11,7 @@ import { useNetworkNames } from "../app/hooks";
 import { Page } from "../components/Layout";
 import { AssetPolicyControls } from "../components/AssetPolicyControls";
 import { RecoveryControls } from "../components/RecoveryControls";
+import { NetworkConsole, NetworkConsoleToggle } from "../components/NetworkConsole";
 import { openExternal } from "../lib/external";
 
 export function SettingsPage() {
@@ -25,8 +26,11 @@ export function SettingsPage() {
         <NavLink to="/settings/sources">{t("settings.sources")}</NavLink>
         <NavLink to="/settings/networks">{t("settings.networks")}</NavLink>
         <NavLink to="/settings/data">{t("settings.data")}</NavLink>
+        <NavLink to="/settings/console">{t("networkLog.title")}</NavLink>
       </nav>
-      {tab === "sources" ? (
+      {tab === "console" ? (
+        <NetworkConsole />
+      ) : tab === "sources" ? (
         <DataSources />
       ) : tab === "networks" ? (
         <NetworkCoverage />
@@ -102,6 +106,10 @@ function GeneralSettings() {
       <div className="settings-row">
         <span>{t("settings.currency")}</span>
         <span className="muted">USD</span>
+      </div>
+      <div className="settings-row">
+        <NavLink to="/settings/console">{t("networkLog.title")}</NavLink>
+        <NetworkConsoleToggle />
       </div>
     </section>
   );

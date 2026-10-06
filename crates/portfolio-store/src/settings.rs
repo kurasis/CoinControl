@@ -52,3 +52,17 @@ impl Store {
         Ok(settings.clone())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn old_settings_keep_language_privacy_and_intervals_when_console_is_added() {
+        let settings: Settings = serde_json::from_str(r#"{"language":"ru","theme":"light","timezone":"Africa/Nairobi","privacy_mode":true,"price_refresh_seconds":120,"sweep_interval_minutes":30}"#).unwrap();
+        assert!(!settings.network_console_enabled);
+        assert_eq!(settings.language.as_deref(), Some("ru"));
+        assert!(settings.privacy_mode);
+        assert_eq!(settings.price_refresh_seconds, 120);
+        assert_eq!(settings.sweep_interval_minutes, 30);
+    }
+}

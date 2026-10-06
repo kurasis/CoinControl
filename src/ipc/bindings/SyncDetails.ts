@@ -6,4 +6,9 @@ export type SyncDetails = {
   total_accounts: number;
   pages_fetched: number;
   phase: string;
+  kind: string;
+  outcome: string;
+  error_count: number;
+  started_at: number | null;
+  finished_at: number | null;
 };

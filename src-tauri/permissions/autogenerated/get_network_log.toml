@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-network-log"
+description = "Enables the get_network_log command without any pre-configured scope."
+commands.allow = ["get_network_log"]
+
+[[permission]]
+identifier = "deny-get-network-log"
+description = "Denies the get_network_log command without any pre-configured scope."
+commands.deny = ["get_network_log"]
