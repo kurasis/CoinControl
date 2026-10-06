@@ -87,6 +87,12 @@ return [...main.querySelectorAll('*')].filter(e=>e.checkVisibility()).filter(e=>
     await until(() => ui.execute("return !document.querySelector('.chart.skeleton');"));
     const charts = await ui.execute("return document.querySelectorAll('.chart-data').length;");
     for (let chart = 0; chart < charts; chart++) {
+      await until(() =>
+        ui.execute(
+          "return Boolean(document.querySelectorAll('.chart-data')[arguments[0]].previousElementSibling?.querySelector('canvas'));",
+          [chart],
+        ),
+      );
       await ui.execute(
         "document.querySelectorAll('.chart-data summary')[arguments[0]].focus();return true;",
         [chart],
@@ -107,7 +113,14 @@ return [...main.querySelectorAll('*')].filter(e=>e.checkVisibility()).filter(e=>
         ui.execute("return !document.querySelectorAll('.chart-data')[arguments[0]].open;", [chart]),
       );
       report.chartData ??= [];
-      report.chartData.push({ scenario: name, route, chart, ...data, keyboard: "PASS" });
+      report.chartData.push({
+        scenario: name,
+        route,
+        chart,
+        ...data,
+        renderer: "canvas",
+        keyboard: "PASS",
+      });
     }
   }
   // Verify actual Tab/Shift+Tab and Escape, including restoration to the opening control.
