@@ -65,7 +65,7 @@ $result.originalWidth = $original.PelsWidth
 $result.originalHeight = $original.PelsHeight
 try {
   $target = $null
-  if (($Action -eq 'prepare' -and $original.PelsWidth -ge 1920 -and $original.PelsHeight -ge 1080) -or ($Action -eq 'restore' -and $original.PelsWidth -eq $Width -and $original.PelsHeight -eq $Height)) {
+  if (($Action -eq 'prepare' -and $original.PelsWidth -ge 3840 -and $original.PelsHeight -ge 2160) -or ($Action -eq 'restore' -and $original.PelsWidth -eq $Width -and $original.PelsHeight -eq $Height)) {
     $target = $original
   } else {
     $modes = @()
@@ -74,7 +74,7 @@ try {
       if (-not $mode) { break }
       if ($Action -eq 'restore') {
         if ($mode.PelsWidth -eq $Width -and $mode.PelsHeight -eq $Height -and $mode.BitsPerPel -eq $original.BitsPerPel) { $modes += $mode }
-      } elseif ($mode.PelsWidth -ge 1920 -and $mode.PelsHeight -ge 1080 -and $mode.BitsPerPel -eq $original.BitsPerPel) {
+      } elseif ($mode.PelsWidth -ge 3840 -and $mode.PelsHeight -ge 2160 -and $mode.BitsPerPel -eq $original.BitsPerPel) {
         $modes += $mode
       }
     }

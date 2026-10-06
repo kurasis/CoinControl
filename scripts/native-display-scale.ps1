@@ -54,8 +54,9 @@ try {
     $expand.Expand()
     Start-Sleep -Milliseconds 300
     $items = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::ListItem))
+    $result.observedPercentages = @($items | ForEach-Object { if ($_.Current.Name -match '^(\d+)%(?:\s|$)') { [int]$Matches[1] } } | Sort-Object -Unique)
     $item = $items | Where-Object { $_.Current.Name -match ("^$Percent%\b|^$Percent%(?:\s|$)") } | Select-Object -First 1
-    if (-not $item) { throw "Windows does not offer $Percent% on this display" }
+    if (-not $item) { throw "Windows scale selector does not expose $Percent% on this display" }
     $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
   }
   $target = $(if ($Percent -gt 0) { $Percent } else { $result.originalPercent })

@@ -16,9 +16,10 @@ $prior = @(Get-Process SystemSettings -ErrorAction SilentlyContinue | ForEach-Ob
 $result = @{ result = 'BLOCKED'; method = 'Windows Settings UI Automation'; detail = '' }
 $result.originalWidth = [DesktopPixels]::GetSystemMetrics(0)
 $result.originalHeight = [DesktopPixels]::GetSystemMetrics(1)
+# A physical 4K desktop leaves room for the required 200% OS scale option.
 if ($Action -eq 'prepare') {
-  if ($result.originalWidth -ge 1920 -and $result.originalHeight -ge 1080) { $Width = $result.originalWidth; $Height = $result.originalHeight }
-  else { $Width = 1920; $Height = 1080 }
+  if ($result.originalWidth -ge 3840 -and $result.originalHeight -ge 2160) { $Width = $result.originalWidth; $Height = $result.originalHeight }
+  else { $Width = 3840; $Height = 2160 }
 }
 if ($Width -eq $result.originalWidth -and $Height -eq $result.originalHeight) {
   $result.width = $Width; $result.height = $Height; $result.result = 'PASS'
