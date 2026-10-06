@@ -482,11 +482,18 @@ impl HttpClient {
         if status.is_success() {
             return Ok(Body { status, bytes });
         }
-        // RPC providers put credentials in URL paths/query strings and may echo
-        // even short keys in arbitrary HTTP error bodies. Status is sufficient.
+        // Keyed reserves and RPC providers may echo even short credentials in
+        // arbitrary HTTP error bodies. Keep the status and omit the body.
         let detail = if matches!(
             provider,
-            "helius" | "alchemy" | "drpc" | "publicnode" | "chainstack"
+            "helius"
+                | "alchemy"
+                | "drpc"
+                | "publicnode"
+                | "chainstack"
+                | "blockscout"
+                | "etherscan"
+                | "toncenter"
         ) {
             String::new()
         } else {
