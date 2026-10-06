@@ -249,7 +249,7 @@ impl Store {
         let assets = self.asset_meta().await?;
         let prices = self.latest_prices().await?;
         let observations = self.observations(accounts, &assets).await?;
-        let lots = self.scope_lots(accounts).await?;
+        let lots = self.scope_valuation_lots(accounts).await?;
 
         let mut excluded_spam = 0u32;
         let mut positions = Vec::new();
@@ -1085,5 +1085,116 @@ mod tests {
         assert!(g.windows(2).all(|w| w[0] < w[1]));
         let (interval, _) = grid_params(ChartRange::All, now, Some(now - 5_000 * DAY));
         assert!(5_000 * DAY / interval <= MAX_CHART_POINTS);
+    }
+
+    #[tokio::test]
+    async fn compact_valuation_preserves_exact_basis_and_observation_mismatches() {
+        use crate::ProfileKind;
+        use crate::ingest::AssetSpec;
+        use portfolio_core::clock::FixedClock;
+        use std::sync::Arc;
+
+        let store = Store::open_in_memory(ProfileKind::Test, Arc::new(FixedClock(1)))
+            .await
+            .unwrap();
+        let wallet = store.create_wallet("Valuation").await.unwrap();
+        let account = store
+            .add_account(
+                &wallet.id,
+                NetworkId::Ethereum,
+                "0x0000000000000000000000000000000000000001",
+                None,
+            )
+            .await
+            .unwrap();
+        let asset = AssetSpec::native(NetworkId::Ethereum, "test");
+        store.upsert_asset(&asset).await.unwrap();
+        for (i, (quantity, basis, kind)) in [
+            (
+                "9007199254740993.000000000000000001",
+                Some("100.000000000000000001"),
+                "known",
+            ),
+            (
+                "9007199254740993.000000000000000001",
+                Some("100.000000000000000001"),
+                "known",
+            ),
+            ("0.1", Some("0.123456789012345678"), "estimated"),
+            ("0.1", Some("0.123456789012345678"), "estimated"),
+            ("1", None, "unknown"),
+            ("1", None, "unknown"),
+            ("0.3", Some("0"), "known"),
+            ("0", Some("999"), "known"),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            sqlx::query(
+                "INSERT INTO lots(id,account_id,asset_id,quantity,remaining_quantity,
+                 basis_usd,remaining_basis_usd,basis_kind,acquired_at,arrived_at,source_event,method_version)
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,3)",
+            )
+            .bind(format!("L{i}"))
+            .bind(&account.id)
+            .bind(asset.id())
+            .bind(quantity).bind(quantity).bind(basis).bind(basis).bind(kind)
+            .bind(i as i64).bind(i as i64).bind(format!("event-{i}"))
+            .execute(&store.pool).await.unwrap();
+        }
+        let accounts = BTreeSet::from([account.id.clone()]);
+        let key = (account.id.clone(), asset.id());
+        let full = store
+            .scope_lots(&accounts)
+            .await
+            .unwrap()
+            .remove(&key)
+            .unwrap();
+        let compact = store
+            .scope_valuation_lots(&accounts)
+            .await
+            .unwrap()
+            .remove(&key)
+            .unwrap();
+        assert_eq!((full.len(), compact.len()), (7, 4));
+        let quantity = d("18014398509481988.500000000000000002");
+        let summary = summarize_position(&compact, Some(&d("2")));
+        assert_eq!(summary.quantity, quantity);
+        assert_eq!(summary.known_subset.basis_usd, d("200.246913578024691358"));
+        assert!(summary.basis_usd.is_none());
+        assert!(summary.has_estimated_basis);
+        for held in [
+            &quantity,
+            &(&quantity + d("0.1")),
+            &(&quantity - d("0.1")),
+            &d("0"),
+        ] {
+            for price in [Some(d("2.000000000000000001")), Some(d("0")), None] {
+                assert_eq!(
+                    summarize_position(
+                        &explaining_lots(&account.id, &asset.id(), held, &compact),
+                        price.as_ref()
+                    ),
+                    summarize_position(
+                        &explaining_lots(&account.id, &asset.id(), held, &full),
+                        price.as_ref()
+                    ),
+                );
+            }
+        }
+        assert!(
+            store
+                .scope_valuation_lots(&BTreeSet::new())
+                .await
+                .unwrap()
+                .is_empty()
+        );
+        assert!(
+            store
+                .scope_valuation_lots(&BTreeSet::from(["other-account".into()]))
+                .await
+                .unwrap()
+                .is_empty()
+        );
     }
 }

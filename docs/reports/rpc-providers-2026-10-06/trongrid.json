@@ -1,0 +1,44 @@
+{
+  "provider": "trongrid",
+  "started_at": 1791277276,
+  "duration_ms": 4265,
+  "requests": 7,
+  "endpoints": ["v1/accounts", "v1/accounts/transactions", "v1/accounts/transactions/trc20"],
+  "checks": [
+    {
+      "name": "key access and balances",
+      "result": "PASS",
+      "detail": "liquid 528884280427388 SUN, staked 1458682642599664 SUN, 304 TRC-20 balances"
+    },
+    {
+      "name": "native history: two pages, fingerprint continuity, all records normalized",
+      "result": "PASS",
+      "detail": "page sizes 20 and 20, overlap 0, newest-first true, normalize None"
+    },
+    {
+      "name": "TRC-20 history: two pages without duplicate events",
+      "result": "PASS",
+      "detail": "page sizes 20 and 20, duplicates 0"
+    },
+    {
+      "name": "known TRC-20 transfer normalized by contract identity",
+      "result": "PASS",
+      "detail": "found true, leg Some(\"-3123513000000\")"
+    },
+    {
+      "name": "fee-bearing receipt fc476d1110",
+      "result": "PASS",
+      "detail": "operation send, legs 0, fee Some(\"13373400\") SUN"
+    },
+    {
+      "name": "fee-bearing receipt 1bb453dc02",
+      "result": "PASS",
+      "detail": "operation send, legs 1, fee Some(\"1100000\") SUN"
+    },
+    {
+      "name": "known fee-bearing records located",
+      "result": "PASS",
+      "detail": "2 of 2 found"
+    }
+  ]
+}
