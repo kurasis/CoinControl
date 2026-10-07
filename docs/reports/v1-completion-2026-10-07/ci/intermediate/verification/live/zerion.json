@@ -1,0 +1,44 @@
+{
+  "provider": "zerion",
+  "started_at": 1791362493,
+  "duration_ms": 7062,
+  "requests": 8,
+  "endpoints": ["positions", "transactions"],
+  "checks": [
+    {
+      "name": "simple positions on Ethereum only",
+      "result": "PASS",
+      "detail": "1074 positions (603 flagged as trash), native balance 775181563502083362 wei"
+    },
+    {
+      "name": "two distinct history pages with advancing cursor",
+      "result": "PASS",
+      "detail": "page sizes 5 and 5, duplicates 0, newest-first true"
+    },
+    {
+      "name": "known activity send 0x6d688bc3",
+      "result": "PASS",
+      "detail": "status Confirmed, legs 1, fee 0.000006151018965"
+    },
+    {
+      "name": "known activity execute 0x15cc37b3",
+      "result": "PASS",
+      "detail": "status Failed, legs 0, fee 0.000117495682771194"
+    },
+    {
+      "name": "known activity trade 0x8215ba17",
+      "result": "PASS",
+      "detail": "status Confirmed, legs 2, fee 0.000144637120087707"
+    },
+    {
+      "name": "solana: SOL and SPL holdings with exact mint identities",
+      "result": "PASS",
+      "detail": "801 positions, SOL 1328393372129 lamports, mixed-case mints kept true"
+    },
+    {
+      "name": "solana: known transfer found with its exact signature",
+      "result": "PASS",
+      "detail": "1 transactions in window, legs Some(1)"
+    }
+  ]
+}

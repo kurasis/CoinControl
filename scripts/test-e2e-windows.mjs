@@ -773,13 +773,13 @@ try {
   record("Wallet rename persists through real Rust IPC", "PASS");
   await route("/settings/data");
   const retainedBefore = readProfile(
-    "SELECT (SELECT COUNT(*) FROM movement_legs) AS legs, (SELECT COUNT(*) FROM lots) AS lots, (SELECT COUNT(*) FROM accounting_overrides) AS decisions",
+    "SELECT (SELECT COUNT(*) FROM activity_legs) AS legs, (SELECT COUNT(*) FROM lots) AS lots, (SELECT COUNT(*) FROM accounting_overrides) AS decisions",
     "demo",
   );
   await clickText("Clear temporary caches");
   await until(async () => (await body()).includes("Temporary caches cleared."));
   const retainedAfter = readProfile(
-    "SELECT (SELECT COUNT(*) FROM movement_legs) AS legs, (SELECT COUNT(*) FROM lots) AS lots, (SELECT COUNT(*) FROM accounting_overrides) AS decisions",
+    "SELECT (SELECT COUNT(*) FROM activity_legs) AS legs, (SELECT COUNT(*) FROM lots) AS lots, (SELECT COUNT(*) FROM accounting_overrides) AS decisions",
     "demo",
   );
   if (JSON.stringify(retainedBefore) !== JSON.stringify(retainedAfter))

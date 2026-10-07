@@ -115,3 +115,18 @@ historical Ethereum checks remain independently enforced by Alchemy/Zerion. The
 [initial live report](ci/initial-live/LIVE_REPORT.md) is preserved; corrected-source
 results are recorded separately. Alchemy 403, Chainstack 401 and dRPC BNB 429 were
 unchanged external failures in the initial run.
+
+## Native test schema correction
+
+Follow-up source `052e4237f762182853a18561759068afb04e9ee5`,
+[CI 37594993107](https://github.com/kurasis/CoinControl/actions/runs/37594993107),
+passed the upgraded installer and fixed review navigation. New real-IPC wallet rename
+passed. The new cache-retention test then failed on an incorrectly named SQL table
+(`movement_legs`). The application itself uses `activity_legs`; the test's two queries
+are corrected to that exact schema. Both corrected queries compile against **all
+seven migrations**, while both old queries are rejected ([query validation](NATIVE_QUERY_VALIDATION.txt)).
+The [intermediate native failure](ci/intermediate/NATIVE_REPORT.json) is preserved.
+This correction changes only test SQL; production application logic is unchanged.
+That run's live checks passed **16 suites** (including Ethereum/Solana/TON finality
+and dRPC BNB); only Alchemy's four rejected mainnets and Chainstack Solana failed.
+New final-source verification is recorded separately before ZIP publication.
