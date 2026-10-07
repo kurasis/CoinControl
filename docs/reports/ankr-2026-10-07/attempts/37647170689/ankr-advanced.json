@@ -1,0 +1,39 @@
+{
+  "provider": "ankr-advanced",
+  "started_at": 1791388272,
+  "duration_ms": 10237,
+  "requests": 6,
+  "endpoints": ["ankr_getAccountBalance"],
+  "checks": [
+    {
+      "name": "ethereum Advanced access",
+      "result": "FAIL",
+      "detail": "ankr ankr_getAccountBalance: invalid response: invalid token balance evidence"
+    },
+    {
+      "name": "base Advanced balances",
+      "result": "PASS",
+      "detail": "authenticated response; 46 fungible token balances with exact raw integers and mainnet/wallet identities; history not claimed"
+    },
+    {
+      "name": "arbitrum Advanced balances",
+      "result": "PASS",
+      "detail": "authenticated response; 12 fungible token balances with exact raw integers and mainnet/wallet identities; history not claimed"
+    },
+    {
+      "name": "optimism Advanced balances",
+      "result": "PASS",
+      "detail": "authenticated response; 37 fungible token balances with exact raw integers and mainnet/wallet identities; history not claimed"
+    },
+    {
+      "name": "polygon Advanced balances",
+      "result": "PASS",
+      "detail": "authenticated response; 85 fungible token balances with exact raw integers and mainnet/wallet identities; history not claimed"
+    },
+    {
+      "name": "bsc Advanced balances",
+      "result": "PASS",
+      "detail": "authenticated response; 117 fungible token balances with exact raw integers and mainnet/wallet identities; history not claimed"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "provider": "ankr",
+  "started_at": 1791388285,
+  "duration_ms": 430,
+  "requests": 10,
+  "endpoints": ["balance reserve"],
+  "checks": [
+    {
+      "name": "ethereum native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "ethereum integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "base native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "base integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "arbitrum native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "arbitrum integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "optimism reserve access",
+      "result": "FAIL",
+      "detail": "ankr eth_chainId: credential rejected (HTTP 403)"
+    },
+    {
+      "name": "polygon reserve access",
+      "result": "FAIL",
+      "detail": "ankr eth_chainId: credential rejected (HTTP 403)"
+    },
+    {
+      "name": "bsc reserve access",
+      "result": "FAIL",
+      "detail": "ankr eth_chainId: credential rejected (HTTP 403)"
+    },
+    {
+      "name": "solana reserve access",
+      "result": "FAIL",
+      "detail": "ankr eth_chainId: credential rejected (HTTP 403)"
+    }
+  ]
+}

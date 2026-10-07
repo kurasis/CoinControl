@@ -1,0 +1,8 @@
+{
+  "refreshRequested": false,
+  "at": "2026-10-07T16:44:00.1379311Z",
+  "mode": "webview2-runtime-setup",
+  "result": "PASS",
+  "beforeVersion": "154.0.4258.53",
+  "afterVersion": "154.0.4258.53"
+}

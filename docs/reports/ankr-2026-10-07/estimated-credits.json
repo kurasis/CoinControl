@@ -1,0 +1,18 @@
+{
+  "alchemy": 8760,
+  "ankr": 16300,
+  "blockscout": 620,
+  "chainstack": 2,
+  "defillama": 0,
+  "drpc": 1700,
+  "esplora": 0,
+  "etherscan": 0,
+  "helius": 52,
+  "livecoinwatch": 0,
+  "mempool": 0,
+  "publicnode": 3,
+  "tonapi": 0,
+  "toncenter": 0,
+  "trongrid": 0,
+  "zerion": 0
+}

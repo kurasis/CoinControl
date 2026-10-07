@@ -36,6 +36,22 @@ returns. The separate
 **demo profile** uses synthetic data, is labeled as such, and never contacts a
 provider.
 
+## Ankr reserve (0.1.10 source)
+
+Settings → Data sources → Ankr accepts an optional key for Node RPC and exact
+Advanced token balances. Node and Advanced calls use separate shared pacing
+limits: 30 requests/second and 30 requests/minute respectively; both share local
+request/credit ceilings. First 429 advances to a mirror, and budget exhaustion
+pauses the source without making cached balances zero or creating a fatal error.
+GitHub's `ANKR_API_KEY` enables CI probes; installed users save their own key.
+
+Actual reads pass on five EVM Node networks and all six Advanced EVM networks.
+This key's Optimism/Solana Node scopes return 403, with working independent
+mirrors. Ethereum Advanced returns more assets than requested, so discovery is
+bounded to 200 accepted tokens and clearly marked partial. Indexed BNB history
+and full Windows 11 acceptance remain open. The verified 0.1.10 ZIP is local;
+GitHub publication is blocked by HTTP 500. [Exact results and limits](docs/reports/ankr-2026-10-07/README.md).
+
 ## Free-plan reserves and throttling (0.1.9)
 
 First 429 responses advance immediately to independent sources; Retry-After

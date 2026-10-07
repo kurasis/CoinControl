@@ -1,0 +1,50 @@
+[
+  {
+    "conclusion": "success",
+    "html_url": "https://github.com/kurasis/CoinControl/actions/runs/37652973461/job/112900803707",
+    "name": "Checks and offline tests (Linux)",
+    "status": "completed"
+  },
+  {
+    "conclusion": "success",
+    "html_url": "https://github.com/kurasis/CoinControl/actions/runs/37652973461/job/112900803942",
+    "name": "Cached load measurements (windows-latest)",
+    "status": "completed"
+  },
+  {
+    "conclusion": "success",
+    "html_url": "https://github.com/kurasis/CoinControl/actions/runs/37652973461/job/112900803957",
+    "name": "Windows NSIS installer (unsigned)",
+    "status": "completed"
+  },
+  {
+    "conclusion": "success",
+    "html_url": "https://github.com/kurasis/CoinControl/actions/runs/37652973461/job/112900804081",
+    "name": "Cached load measurements (ubuntu-24.04)",
+    "status": "completed"
+  },
+  {
+    "conclusion": "success",
+    "html_url": "https://github.com/kurasis/CoinControl/actions/runs/37652973461/job/112900804186",
+    "name": "Windows native recovery and public BTC scenarios",
+    "status": "completed"
+  },
+  {
+    "conclusion": "success",
+    "html_url": "https://github.com/kurasis/CoinControl/actions/runs/37652973461/job/112900804220",
+    "name": "Live provider tests (read-only)",
+    "status": "completed"
+  },
+  {
+    "conclusion": "failure",
+    "html_url": "https://github.com/kurasis/CoinControl/actions/runs/37652973461/job/112904791344",
+    "name": "Windows 11 ARM64 running the production x64 installer",
+    "status": "completed"
+  },
+  {
+    "conclusion": "success",
+    "html_url": "https://github.com/kurasis/CoinControl/actions/runs/37652973461/job/112904791495",
+    "name": "Production native startup and 100000-leg UI/import",
+    "status": "completed"
+  }
+]
