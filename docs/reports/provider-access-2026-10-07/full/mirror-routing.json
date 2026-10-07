@@ -1,0 +1,29 @@
+{
+  "provider": "mirror-routing",
+  "started_at": 1791368748,
+  "duration_ms": 4756,
+  "requests": 5,
+  "endpoints": ["primary budget → reserve snapshot"],
+  "checks": [
+    {
+      "name": "primary limit does not prevent balances",
+      "result": "PASS",
+      "detail": "native balance refreshed by independent source"
+    },
+    {
+      "name": "history scope remains truthful",
+      "result": "PASS",
+      "detail": "ordinary reserves retain cached history and expose partial coverage"
+    },
+    {
+      "name": "fallback reason visible",
+      "result": "PASS",
+      "detail": "primary had a hard zero budget; no primary request sent"
+    },
+    {
+      "name": "selected source persists",
+      "result": "PASS",
+      "detail": "one current source per account"
+    }
+  ]
+}
