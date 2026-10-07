@@ -940,10 +940,9 @@ try {
     await until(() =>
       execute("return Boolean(document.querySelector('a[href^=\"#/accounts/\"]'));"),
     );
-    await until(async () => (await body()).includes("Syncing…"), 15000);
     await until(() =>
       execute(
-        "return Boolean(document.querySelector('.content .sync-status .spinner')) && Boolean(document.querySelector('.nav .sync-status .spinner')) && document.querySelector('.content .sync-status strong').textContent.trim().length>0;",
+        "return Boolean(document.querySelector('.content .sync-status .spinner')) && Boolean(document.querySelector('.nav .sync-status .spinner')) && document.querySelector('.content .sync-status strong').textContent.trim().length>0 && [...document.querySelectorAll('button')].some(button=>button.textContent.trim()==='Cancel synchronization' && !button.disabled);",
       ),
     );
     const cancelStarted = Date.now();
@@ -1063,7 +1062,7 @@ try {
       );
     await until(() =>
       execute(
-        "return [...document.querySelectorAll('.toolbar .meta')].some(e=>e.textContent.trim()==='Synchronization finished');",
+        "return [...document.querySelectorAll('.toolbar .meta')].some(e=>e.textContent.trim().startsWith('Synchronization finished'));",
       ),
     );
     report.providerUsage = readProfile(

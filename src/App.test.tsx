@@ -674,3 +674,35 @@ it("waits for the useful balance paint before either chart observer starts optio
     vi.unstubAllGlobals();
   }
 });
+
+it("allows queueing during background synchronization and cancels the background run", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(api, "syncProgress").mockResolvedValue({
+    running: true,
+    cancel_requested: false,
+    details: {
+      active_account: null,
+      completed_accounts: 0,
+      total_accounts: 1,
+      pages_fetched: 1,
+      phase: "accounts",
+      kind: "accounts",
+      outcome: "running",
+      error_count: 0,
+      started_at: 1,
+      finished_at: null,
+    },
+  });
+  const cancelBackground = vi.spyOn(api, "cancelSync").mockResolvedValue(undefined);
+  const cancelJob = vi.spyOn(api, "cancelSyncJob");
+  const start = vi.spyOn(api, "startSync");
+  window.location.hash = "#/wallets";
+  renderApp();
+  expect(await screen.findByRole("button", { name: "Sync now (queue)" })).toBeEnabled();
+  const status = screen.getByRole("status", { name: "Synchronization status" });
+  expect(status.querySelector(".spinner")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Cancel synchronization" }));
+  expect(cancelBackground).toHaveBeenCalledTimes(1);
+  expect(cancelJob).not.toHaveBeenCalled();
+  expect(start).not.toHaveBeenCalled();
+});
