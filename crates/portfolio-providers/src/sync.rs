@@ -592,6 +592,30 @@ impl SyncEngine {
             {
                 Ok(Some(until)) if until > now => {
                     report.provider = Some(provider.into());
+                    let quota_paused = match self.store.provider_pause(provider).await {
+                        Ok(pause) => pause.is_some_and(|t| t > now),
+                        Err(e) => {
+                            report.error = Some(e.to_string());
+                            break;
+                        }
+                    };
+                    if quota_paused {
+                        // The quota may have been observed on a different
+                        // account/network. A new checkpoint is also paused.
+                        cp.coverage = Coverage::Paused;
+                        cp.state.last_error = None;
+                        cp.state.cooldown_until = Some(until);
+                        cp.state.cooldown_transient = false;
+                        cp.state.cooldown_network_only = false;
+                        if let Err(e) = self
+                            .store
+                            .save_checkpoint(&account.id, provider, HISTORY, &cp)
+                            .await
+                        {
+                            report.error = Some(e.to_string());
+                            break;
+                        }
+                    }
                     report.coverage = cp.coverage;
                     report.error =
                         if cp.coverage == Coverage::Paused && cp.state.last_error.is_none() {
@@ -696,6 +720,14 @@ impl SyncEngine {
                                 cp.state.last_error = None;
                                 cp.coverage = Coverage::Paused;
                                 report.error = None;
+                                if let Err(e) = self
+                                    .store
+                                    .pause_provider(provider, now.saturating_add(wait))
+                                    .await
+                                {
+                                    report.error = Some(e.to_string());
+                                    break;
+                                }
                             }
                         }
                     }

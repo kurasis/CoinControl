@@ -1099,6 +1099,25 @@ async fn all_throttled_sources_pause_without_erasing_cached_balances() {
     assert_eq!(h[0].quantity, "0.009007199254740993");
     assert_eq!(h[0].balance_status, BalanceStatus::Stale);
     assert!(s.sync_status().await.unwrap()[0].last_error.is_none());
+    let second = s
+        .add_account(
+            &w.id,
+            NetworkId::Ethereum,
+            "0x0000000000000000000000000000000000000002",
+            None,
+        )
+        .await
+        .unwrap();
+    let shared_pause = engine.sync_account(&second).await;
+    assert!(shared_pause.error.is_none());
+    assert_eq!(shared_pause.coverage, Coverage::Paused);
+    assert!(!shared_pause.balance_refreshed);
+    let checkpoint = s
+        .checkpoint(&second.id, "alchemy", "history")
+        .await
+        .unwrap();
+    assert_eq!(checkpoint.coverage, Coverage::Paused);
+    assert!(checkpoint.state.last_error.is_none());
     let later = SyncEngine::new(
         s.clone(),
         Providers {

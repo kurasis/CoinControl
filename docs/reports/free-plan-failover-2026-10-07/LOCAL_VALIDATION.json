@@ -21,7 +21,8 @@
     "price 429 switches to real quote reserve without fatal error; persisted pause cannot be shortened",
     "historical price 429 stays pending and survives a new engine",
     "429 classification ignores oversized untrusted response body",
-    "UI paused source does not claim successful reserve routing"
+    "UI paused source does not claim successful reserve routing",
+    "quota observed on first account pauses a second account without requests or false checkpoint error"
   ],
   "testHarnessCorrection": "Node report tests use a separate node-test filename so Vitest does not discover a Node-only suite."
 }
