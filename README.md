@@ -36,6 +36,20 @@ returns. The separate
 **demo profile** uses synthetic data, is labeled as such, and never contacts a
 provider.
 
+## Free-plan reserves and throttling (0.1.9)
+
+First 429 responses advance immediately to independent sources; Retry-After
+still pauses the limited source. Chainstack Developer is native SOL/finality
+only and does not call paid owner scans. The existing Alchemy key can reserve
+SPL balances when Solana mainnet is enabled, sharing its EVM budget. PublicNode
+can supplement Chainstack tokens;
+if unavailable, observed SOL is retained and cached token amounts stay stale.
+Price-source pauses survive restarts; successful fallback quotes do not retain
+a fatal primary quota error. If every source is limited, cached data stay visible
+with paused coverage. Live reports separate RATE_LIMITED/PARTIAL from source passes, and require real
+mirror routing evidence. Indexed BNB history remains a separate coverage gap.
+[Free-plan restrictions and optional future sources](docs/PROVIDER_MIRRORS.md).
+
 ## Token logos and Windows 11 follow-up (0.1.8)
 
 Optional logos use a fixed public catalog, validated network/contract identity

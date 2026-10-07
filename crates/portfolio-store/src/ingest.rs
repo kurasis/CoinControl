@@ -1169,9 +1169,38 @@ impl Store {
     }
     pub async fn clear_provider_cooldown(&self, provider: &str) -> Result<()> {
         let _guard = self.write_lock.lock().await;
+        let mut tx = self.pool.begin().await?;
         sqlx::query("UPDATE sync_checkpoints SET retry_state=json_set(retry_state, '$.cooldown_until', NULL) WHERE provider=?")
-            .bind(provider).execute(&self.pool).await?;
+            .bind(provider).execute(&mut *tx).await?;
+        sqlx::query("DELETE FROM app_meta WHERE key=?")
+            .bind(format!("provider_pause:{provider}"))
+            .execute(&mut *tx)
+            .await?;
+        tx.commit().await?;
         Ok(())
+    }
+
+    /// Shared price-source pause; survives process restarts without creating an
+    /// account history checkpoint or changing the account's active provider.
+    pub async fn pause_provider(&self, provider: &str, until: i64) -> Result<()> {
+        let _guard = self.write_lock.lock().await;
+        sqlx::query("INSERT INTO app_meta (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=CAST(MAX(CAST(app_meta.value AS INTEGER),CAST(excluded.value AS INTEGER)) AS TEXT)")
+            .bind(format!("provider_pause:{provider}")).bind(until.to_string())
+            .execute(&self.pool).await?;
+        Ok(())
+    }
+
+    pub async fn provider_pause(&self, provider: &str) -> Result<Option<i64>> {
+        let value: Option<String> = sqlx::query_scalar("SELECT value FROM app_meta WHERE key=?")
+            .bind(format!("provider_pause:{provider}"))
+            .fetch_optional(&self.pool)
+            .await?;
+        value
+            .map(|v| {
+                v.parse()
+                    .map_err(|_| StoreError::Corrupt("provider pause".into()))
+            })
+            .transpose()
     }
     /// Shared monthly counts; one key must not get a fresh allowance on every network.
     pub async fn provider_usage_month(

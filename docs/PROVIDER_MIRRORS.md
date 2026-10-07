@@ -1,4 +1,4 @@
-# Provider reserves — 0.1.6
+# Provider reserves — 0.1.9
 
 Reserves are implemented in normal desktop synchronization, rather than only in
 connection probes. GitHub Actions uses repository secrets for bounded read-only
@@ -14,7 +14,7 @@ build. Public reserves activate without a key.
 | Optimism           | Alchemy → Zerion                    | Blockscout PRO → dRPC → PublicNode                                   |
 | Base               | Alchemy → Zerion                    | dRPC → PublicNode                                                    |
 | BNB Chain          | Zerion                              | dRPC → PublicNode                                                    |
-| Solana             | Helius → Zerion                     | Chainstack Solana → PublicNode                                       |
+| Solana             | Helius → Zerion                     | Alchemy Solana (same key) → Chainstack SOL → PublicNode              |
 | TRON               | TronGrid                            | PublicNode confirmed Fullnode API                                    |
 | TON                | TonAPI                              | TON Center v3, with or without a key                                 |
 | Native prices      | Live Coin Watch                     | Existing DefiLlama identity-based fallback also handles LCW failures |
@@ -46,10 +46,26 @@ four keyset-paginated ERC-20 pages; cursor fields are allowlisted and cannot cha
 the endpoint, chain, type filter or credential. Polygon's system POL contract is
 excluded from the token list so it cannot duplicate native POL.
 
-Solana reserves validate the mainnet genesis hash and use finalized native/SPL/
-Token-2022 RPC, preserving integer quantities and aggregating mint accounts.
-Unavailable token discovery leaves native balance usable and records its exact
-sanitized limitation. Unclassified zero-decimal assets are not guessed to be
+Solana reserves validate the mainnet genesis hash. **Chainstack Developer is a
+native SOL/finality reserve**: its owner scans are paid-only and are never called.
+[Official method restriction](https://docs.chainstack.com/reference/solana-gettokenaccountsbyowner).
+[Solana mainnet Developer throughput](https://docs.chainstack.com/docs/limits)
+is **5 RPS**, despite the pricing page's generic 25 RPS; local reads stay at 1/sec.
+SPL/Token-2022 discovery and history primarily use Helius, with Zerion as indexed
+alternative. The existing Alchemy key additionally supplies a standard Solana
+balance/token-discovery reserve before Chainstack; enable Solana mainnet in the
+Alchemy app. [Standard owner scans](https://www.alchemy.com/docs/chains/solana/solana-api-endpoints/get-token-accounts-by-owner)
+are documented at 10 CU on the [Free platform](https://www.alchemy.com/pricing).
+EVM and Solana share the same request/CU budget; conservatively reserve 100
+estimated CU per Solana genesis/balance/owner read (not an actual bill). This
+adapter claims balances only, not Solana history/finality. A denied Solana network
+does not disable the EVM networks. After Chainstack returns SOL, PublicNode can
+supplement token balances.
+If this mirror is also limited/unavailable, the observed SOL stays usable and
+known tokens stay stale; the active successful source and partial coverage are
+persisted. No scan denial is reported as a bad Chainstack key or a demand to upgrade.
+PublicNode reads finalized native/SPL/Token-2022 quantities and aggregates mint
+accounts; unavailable token discovery remains an explicit sanitized limitation. Unclassified zero-decimal assets are not guessed to be
 fungible. A PublicNode method's HTTP 403 does not poison other RPC methods or
 networks; dRPC denials are scoped by network and method.
 
@@ -69,6 +85,22 @@ method/plan entitlement (including HTTP 402 and the dRPC gateway's HTTP 400), ti
 next source. Wrong chain identity, malformed data, cancellation and local storage
 errors are exposed rather than hidden by another source. A real cancellation
 stops all attached clients and does not become a fictitious provider error.
+
+In normal synchronization the **first HTTP 429 immediately advances to the
+mirror**, without buffering its error body or first retrying/sleeping on the throttled source. HTTP-200 JSON-RPC
+quota errors follow the same route. Standalone clients retain bounded retries.
+The console labels throttling separately from request failures; the source cause
+remains visible. A successful mirror gives a usable partial result, not a fatal
+synchronization error. If all sources are throttled, synchronization is paused without a false fresh
+balance or failed-credential label; cached amounts/history remain and balances
+are stale. The source tooltip says routing details, not that an unavailable
+reserve succeeded. Wrong-chain/malformed/local failures are not masked.
+
+Price-source 429 is also a pause: LCW advances to DefiLlama, quotes that remain
+unavailable stay unpriced, and historical downloads remain pending. Price pauses
+are persisted separately in SQLite without changing the account history source;
+a new process respects the deadline. Credential changes clear these pauses
+along with account breakers. Storage and credential errors remain explicit.
 
 Retry-After is respected by a persistent breaker. Otherwise throttling pauses
 for 60 seconds, denied/authenticated access for one hour, temporary failures for
@@ -91,11 +123,53 @@ at no more than one request per second. Native acceptance retains the separate
 
 - `BLOCKSCOUT_API_KEY`: [PRO authorization/routes](https://docs.blockscout.com/devs/pro-api-responses-and-routes), central `api.blockscout.com`, `Authorization: Bearer`, `/{chain_id}/api/v2/...`. The [v12 schema](https://docs.blockscout.com/openapi-specs/pro-api-v12.json) was reviewed ahead of its October 7 rollout; no deprecated instance-key route is used. [Supported-chain config](https://github.com/blockscout/backend-configs/blob/main/pro-api/prod/chains-config.json).
 - `DRPC_API_KEY`: [first request](https://drpc.org/docs/gettingstarted/firstrequest), current `https://lb.drpc.live/{network}/{key}`. Shared free public-node access for six EVM chains, not guaranteed indexed history or premium nodes. Solana is excluded: its [current mainnet metadata](https://drpc.org/chainlist/solana) has no free nodes.
-- `CHAINSTACK_API_KEY`: **Solana node auth token or complete HTTPS endpoint** from the node's Access and credentials. [Node and platform authentication differ](https://docs.chainstack.com/docs/authentication-methods-for-different-scenarios). A platform management key cannot authenticate RPC. Full endpoints must use a Chainstack or p2pify HTTPS host without URL userinfo; genesis validation rejects another chain/testnet. One free node does not authorize every protocol with the same token.
+- `CHAINSTACK_API_KEY`: **Solana node auth token or complete HTTPS endpoint** from the node's Access and credentials. [Node and platform authentication differ](https://docs.chainstack.com/docs/authentication-methods-for-different-scenarios). A platform management key cannot authenticate RPC. Full endpoints must use a Chainstack or p2pify HTTPS host without URL userinfo; genesis validation rejects another chain/testnet. Free native SOL/finality only; owner scans are paid-only. One free node does not authorize every protocol with the same token.
 - `TONCENTER_API_KEY`: [TON Center v3](https://docs.ton.org/api/v3/overview), `X-API-Key`, `accountStates` and `jetton/wallets`; works anonymously at the lower rate.
 - `ETHERSCAN_API_KEY`: [V2 selected free chains](https://docs.etherscan.io/supported-chains), one key, `chainid`, native/account token balance actions. Semantic HTTP-200 throttling and credential errors are sanitized and classified.
 - [PublicNode](https://www.publicnode.com/) and [mempool.space](https://mempool.space/docs/api/rest): no keys, fair use and no guaranteed quota.
 
-Docs and schemas reviewed October 6, 2026. This is implementation scope, not a
+Docs and schemas reviewed October 6–7, 2026. This is implementation scope, not a
 claim that every credential or provider passed live verification. Exact results
 are recorded with the CI source and published build evidence.
+
+## Live verification policy
+
+`RATE_LIMITED` identifies a source quota, not a failed application or a source
+PASS. Remaining direct source checks are not run or claimed. `PARTIAL` means
+real mirror balances succeeded without establishing indexed history acceptance.
+Integration engines now attach the configured production primary/reserve types.
+The routing test forces a zero primary budget without wasting a real primary
+request, then checks actual independent responses and persisted sources for the
+six EVM chains, SOL, TRON, and selected TON/Bitcoin mirrors. Controlled tests
+separately force HTTP/RPC 429 and verify switching, pauses and preserved data.
+
+A source marked RATE_LIMITED requires successful independent routing evidence
+for its affected networks; otherwise the live job still fails. Auth, malformed
+responses, assertions and local storage errors remain failures. The ordinary
+50-request/provider cap includes the whole run and retries. Price routing uses
+an isolated seeded BTC balance and a real quote; that seeded balance is not
+provider holdings/history or native UI evidence.
+
+## Are more free sources needed?
+
+Existing sources cover independent native/known-token balances for all ten
+networks; no extra key is required to activate the current anonymous mirrors.
+The local anonymous check also observes PublicNode owner scans returning 403.
+Alchemy Solana therefore fills a concrete SPL reserve gap when enabled on the key.
+**Indexed BNB history remains the main independent-source gap** when Zerion is
+limited. A plain RPC balance response does not close it.
+
+[Ankr Freemium](https://www.ankr.com/docs/rpc-service/service-plans/) is a useful
+optional next adapter: documentation offers 200M free API credits/month,
+Advanced API 50 requests/minute (500/10 min) and supports BNB Smart Chain in its
+[Advanced API](https://www.ankr.com/docs/advanced-api/overview/), including
+`ankr_getTransactionsByAddress`. Solana Node API could additionally reserve
+standard token reads if Alchemy cannot provide sufficient redundancy. It needs a new private endpoint token and its own adapter,
+normalization and bounded live verification; it is **not connected or verified**
+by this change. No deposits, subscriptions or paid overages are enabled.
+
+Solana Foundation's [public mainnet endpoint](https://solana.com/docs/references/clusters)
+is explicitly not intended for production apps and can return 403/429. It is not
+added as a default reliable mirror. dRPC's current free Solana-node limitation
+also remains. New providers should fill a demonstrated coverage gap rather than
+duplicate existing low-limit public endpoints.

@@ -85,8 +85,8 @@ describe("sync visibility and network console", () => {
       operation: "eth_chainId",
       origin: "https://eth-mainnet.g.alchemy.com",
       attempt: 1,
-      status: i === 0 ? "pending" : i === 1 ? "rpc_error" : "success",
-      http_status: i === 0 ? null : 200,
+      status: i === 0 ? "pending" : i === 1 ? "rpc_error" : i === 2 ? "rate_limited" : "success",
+      http_status: i === 0 ? null : i === 2 ? 429 : 200,
       rpc_code: i === 1 ? -32016 : null,
       duration_ms: i === 0 ? null : 25,
     }));
@@ -107,8 +107,9 @@ describe("sync visibility and network console", () => {
     expect(within(region).getByText(/RPC -32016/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Next" }));
     expect(within(region).getAllByRole("row")).toHaveLength(12);
-    await user.click(screen.getByRole("checkbox", { name: "Errors and retries only" }));
-    expect(within(region).getAllByRole("row")).toHaveLength(2);
+    await user.click(screen.getByRole("checkbox", { name: "Errors, retries and limits" }));
+    expect(within(region).getAllByRole("row")).toHaveLength(3);
+    expect(within(region).getByText(/Rate limited — source paused/)).not.toHaveClass("negative");
     await user.click(screen.getByRole("button", { name: "Pause display" }));
     expect(
       await screen.findByText("Display paused; requests are still recorded"),
@@ -147,6 +148,34 @@ describe("reserve coverage", () => {
       screen.getByText(/reserve updated balances; cached history retained, coverage partial/),
     ).toBeInTheDocument();
     expect(screen.getByTitle("alchemy: local request budget exhausted")).toBeInTheDocument();
+  });
+
+  it("shows quota pause and its cause without claiming a successful reserve or error", async () => {
+    await api.switchProfile("demo");
+    const accounts = await api.listAccounts();
+    const statuses = await api.listSyncStatus();
+    vi.spyOn(api, "listSyncStatus").mockResolvedValue(
+      statuses.map((s) =>
+        s.account_id === accounts[0]!.id
+          ? {
+              ...s,
+              provider: "publicnode",
+              coverage: "paused",
+              balance_only: false,
+              last_error: null,
+              fallback_reasons: ["publicnode: rate limited (retry after 120s)"],
+            }
+          : s,
+      ),
+    );
+    window.location.hash = "#/wallets";
+    renderApp();
+    const source = await screen.findByText(/Source: publicnode/);
+    expect(source).toHaveTextContent("History download stopped");
+    expect(source.querySelector(".field-error")).toBeNull();
+    expect(screen.getByTitle("publicnode: rate limited (retry after 120s)")).toHaveTextContent(
+      "Source routing",
+    );
   });
 });
 

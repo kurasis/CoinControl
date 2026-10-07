@@ -1,0 +1,27 @@
+{
+  "source": "working tree based on 0ca4887b8c49387575244c7415ad9a31066d3007; exact CI source recorded later",
+  "check": "PASS",
+  "allFeaturesClippy": "PASS",
+  "deterministicRust": 209,
+  "disabledLiveEntrypoints": 20,
+  "nodeReportPolicy": 6,
+  "frontend": 67,
+  "build": "PASS",
+  "bindings": "PASS (unchanged)",
+  "targetedCases": [
+    "first HTTP 429 uses one request without Retry-After sleep",
+    "Chainstack -32005 quota vs Helius node-health error",
+    "free Chainstack never sends owner scans",
+    "PublicNode supplements SPL balances",
+    "limited SPL mirror preserves observed SOL and stale cached tokens with successful source checkpoint",
+    "wrong-mainnet mirror is not hidden",
+    "source RATE_LIMITED/PARTIAL never reported as a PASS; scope-specific real mirror evidence required",
+    "Alchemy SOL uses existing credential and shared EVM request/CU budget; no false finality claim",
+    "all limited sources pause without fatal error; stale balances and restart/manual cooldown preserved",
+    "price 429 switches to real quote reserve without fatal error; persisted pause cannot be shortened",
+    "historical price 429 stays pending and survives a new engine",
+    "429 classification ignores oversized untrusted response body",
+    "UI paused source does not claim successful reserve routing"
+  ],
+  "testHarnessCorrection": "Node report tests use a separate node-test filename so Vitest does not discover a Node-only suite."
+}

@@ -1,0 +1,46 @@
+{
+  "reviewed": "2026-10-07",
+  "sources": [
+    {
+      "url": "https://docs.chainstack.com/reference/solana-gettokenaccountsbyowner",
+      "finding": "Not available on the Developer plan. The method is available only on the paid plans."
+    },
+    {
+      "url": "https://docs.chainstack.com/docs/limits",
+      "finding": "Solana Mainnet Developer 5 RPS; paid-only getProgramAccounts/getTokenAccountsByOwner/getSupply. Generic pricing RPS is not this mainnet limit."
+    },
+    {
+      "url": "https://chainstack.com/pricing/",
+      "finding": "Developer free, 3M request units/month, one node; generic 25 RPS."
+    },
+    {
+      "url": "https://www.ankr.com/docs/rpc-service/service-plans/",
+      "finding": "Freemium 200M free API credits/month, Advanced API 50 req/min (max 500/10 min). New token and adapter required; not connected or verified."
+    },
+    {
+      "url": "https://www.ankr.com/docs/advanced-api/query-methods/#ankr_gettransactionsbyaddress",
+      "finding": "ankr_getTransactionsByAddress explicitly lists bsc along with supported EVM chains. Indexed candidate, not a verified normalizer or complete-history guarantee."
+    },
+    {
+      "url": "https://solana.com/docs/references/clusters",
+      "finding": "Public RPC endpoints explicitly not intended for production applications; 403/429 possible. Not activated as a default mirror."
+    },
+    {
+      "url": "https://www.alchemy.com/docs/chains/solana/solana-api-endpoints/get-token-accounts-by-owner",
+      "finding": "Standard Solana getTokenAccountsByOwner at solana-mainnet.g.alchemy.com/v2/{apiKey}; documentation declares 10 CU. Uses existing credential, requires Solana mainnet enabled."
+    },
+    {
+      "url": "https://www.alchemy.com/pricing",
+      "finding": "Free 30M CU/month, all mainnets/testnets, 25 requests/sec. Same account quota across EVM/Solana. No subscription/overage change."
+    }
+  ],
+  "baseline": {
+    "sourceSha": "0ca4887b8c49387575244c7415ad9a31066d3007",
+    "check": "PASS",
+    "testOffline": "PASS",
+    "frontend": 66,
+    "deterministicRust": 201,
+    "build": "PASS"
+  },
+  "scope": "No payments, paid overages, account creation or credential-value changes."
+}

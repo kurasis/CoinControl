@@ -123,7 +123,7 @@ export function NetworkConsole() {
                           className={
                             r.status === "success"
                               ? "positive"
-                              : r.status === "pending"
+                              : ["pending", "rate_limited"].includes(r.status)
                                 ? ""
                                 : "negative"
                           }

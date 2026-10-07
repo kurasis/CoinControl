@@ -1033,7 +1033,7 @@ const NETWORK_CAPABILITIES: NetworkCapability[] = [
   {
     ...EVM_CAPABILITY,
     network: "solana",
-    fallback_providers: ["chainstack", "publicnode"],
+    fallback_providers: ["alchemy", "chainstack", "publicnode"],
     history: ["native", "tokens", "trades", "failed"],
     limitations: ["zerion_simple_positions", "solana_zerion_interpreted", "solana_token_2022"],
   },
@@ -1145,7 +1145,8 @@ const PROVIDERS: ProviderStatus[] = [
     networks: ["solana"],
     docs_url: "https://console.chainstack.com/",
     key_url: "https://console.chainstack.com/",
-    free_allowance: "Free tier / fair use",
+    free_allowance:
+      "3M request units/month, Solana mainnet 5 requests/sec, one node; native SOL/finality only, no token-owner scans",
     key_storage: null,
     requests_today: 0,
     estimated_credits_today: 0,
@@ -1202,10 +1203,11 @@ const PROVIDERS: ProviderStatus[] = [
     name: "Alchemy",
     role: "account_data",
     key_requirement: "optional",
-    networks: ["ethereum", "base", "arbitrum", "optimism", "polygon"],
+    networks: ["ethereum", "base", "arbitrum", "optimism", "polygon", "solana"],
     docs_url: "https://www.alchemy.com/docs",
     key_url: "https://dashboard.alchemy.com/",
-    free_allowance: "30M compute units/month",
+    free_allowance:
+      "30M compute units/month shared across EVM and optional Solana balance reserve; enable Solana mainnet on the key",
     key_storage: null,
     requests_today: 0,
     estimated_credits_today: 0,

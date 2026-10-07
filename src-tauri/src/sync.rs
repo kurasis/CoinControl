@@ -278,7 +278,10 @@ async fn build_providers(
             if id == helius::PROVIDER {
                 providers.helius = Helius::new(&key, budget).ok();
             } else {
-                providers.alchemy = Alchemy::new(&key, budget).ok();
+                providers.alchemy = Alchemy::new(&key, budget.clone()).ok();
+                if let Ok(solana) = Reserve::alchemy_solana(&key, budget) {
+                    providers.reserves.insert(0, solana);
+                }
             }
         }
     }

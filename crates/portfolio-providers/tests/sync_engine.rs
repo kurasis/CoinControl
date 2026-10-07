@@ -725,3 +725,141 @@ async fn a_confirmed_bitcoin_transaction_disappearing_from_the_chain_rolls_back(
     assert_eq!(rows[0].status, "reorged");
     assert!(store.list_holdings(&Scope::All).await.unwrap().is_empty());
 }
+
+#[tokio::test]
+async fn price_rate_limits_use_mirror_and_persist_pause_without_masking_bad_keys() {
+    for code in [429, 401] {
+        let primary = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/coins/map"))
+            .respond_with(ResponseTemplate::new(code).insert_header("Retry-After", "120"))
+            .expect(1)
+            .mount(&primary)
+            .await;
+        let mirror = MockServer::start().await;
+        Mock::given(path_regex("^/prices/current/.*"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({"coins":{"coingecko:ethereum":{"price":2000,"timestamp":NOW,"confidence":1}}})))
+            .mount(&mirror).await;
+        let s = store().await;
+        let w = s.create_wallet("Price failover").await.unwrap();
+        let a = s
+            .add_account(&w.id, NetworkId::Ethereum, ETH, None)
+            .await
+            .unwrap();
+        s.record_balance(
+            &a.id,
+            &portfolio_store::ingest::AssetSpec::native(NetworkId::Ethereum, "fixture"),
+            &num_bigint::BigInt::from(1_000_000_000_000_000_000_u64),
+            None,
+            "fresh",
+        )
+        .await
+        .unwrap();
+        let make = || Providers {
+            livecoinwatch: Some(
+                LiveCoinWatch::with_config(
+                    &primary.uri(),
+                    SENTINEL_KEY,
+                    Budget::limited(10),
+                    fast(),
+                )
+                .unwrap(),
+            ),
+            defillama: Some(
+                DefiLlama::with_config(&mirror.uri(), Budget::limited(10), fast()).unwrap(),
+            ),
+            ..Providers::default()
+        };
+        let result = SyncEngine::new(s.clone(), make(), SyncOptions::default())
+            .refresh_prices()
+            .await;
+        assert_eq!(result.priced, 1);
+        assert!(result.unpriced.is_empty());
+        assert_eq!(
+            result.errors.is_empty(),
+            code == 429,
+            "only quota pauses are expected; bad credentials remain visible"
+        );
+        assert_eq!(
+            s.list_holdings(&Scope::All).await.unwrap()[0]
+                .value_usd
+                .as_deref(),
+            Some("2000")
+        );
+        if code == 429 {
+            assert_eq!(
+                s.provider_pause("livecoinwatch").await.unwrap(),
+                Some(NOW + 120)
+            );
+            s.pause_provider("livecoinwatch", NOW + 10).await.unwrap();
+            assert_eq!(
+                s.provider_pause("livecoinwatch").await.unwrap(),
+                Some(NOW + 120),
+                "shorter pauses do not shorten Retry-After"
+            );
+            let again = SyncEngine::new(s.clone(), make(), SyncOptions::default())
+                .refresh_prices()
+                .await;
+            assert!(again.errors.is_empty());
+            assert_eq!(again.priced, 1);
+            s.clear_provider_cooldown("livecoinwatch").await.unwrap();
+            assert_eq!(s.provider_pause("livecoinwatch").await.unwrap(), None);
+        }
+    }
+}
+
+#[tokio::test]
+async fn history_quote_throttle_is_pending_and_survives_a_new_client() {
+    let server = MockServer::start().await;
+    Mock::given(path_regex("^/prices/current/.*"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(
+            json!({"coins":{"coingecko:ethereum":{"price":2000,"timestamp":NOW,"confidence":1}}}),
+        ))
+        .mount(&server)
+        .await;
+    Mock::given(path_regex("^/chart/.*"))
+        .respond_with(ResponseTemplate::new(429).insert_header("Retry-After", "120"))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let s = store().await;
+    let w = s.create_wallet("History source paused").await.unwrap();
+    let a = s
+        .add_account(&w.id, NetworkId::Ethereum, ETH, None)
+        .await
+        .unwrap();
+    s.record_balance(
+        &a.id,
+        &portfolio_store::ingest::AssetSpec::native(NetworkId::Ethereum, "fixture"),
+        &num_bigint::BigInt::from(1_000_000_000_000_000_000_u64),
+        None,
+        "fresh",
+    )
+    .await
+    .unwrap();
+    let make = || {
+        SyncEngine::new(
+            s.clone(),
+            Providers {
+                defillama: Some(
+                    DefiLlama::with_config(&server.uri(), Budget::limited(10), fast()).unwrap(),
+                ),
+                ..Providers::default()
+            },
+            SyncOptions::default(),
+        )
+    };
+    make().refresh_prices().await;
+    let first = make().refresh_price_history().await;
+    assert!(first.errors.is_empty());
+    assert_eq!(first.requests, 1);
+    assert_eq!(first.pending_assets, 1);
+    assert_eq!(
+        s.provider_pause("defillama").await.unwrap(),
+        Some(NOW + 120)
+    );
+    let again = make().refresh_price_history().await;
+    assert!(again.errors.is_empty());
+    assert_eq!(again.requests, 0);
+    assert_eq!(again.pending_assets, 1);
+}

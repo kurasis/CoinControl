@@ -148,6 +148,7 @@ pub struct HttpClient {
     cancelled: StdMutex<Arc<AtomicBool>>,
     forbidden: StdMutex<std::collections::BTreeMap<String, ProviderError>>,
     network_log: StdMutex<Arc<NetworkLog>>,
+    rate_limit_failover: AtomicBool,
 }
 
 /// A successful (2xx) response body.
@@ -208,6 +209,7 @@ impl HttpClient {
             usage: StdMutex::new(Usage::default()),
             cancelled: StdMutex::new(Arc::new(AtomicBool::new(false))),
             forbidden: StdMutex::new(std::collections::BTreeMap::new()),
+            rate_limit_failover: AtomicBool::new(false),
             network_log: StdMutex::new(Arc::new(NetworkLog::default())),
         })
     }
@@ -257,6 +259,13 @@ impl HttpClient {
     /// request is not an error).
     fn note_failure(&self, error: &ProviderError) {
         self.usage.lock().expect("usage lock").last_error = Some(error.to_string());
+    }
+
+    /// Synchronization has alternative sources: return throttling immediately
+    /// instead of spending requests or waiting before trying the next source.
+    /// Standalone clients retain their configured bounded retry policy.
+    pub fn prefer_rate_limit_failover(&self) {
+        self.rate_limit_failover.store(true, Ordering::Relaxed);
     }
 
     pub fn record_rpc_failure(&self, error: &ProviderError, url: &Url) {
@@ -400,10 +409,25 @@ impl HttpClient {
                     }
                     let value: serde_json::Value = serde_json::from_slice(&body.bytes).ok()?;
                     let error = value.get("error").filter(|e| !e.is_null())?;
-                    Some(error.get("code").and_then(serde_json::Value::as_i64))
+                    let code = error.get("code").and_then(serde_json::Value::as_i64);
+                    let message = error
+                        .get("message")
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or("")
+                        .to_ascii_lowercase();
+                    Some((
+                        code,
+                        crate::rpc::is_rate_limit(provider, code.unwrap_or(0), &message),
+                    ))
                 });
-                let rpc_code = rpc_error.flatten();
+                let rpc_code = rpc_error.and_then(|(code, _)| code);
                 let status = match &outcome {
+                    Ok(_) if rpc_error.is_some_and(|(_, limited)| limited) => "rate_limited",
+                    Err((ProviderError::RateLimited { .. }, _))
+                        if self.rate_limit_failover.load(Ordering::Relaxed) =>
+                    {
+                        "rate_limited"
+                    }
                     Ok(_) if rpc_error.is_some() => "rpc_error",
                     Ok(_) => "success",
                     Err((ProviderError::Timeout { .. }, _)) => "timeout",
@@ -424,7 +448,11 @@ impl HttpClient {
                 Ok(body) => return Ok(body),
                 Err(failure) => failure,
             };
-            if !error.is_retryable() || attempt >= self.config.max_retries {
+            if !error.is_retryable()
+                || attempt >= self.config.max_retries
+                || (matches!(error, ProviderError::RateLimited { .. })
+                    && self.rate_limit_failover.load(Ordering::Relaxed))
+            {
                 if matches!(error, ProviderError::NetworkForbidden { .. }) {
                     self.forbidden
                         .lock()
@@ -463,6 +491,18 @@ impl HttpClient {
         let provider = self.provider;
         let status = response.status();
         let retry_after = parse_retry_after(response.headers());
+        if status == StatusCode::TOO_MANY_REQUESTS {
+            // The status/header is sufficient. Do not wait for or buffer an
+            // untrusted error body before advancing to an independent source.
+            return Err((
+                ProviderError::RateLimited {
+                    provider,
+                    endpoint,
+                    retry_after_secs: retry_after.map(|d| d.as_secs()),
+                },
+                retry_after,
+            ));
+        }
         if let Some(len) = response.content_length()
             && len > self.config.max_body_bytes as u64
         {
@@ -515,11 +555,6 @@ impl HttpClient {
                 provider,
                 endpoint,
                 status: status.as_u16(),
-            },
-            StatusCode::TOO_MANY_REQUESTS => ProviderError::RateLimited {
-                provider,
-                endpoint,
-                retry_after_secs: retry_after.map(|d| d.as_secs()),
             },
             StatusCode::NOT_FOUND => ProviderError::NotFound { provider, endpoint },
             s if s.is_server_error() => ProviderError::Server {
