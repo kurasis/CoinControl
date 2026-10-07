@@ -1,0 +1,74 @@
+
+ RUN  v5.0.3 /workspace/CoinControl
+
+ ❯ src/ipc/client.test.ts (1 test | 1 failed) 11ms
+   × recognizes command errors only when code and message are strings 10ms
+ ❯ src/lib/format.test.ts (6 tests | 2 failed) 24ms
+   ❯ formatting (5)
+     × marks tiny non-zero balances instead of showing zero 3ms
+     × shows signs on percentages and localizes them 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/ipc/client.test.ts > recognizes command errors only when code and message are strings
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/ipc/client.test.ts:10:35
+      8|   for (const error of [null, undefined, "error", {}, { code: 1, messag…
+      9|     { code: "storage", message: { secret: "untrusted response" } }]) {
+     10|     expect(isCommandError(error)).toBe(false);
+       |                                   ^
+     11|   }
+     12| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/lib/format.test.ts > formatting > marks tiny non-zero balances instead of showing zero
+RangeError: Invalid count value: -1
+ ❯ formatQuantity src/lib/format.ts:45:23
+     43|   if (!isZero && /^-?0([.,]0*)?$/.test(formatted.replace(/\s/g, ""))) {
+     44|     const tiny = new Intl.NumberFormat(locale, { maximumFractionDigits…
+     45|       asIntl(`0.${"0".repeat(maxFraction - 1)}1`),
+       |                       ^
+     46|     );
+     47|     return `<${tiny}`;
+ ❯ src/lib/format.test.ts:24:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/lib/format.test.ts > formatting > shows signs on percentages and localizes them
+AssertionError: expected -1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ -1
+
+ ❯ src/lib/format.test.ts:34:29
+     32|     expect(signOf("-0.1")).toBe(-1);
+     33|     expect(signOf("0.00")).toBe(0);
+     34|     expect(signOf("-0.00")).toBe(0);
+       |                             ^
+     35|   });
+     36| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  3 failed | 4 passed (7)
+   Start at  04:57:37
+   Duration  1.36s (environment 73%, transform 12%, setup 9%, import 4%, tests 2%, worker 1%)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

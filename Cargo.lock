@@ -3218,7 +3218,6 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-dialog",
  "tauri-plugin-opener",
- "thiserror 2.0.21",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -3264,7 +3263,6 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.21",
  "tokio",
- "tracing",
  "ts-rs",
  "uuid",
 ]

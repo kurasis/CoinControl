@@ -50,7 +50,8 @@ export function WindowedTableBody<T>({
     };
   }, [body, scroller, enabled, rows.length]);
 
-  const items = enabled ? virtual.getVirtualItems() : rows.map((_, index) => ({ index }));
+  const measuredItems = enabled ? virtual.getVirtualItems() : [];
+  const items = enabled ? measuredItems : rows.map((_, index) => ({ index }));
   const spacer = (height: number, key: string) =>
     height > 0 && (
       <tr key={key} aria-hidden="true" className="table-spacer">
@@ -60,8 +61,8 @@ export function WindowedTableBody<T>({
   return (
     <tbody ref={setBody} data-row-count={rows.length} data-windowed={enabled}>
       {items.flatMap((item, position) => {
-        const measured = enabled ? virtual.getVirtualItems()[position] : undefined;
-        const previous = enabled ? virtual.getVirtualItems()[position - 1] : undefined;
+        const measured = measuredItems[position];
+        const previous = measuredItems[position - 1];
         return [
           measured && spacer(measured.start - (previous?.end ?? 0), `gap-${item.index}`),
           <tr
@@ -78,8 +79,7 @@ export function WindowedTableBody<T>({
           </tr>,
         ];
       })}
-      {enabled &&
-        spacer(virtual.getTotalSize() - (virtual.getVirtualItems().at(-1)?.end ?? 0), "tail")}
+      {enabled && spacer(virtual.getTotalSize() - (measuredItems.at(-1)?.end ?? 0), "tail")}
     </tbody>
   );
 }

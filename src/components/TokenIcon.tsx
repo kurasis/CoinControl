@@ -1,4 +1,4 @@
-/** Monogram fallback icon. Token-provided images are not loaded in this stage. */
+/** Local monogram icon; remote token-provided images are never requested. */
 export function TokenIcon({ symbol }: { symbol: string | null }) {
   const text =
     (symbol ?? "?")

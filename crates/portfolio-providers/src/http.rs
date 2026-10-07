@@ -166,7 +166,9 @@ impl Body {
         serde_json::from_slice(&self.bytes).map_err(|e| ProviderError::InvalidResponse {
             provider,
             endpoint,
-            detail: format!("unexpected JSON: {e}"),
+            // Serde's Display can echo an invalid field value, including a
+            // credential reflected by the server. Report only its location.
+            detail: format!("unexpected JSON at line {} column {}", e.line(), e.column()),
         })
     }
 }

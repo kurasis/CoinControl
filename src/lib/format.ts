@@ -4,9 +4,7 @@
 export const DASH = "—";
 export const MASK = "•••••";
 
-type NumericString = `${number}` | string;
-
-function asIntl(value: NumericString): Intl.StringNumericLiteral {
+function asIntl(value: string): Intl.StringNumericLiteral {
   return value as Intl.StringNumericLiteral;
 }
 
@@ -42,7 +40,7 @@ export function formatQuantity(value: string, locale: string, maxFraction = 8): 
   const isZero = /^-?0(\.0*)?$/.test(value);
   if (!isZero && /^-?0([.,]0*)?$/.test(formatted.replace(/\s/g, ""))) {
     const tiny = new Intl.NumberFormat(locale, { maximumFractionDigits: maxFraction }).format(
-      asIntl(`0.${"0".repeat(maxFraction - 1)}1`),
+      asIntl(maxFraction === 0 ? "1" : `0.${"0".repeat(maxFraction - 1)}1`),
     );
     return `<${tiny}`;
   }
@@ -62,8 +60,9 @@ export function formatPercent(value: string | null | undefined, locale: string):
 
 export function signOf(value: string | null | undefined): -1 | 0 | 1 {
   if (!value) return 0;
+  if (!/[1-9]/.test(value)) return 0;
   if (value.startsWith("-")) return -1;
-  return /[1-9]/.test(value) ? 1 : 0;
+  return 1;
 }
 
 export function formatDateTime(

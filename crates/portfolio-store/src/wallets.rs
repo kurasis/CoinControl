@@ -97,8 +97,8 @@ impl Store {
     /// Adds one public address on one network to a wallet.
     ///
     /// The address is validated and normalized locally first. An address that is
-    /// already tracked is never duplicated; the caller receives the existing
-    /// account so the UI can offer navigation or an explicit move.
+    /// already tracked is never duplicated; the caller receives an AccountExists
+    /// error with its identity so the UI can offer navigation or an explicit move.
     pub async fn add_account(
         &self,
         wallet_id: &str,

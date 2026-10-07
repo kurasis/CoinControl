@@ -1,0 +1,31 @@
+
+ RUN  v5.0.3 /workspace/CoinControl
+
+ ❯ scripts/gen-bindings.test.mjs (1 test | 1 failed) 47ms
+   × preserves existing bindings and removes staging output when Cargo fails 45ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/gen-bindings.test.mjs > preserves existing bindings and removes staging output when Cargo fails
+Error: ENOENT: no such file or directory, open '/tmp/coincontrol-bindings-test-oOl7aS/src/ipc/bindings/Existing.ts'
+ ❯ scripts/gen-bindings.test.mjs:31:12
+     29|     });
+     30|     expect(result.status).toBe(42);
+     31|     expect(readFileSync(join(bindings, "Existing.ts"), "utf8")).toBe("…
+       |            ^
+     32|     expect(readdirSync(bindings)).toEqual(["Existing.ts"]);
+     33|     expect(readdirSync(join(fixture, "target"))).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  05:02:42
+   Duration  251ms (setup 41%, tests 32%, transform 20%, worker 4%, import 2%)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

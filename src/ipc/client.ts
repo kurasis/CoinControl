@@ -60,7 +60,14 @@ async function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T> 
 }
 
 export function isCommandError(e: unknown): e is CommandError {
-  return typeof e === "object" && e !== null && "code" in e && "message" in e;
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    typeof e.code === "string" &&
+    "message" in e &&
+    typeof e.message === "string"
+  );
 }
 
 export const api = {

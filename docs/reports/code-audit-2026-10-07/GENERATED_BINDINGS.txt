@@ -1,0 +1,33 @@
+
+> coincontrol@0.1.6 gen:bindings
+> node scripts/gen-bindings.mjs
+
+
+> cargo test -p portfolio-core -p portfolio-store -p portfolio-providers -p portfolio-desk --features portfolio-core/ts,portfolio-store/ts,portfolio-providers/ts,portfolio-desk/ts --lib export_bindings --quiet
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
+
+
+running 10 tests
+..........
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.01s
+
+
+running 7 tests
+.......
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+
+running 45 tests
+.............................................
+test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.03s
+
+
+> /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node /workspace/CoinControl/node_modules/prettier/bin/prettier.cjs --ignore-path /workspace/CoinControl/target/bindings-6HX0Vm/.prettierignore --log-level warn --write /workspace/CoinControl/target/bindings-6HX0Vm/next
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

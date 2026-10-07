@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -47,6 +48,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { i18n } = useTranslation();
   const [scope, setScope] = useState<Scope>({ kind: "all" });
+  const settingsSaves = useRef(new Set<Promise<Settings>>());
 
   const settingsQuery = useQuery({ queryKey: ["settings"], queryFn: api.getSettings });
   const infoQuery = useQuery({ queryKey: ["app-info"], queryFn: api.appInfo });
@@ -59,22 +61,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
 
   const mutation = useMutation({
+    mutationKey: ["settings"],
+    scope: { id: "settings" },
     mutationFn: api.updateSettings,
     onSuccess: (next) => {
+      // A queued edit already includes this change. Keep its optimistic state
+      // until the final save finishes, rather than flashing an older response.
+      if (queryClient.isMutating({ mutationKey: ["settings"] }) > 1) return;
       queryClient.setQueryData(["settings"], next);
       if (!next.network_console_enabled) queryClient.setQueryData(["network-log"], []);
     },
-    onError: () => void queryClient.invalidateQueries({ queryKey: ["settings"] }),
+    onError: () => {
+      if (queryClient.isMutating({ mutationKey: ["settings"] }) === 1)
+        void queryClient.invalidateQueries({ queryKey: ["settings"] });
+    },
   });
 
   const updateSettings = useCallback(
     (patch: Partial<Settings>) => {
-      if (!settings) return;
-      const next = { ...settings, ...patch };
+      // Read synchronously so multiple edits before React's next render merge.
+      const current = queryClient.getQueryData<Settings>(["settings"]);
+      if (!current) return;
+      const next = { ...current, ...patch };
       queryClient.setQueryData(["settings"], next);
-      mutation.mutate(next);
+      const save = mutation.mutateAsync(next);
+      settingsSaves.current.add(save);
+      void save.catch(() => {}).finally(() => settingsSaves.current.delete(save));
     },
-    [settings, mutation, queryClient],
+    [mutation, queryClient],
   );
 
   useEffect(() => {
@@ -112,9 +126,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const switchProfile = useCallback(
     async (profile: ProfileKind) => {
+      // Settings commands address the current store. Drain their queue before
+      // changing that store so late saves cannot land in the next profile.
+      while (settingsSaves.current.size) await Promise.allSettled([...settingsSaves.current]);
       await api.switchProfile(profile);
       setScope({ kind: "all" });
-      await queryClient.invalidateQueries();
+      // Invalidation retains old values while fetching. Profile data must be
+      // cleared, including inactive queries and pending reads of the old store.
+      await queryClient.resetQueries();
     },
     [queryClient],
   );
@@ -124,7 +143,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       settings,
       syncProgress: infoQuery.data?.profile === "real" ? syncQuery.data : undefined,
       updateSettings,
-      privacy: settings?.privacy_mode ?? false,
+      // Keep sensitive values masked during startup and profile transitions.
+      privacy: settings?.privacy_mode ?? true,
       togglePrivacy: () => updateSettings({ privacy_mode: !(settings?.privacy_mode ?? false) }),
       locale: language === "ru" ? "ru-RU" : "en-US",
       timeZone: settings?.timezone ?? null,
