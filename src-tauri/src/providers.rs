@@ -234,15 +234,16 @@ pub const PROVIDERS: &[ProviderSpec] = &[
         name: "Ankr",
         role: ProviderRole::Supplemental,
         key: KeyRequirement::Optional,
-        networks: &[],
+        networks: EVM_AND_SOLANA,
         docs_url: "https://www.ankr.com/docs/rpc-service/service-plans/",
         key_url: Some("https://www.ankr.com/rpc/"),
-        free_allowance: "200M credits/month",
+        free_allowance: "200M credits/month; Node 30 requests/sec, Advanced 30/min; shared local budget; balance reserve only",
     },
 ];
 
 /// Providers with a working adapter in this build.
 const ADAPTERS: &[&str] = &[
+    "ankr",
     "mempool",
     "blockscout",
     "etherscan",

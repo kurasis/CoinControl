@@ -35,6 +35,14 @@ pub async fn call(
         // Deliberate conservative reserve, not the actual bill: token-owner
         // scans currently cost 10 CU. Share estimates with the EVM credential.
         100
+    } else if http.provider() == "ankr" {
+        if method.starts_with("ankr_") {
+            700
+        } else if method.starts_with("eth_") {
+            200
+        } else {
+            500
+        }
     } else if cost == 0 {
         match http.provider() {
             "drpc" => 100,

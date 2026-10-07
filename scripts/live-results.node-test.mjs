@@ -57,3 +57,13 @@ test("price source limits require independent actual valuation evidence", () => 
     [],
   );
 });
+test("Node success cannot stand in for throttled Advanced API or missing BNB mirror", () => {
+  const reports = [
+    report("ankr", [check("Node balances", "PASS")]),
+    report("ankr-advanced", [check("Advanced quota", "RATE_LIMITED")]),
+    report("mirror-routing", [check("ethereum: mirror balance persisted", "PASS")]),
+  ];
+  assert.equal(suiteResult(reports[1]), "RATE_LIMITED");
+  assert.equal(missingMirrorEvidence(reports).length, 5);
+  assert.ok(missingMirrorEvidence(reports).some((s) => s.includes("bsc")));
+});

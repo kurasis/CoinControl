@@ -16,16 +16,13 @@ const KNOWN = {
   publicnode: null,
   blockscout: "BLOCKSCOUT_API_KEY",
   drpc: "DRPC_API_KEY",
+  ankr: "ANKR_API_KEY",
   chainstack: "CHAINSTACK_API_KEY",
   toncenter: null,
   etherscan: "ETHERSCAN_API_KEY",
   defillama: null,
   trongrid: "TRONGRID_API_KEY",
   tonapi: "TONAPI_API_KEY",
-};
-// Optional provider not shipped in this build.
-const LATER = {
-  ankr: "ANKR_API_TOKEN",
 };
 const REPORT_DIR = "target/live-report";
 
@@ -54,7 +51,7 @@ if (selected.length === 0) {
 
 // Anonymous mirrors join read-only validation, with their existing hard budgets.
 if (
-  selected.some((p) => !["ankr", "livecoinwatch", "defillama"].includes(p)) &&
+  selected.some((p) => !["livecoinwatch", "defillama"].includes(p)) &&
   !selected.includes("publicnode")
 )
   selected.push("publicnode");
@@ -64,12 +61,7 @@ if (selected.includes("livecoinwatch") && !selected.includes("defillama"))
   selected.push("defillama");
 
 let missing = false;
-const blocked = [];
 for (const p of selected) {
-  if (p in LATER) {
-    blocked.push(p);
-    continue;
-  }
   if (!(p in KNOWN)) {
     console.error(`Unknown provider: ${p}`);
     process.exit(2);
@@ -79,8 +71,6 @@ for (const p of selected) {
   if (configured === "MISSING") missing = true;
   console.log(`${p.padEnd(14)} credential ${key ?? "-"}: ${configured}`);
 }
-for (const p of blocked)
-  console.log(`${p.padEnd(14)} SKIPPED_NOT_IN_SCOPE: optional provider not used by this build`);
 if (missing) {
   console.error("A selected provider has no credential configured; refusing to run.");
   process.exit(1);
@@ -105,6 +95,7 @@ const reports = [];
 let failed = cargo.status !== 0;
 const expected = [
   ...runnable,
+  ...(runnable.includes("ankr") ? ["ankr-advanced", "ankr-routing"] : []),
   ...(runnable.includes("alchemy") ? ["alchemy-solana"] : []),
   ...(runnable.some((p) => ["livecoinwatch", "defillama"].includes(p)) ? ["price-routing"] : []),
   ...(runnable.includes("publicnode") ? ["mirror-routing"] : []),
@@ -127,8 +118,6 @@ for (const name of expected) {
   );
   for (const c of r.checks) rows.push(`| | ${c.result} | | | ${c.name}: ${c.detail} |`);
 }
-for (const p of blocked)
-  rows.push(`| ${p} | SKIPPED_NOT_IN_SCOPE | 0 | - | optional provider not used by this build |`);
 
 for (const reason of missingMirrorEvidence(reports)) {
   failed = true;
