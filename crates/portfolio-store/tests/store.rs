@@ -12,6 +12,63 @@ fn clock() -> Arc<FixedClock> {
     Arc::new(FixedClock(NOW))
 }
 
+#[tokio::test]
+async fn valuation_index_upgrade_preserves_portfolio_and_removes_group_sort() {
+    use sqlx::Row;
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("upgrade.sqlite");
+    let original = Store::open(&path, ProfileKind::Demo, clock())
+        .await
+        .unwrap();
+    original.seed_demo().await.unwrap();
+    let expected =
+        serde_json::to_value(original.portfolio_summary(&Scope::All).await.unwrap()).unwrap();
+    let account = original.list_accounts(None).await.unwrap()[0].id.clone();
+    original.close().await;
+
+    // Reproduce the populated pre-index schema, retaining all financial rows.
+    let url = format!("sqlite://{}", path.display());
+    let old = sqlx::SqlitePool::connect(&url).await.unwrap();
+    sqlx::query("DROP INDEX lots_valuation_remaining")
+        .execute(&old)
+        .await
+        .unwrap();
+    sqlx::query("DELETE FROM _sqlx_migrations WHERE version = 8")
+        .execute(&old)
+        .await
+        .unwrap();
+    old.close().await;
+
+    let upgraded = Store::open(&path, ProfileKind::Demo, clock())
+        .await
+        .unwrap();
+    assert_eq!(
+        serde_json::to_value(upgraded.portfolio_summary(&Scope::All).await.unwrap()).unwrap(),
+        expected
+    );
+    assert!(upgraded.integrity_ok().await.unwrap());
+    assert_eq!(
+        upgraded.schema_version().await.unwrap(),
+        latest_schema_version()
+    );
+    let connection = sqlx::SqlitePool::connect(&url).await.unwrap();
+    let plans = sqlx::query("EXPLAIN QUERY PLAN SELECT account_id, asset_id, remaining_quantity, remaining_basis_usd, basis_kind, COUNT(*) FROM lots WHERE remaining_quantity != '0' AND account_id IN (?) GROUP BY account_id, asset_id, remaining_quantity, remaining_basis_usd, basis_kind")
+        .bind(account).fetch_all(&connection).await.unwrap();
+    let details: Vec<String> = plans.into_iter().map(|row| row.get("detail")).collect();
+    assert!(
+        details
+            .iter()
+            .any(|detail| detail.contains("COVERING INDEX lots_valuation_remaining")),
+        "{details:?}"
+    );
+    assert!(
+        !details.iter().any(|detail| detail.contains("TEMP B-TREE")),
+        "{details:?}"
+    );
+    connection.close().await;
+    upgraded.close().await;
+}
+
 async fn mem(profile: ProfileKind) -> Store {
     Store::open_in_memory(profile, clock()).await.unwrap()
 }
