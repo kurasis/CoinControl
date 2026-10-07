@@ -551,6 +551,7 @@ impl HttpClient {
             provider,
             "helius"
                 | "alchemy"
+                | "ankr"
                 | "drpc"
                 | "publicnode"
                 | "chainstack"

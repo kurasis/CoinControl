@@ -228,3 +228,33 @@ async fn transport_retries_count_separate_advanced_attempts_and_credits() {
     assert_eq!(budget.used(), 2);
     assert_eq!(budget.credits(), 1400);
 }
+
+#[tokio::test]
+async fn http_errors_never_echo_even_short_authenticated_tokens() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(
+            ResponseTemplate::new(400).set_body_json(json!({"message":"short-key rejected"})),
+        )
+        .mount(&server)
+        .await;
+    let api = Ankr::with_config(
+        Url::parse(&format!("{}/short-key", server.uri())).unwrap(),
+        Budget::limited(1),
+        config(),
+    )
+    .unwrap();
+    let error = match api.balances_page(NetworkId::Bsc, ADDRESS, None).await {
+        Err(error) => error,
+        Ok(_) => panic!("HTTP failure was accepted"),
+    };
+    assert!(matches!(error, ProviderError::Http { status: 400, .. }));
+    assert!(!error.to_string().contains("short-key"));
+    assert!(
+        !api.http()
+            .take_usage()
+            .last_error
+            .unwrap()
+            .contains("short-key")
+    );
+}
