@@ -23,6 +23,7 @@ pub const NODE_INTERVAL: Duration = Duration::from_millis(34);
 pub const ADVANCED_INTERVAL: Duration = Duration::from_millis(2010);
 const METHOD: &str = "ankr_getAccountBalance";
 pub const PAGE_SIZE: usize = 200;
+const MAX_ADVANCED_BODY: usize = 2 * 1024 * 1024;
 
 pub fn chain(network: NetworkId) -> Option<&'static str> {
     Some(match network {
@@ -40,6 +41,8 @@ pub fn chain(network: NetworkId) -> Option<&'static str> {
 pub struct BalancePage {
     pub tokens: Vec<(AssetSpec, BigInt)>,
     pub next: Option<String>,
+    pub truncated: bool,
+    pub response_assets: usize,
 }
 
 pub struct Ankr {
@@ -63,8 +66,9 @@ impl Ankr {
     pub fn with_config(
         url: Url,
         budget: Arc<Budget>,
-        config: HttpConfig,
+        mut config: HttpConfig,
     ) -> Result<Self, ProviderError> {
+        config.max_body_bytes = config.max_body_bytes.min(MAX_ADVANCED_BODY);
         let http = HttpClient::new(PROVIDER, config, budget, Default::default())?;
         configure_pacing(&http, &url, true);
         Ok(Self { http, url })
@@ -119,25 +123,21 @@ fn parse_page(
 ) -> Result<BalancePage, ProviderError> {
     let invalid = || rpc::invalid(PROVIDER, METHOD, "invalid token balance evidence");
     let assets = value["assets"].as_array().ok_or_else(invalid)?;
-    // Some responses include the separately sorted native coin in addition to
-    // pageSize token entries. It is not used for the indexed token snapshot.
+    // Live Ethereum responses ignore the documented pageSize (1106 assets on
+    // 2026-10-07). Bound local work rather than failing an otherwise valid wallet.
+    // HTTP separately bounds response bytes; native balances come from Node RPC.
     let native_count = assets
         .iter()
         .filter(|a| a["tokenType"].as_str() == Some("NATIVE"))
         .count();
-    if native_count > 1 || assets.len().saturating_sub(native_count) > PAGE_SIZE {
-        return Err(rpc::invalid(
-            PROVIDER,
-            METHOD,
-            &format!(
-                "page exceeded requested token limit: {} assets, {native_count} native entries",
-                assets.len()
-            ),
-        ));
-    }
+    let truncated = assets.len().saturating_sub(native_count) > PAGE_SIZE;
     let mut tokens = Vec::new();
     let mut seen = BTreeSet::new();
-    for asset in assets {
+    for asset in assets
+        .iter()
+        .filter(|a| a["tokenType"].as_str() != Some("NATIVE"))
+        .take(PAGE_SIZE)
+    {
         if asset["blockchain"].as_str() != chain(network) {
             return Err(rpc::invalid(PROVIDER, METHOD, "unexpected balance mainnet"));
         }
@@ -150,7 +150,6 @@ fn parse_page(
             return Err(rpc::invalid(PROVIDER, METHOD, "unexpected balance holder"));
         }
         match asset["tokenType"].as_str() {
-            Some("NATIVE") => continue, // Native balance is independently obtained from Node RPC.
             Some("ERC20") => {}
             _ => {
                 return Err(rpc::invalid(
@@ -213,7 +212,12 @@ fn parse_page(
         Some(Value::String(s)) if s.len() <= 4096 => Some(s.clone()),
         _ => return Err(invalid()),
     };
-    Ok(BalancePage { tokens, next })
+    Ok(BalancePage {
+        tokens,
+        next,
+        truncated,
+        response_assets: assets.len(),
+    })
 }
 
 // Preserve spacing when a synchronization or connection probe rebuilds its
@@ -344,7 +348,9 @@ mod tests {
         let mut extra = asset();
         extra["contractAddress"] = json!(format!("0x{:040x}", PAGE_SIZE + 1));
         assets.push(extra);
-        assert!(parse_page(NetworkId::Bsc, WALLET, &json!({"assets":assets})).is_err());
+        let page = parse_page(NetworkId::Bsc, WALLET, &json!({"assets":assets})).unwrap();
+        assert_eq!(page.tokens.len(), PAGE_SIZE);
+        assert!(page.truncated);
     }
     #[test]
     fn shipped_intervals_bound_rolling_windows_without_bursts() {

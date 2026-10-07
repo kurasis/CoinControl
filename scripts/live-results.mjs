@@ -37,7 +37,9 @@ export function missingMirrorEvidence(reports) {
         const network = c.name.split(" ")[0];
         if (
           !routing?.checks.some(
-            (c) => c.result === "PASS" && c.name === `${network}: mirror balance persisted`,
+            (c) =>
+              c.result === "PASS" &&
+              c.name === `${network}: independent Ankr balance mirror persisted`,
           )
         ) {
           missing.push(`ankr: no successful independent ${network} balance evidence`);
@@ -49,7 +51,10 @@ export function missingMirrorEvidence(reports) {
       for (const network of scopes[report.provider]) {
         if (
           !routing?.checks.some(
-            (c) => c.result === "PASS" && c.name === `${network}: mirror balance persisted`,
+            (c) =>
+              c.result === "PASS" &&
+              c.name ===
+                `${network}: ${report.provider.startsWith("ankr") ? "independent Ankr balance mirror persisted" : "mirror balance persisted"}`,
           )
         ) {
           missing.push(`${report.provider}: no successful independent ${network} balance evidence`);

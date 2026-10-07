@@ -340,3 +340,49 @@ async fn forbidden_invalid_credential_remains_an_authentication_failure() {
     assert!(matches!(error, ProviderError::Auth { status: 403, .. }));
     assert!(!error.to_string().contains("short-key"));
 }
+
+#[tokio::test]
+async fn an_oversized_server_page_is_locally_bounded_without_skipping_unseen_entries() {
+    let server = MockServer::start().await;
+    node(&server).await;
+    let assets: Vec<_> = (1..=201)
+        .map(|i| {
+            let mut a = token_page("", &format!("0x{i:040x}"))["assets"][0].clone();
+            a["balanceRawInteger"] = json!("9007199254740993");
+            a
+        })
+        .collect();
+    Mock::given(method("POST")).and(body_partial_json(json!({"method":"ankr_getAccountBalance"})))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"jsonrpc":"2.0","id":1,"result":{"assets":assets,"nextPageToken":"would-skip-unseen"}})))
+        .expect(1).mount(&server).await;
+    let budget = Budget::limited(10);
+    let api = reserve(&server, budget.clone(), true);
+    let h = api.snapshot(NetworkId::Bsc, ADDRESS, &[]).await.unwrap();
+    assert_eq!(h.assets.len(), 201); // Native Node balance plus 200 exact token entries.
+    assert!(
+        h.warnings
+            .iter()
+            .any(|w| w.contains("201 assets") && w.contains("limited to 200 tokens"))
+    );
+    assert_eq!(h.height, None);
+    assert_eq!(budget.used(), 4);
+}
+
+#[tokio::test]
+async fn advanced_response_bytes_are_bounded_even_when_pagination_is_ignored() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("x".repeat(2 * 1024 * 1024 + 1)))
+        .mount(&server)
+        .await;
+    let api = Ankr::with_config(
+        Url::parse(&format!("{}/oversized", server.uri())).unwrap(),
+        Budget::limited(1),
+        config(),
+    )
+    .unwrap();
+    assert!(matches!(
+        api.balances_page(NetworkId::Bsc, ADDRESS, None).await,
+        Err(ProviderError::TooLarge { .. })
+    ));
+}

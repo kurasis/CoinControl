@@ -177,11 +177,16 @@ provider pause. HTTP/RPC 429 advances immediately to an independent mirror.
 adds ERC-20/BEP-20 discovery on the six EVM networks, including BNB. It requests
 all tokens without trusting USD valuations or whitelisting as verification,
 checks mainnet/wallet/contract identity, and parses `balanceRawInteger` exactly.
-Discovery is bounded to two 200-asset pages; unseen balances stay stale rather
+Discovery is bounded to two 200-token pages and a 2 MiB response body. The live
+Ethereum API ignored `pageSize` and returned 1106 assets; local processing
+retains the first 200 tokens, stops cursor traversal and exposes partial coverage.
+Unseen balances stay stale rather
 than being set to zero. Known tokens retain their block-pinned RPC balances;
 new indexed balances carry no invented common block height. A plan-unavailable
-method retains Node balances with an explicit warning. Auth, malformed evidence
-and wrong-chain errors remain failures; source acceptance is reported separately
+method retains Node balances with an explicit warning. A Node-network 403 is isolated to its chain/method and requires a real independent
+mirror in live verification; it does not poison other chains or Advanced. Invalid
+credential responses remain authentication failures and never echo error bodies.
+Malformed retained evidence and wrong-chain errors remain failures; source acceptance is reported separately
 for Node and Advanced. Successful balances still do **not** establish indexed
 history, fees, swaps or cost basis; independent BNB history remains unfinished.
 
