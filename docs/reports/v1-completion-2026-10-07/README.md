@@ -30,7 +30,7 @@ Windows acceptance.
 ## Local verification
 
 Baseline: static checks, build and offline tests passed with 178 deterministic Rust
-and 52 frontend cases. Final: **195 deterministic Rust / 57 frontend cases PASS**;
+and 52 frontend cases. Final: **195 deterministic Rust / 58 frontend cases PASS**;
 18 opt-in live functions return without external access in offline mode and are
 not counted as live passes. All-feature Clippy (warnings denied), TypeScript,
 ESLint, Prettier, rustfmt, generated bindings (71 DTO exports), production frontend
@@ -67,9 +67,9 @@ Keep these failures visible; do not repeat unchanged authentication tests.
    endpoint or node RPC authentication token**. A platform management API key is
    not a node credential. Update `CHAINSTACK_API_KEY` in Actions and the installed
    app's source setting. Do not enable a paid plan or overage for this task.
-3. **dRPC BNB:** prior 429 requires available key quota/free BNB service or its reset;
-   local counts are not the provider's global allowance. Other reserves retain
-   partial balances and cached history. Record the new run's result separately.
+3. **dRPC BNB:** passed on corrected source `052e423` after an earlier 429. That
+   historical failure is preserved, but is not a current configuration blocker.
+   Local counts remain distinct from the provider's global allowance.
 4. **Windows 11 x64:** hosted Windows Server automation does not establish the
    original Windows 11 installation/UI acceptance. A Windows 11 machine is needed
    for that gate. The unsigned ZIP remains a prerelease while external gates remain.
@@ -130,3 +130,25 @@ This correction changes only test SQL; production application logic is unchanged
 That run's live checks passed **16 suites** (including Ethereum/Solana/TON finality
 and dRPC BNB); only Alchemy's four rejected mainnets and Chainstack Solana failed.
 New final-source verification is recorded separately before ZIP publication.
+
+## Production startup correction
+
+Source `052e423` also failed the first normal installed startup: **2383.20 ms**
+against the unchanged **2000 ms** target. Its three later offline launches passed;
+those warm results do not replace the failed normal gate. The original
+[NATIVE_LOAD_REPORT](ci/intermediate/NATIVE_LOAD_REPORT.json) remains unchanged.
+Backend logging showed context/profile ready in 3/13 ms, summary at 346 ms,
+WebView setup at 1071 ms and renderer useful paint at 1265.8 ms.
+
+Secondary routes now load on navigation. Initial JavaScript totals decrease from
+555.41 kB to **481.81 kB** (315.52 kB entry plus 166.29 kB shared formatting chunk),
+without counting the shared chunk as removed. Holdings, preview activity and chart
+work start after the same data-ready **two-frame** useful-paint mark. Balance,
+settings/profile readiness, the mark, process-to-paint measurement and threshold
+remain unchanged. A controlled frame test verifies both frames and the once-only
+mark. Summary errors still permit the independent queries. No API, accounting or
+provider behavior changes.
+
+Local checks, 58 frontend cases, production build/source inspection and all 24
+browser layout scenarios pass after this correction. Actual Windows timing and
+native management checks must pass on the new source before publication.

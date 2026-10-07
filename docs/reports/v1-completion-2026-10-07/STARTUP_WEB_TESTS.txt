@@ -1,0 +1,22 @@
+
+> coincontrol@0.1.7 test:web
+> vitest run
+
+
+ RUN  v5.0.3 /workspace/CoinControl
+
+
+ Test Files  11 passed (11)
+      Tests  58 passed (58)
+   Start at  09:02:35
+   Duration  10.87s (tests 56%, environment 33%, setup 4%, import 4%, transform 3%)
+
+Environment  jsdom was created 11 times · 6.78s total, 33% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

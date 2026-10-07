@@ -1,14 +1,28 @@
+import { lazy } from "react";
 import { HashRouter, Route, Routes } from "react-router";
 import { AppProvider } from "./app/AppContext";
 import { Layout } from "./components/Layout";
-import { ActivityPage } from "./pages/ActivityPage";
-import { AssetPage } from "./pages/AssetPage";
 import { PortfolioPage } from "./pages/PortfolioPage";
-import { ReviewPage } from "./pages/ReviewPage";
-import { AccountPage } from "./pages/AccountPage";
-import { GroupPage, WalletPage } from "./pages/ScopedPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { WalletsPage } from "./pages/WalletsPage";
+const ActivityPage = lazy(() =>
+  import("./pages/ActivityPage").then((m) => ({ default: m.ActivityPage })),
+);
+const AssetPage = lazy(() => import("./pages/AssetPage").then((m) => ({ default: m.AssetPage })));
+const ReviewPage = lazy(() =>
+  import("./pages/ReviewPage").then((m) => ({ default: m.ReviewPage })),
+);
+const AccountPage = lazy(() =>
+  import("./pages/AccountPage").then((m) => ({ default: m.AccountPage })),
+);
+const GroupPage = lazy(() => import("./pages/ScopedPage").then((m) => ({ default: m.GroupPage })));
+const WalletPage = lazy(() =>
+  import("./pages/ScopedPage").then((m) => ({ default: m.WalletPage })),
+);
+const SettingsPage = lazy(() =>
+  import("./pages/SettingsPage").then((m) => ({ default: m.SettingsPage })),
+);
+const WalletsPage = lazy(() =>
+  import("./pages/WalletsPage").then((m) => ({ default: m.WalletsPage })),
+);
 
 export function App() {
   return (
