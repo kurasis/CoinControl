@@ -633,3 +633,44 @@ describe("wallet maintenance and navigation", () => {
     expect(screen.getByRole("button", { name: "7D" })).toHaveAttribute("aria-pressed", "true");
   });
 });
+
+it("waits for the useful balance paint before either chart observer starts optional queries", async () => {
+  await api.switchProfile("demo");
+  const chart = vi.spyOn(api, "chart");
+  const holdings = vi.spyOn(api, "listHoldings");
+  const frames = new Map<number, FrameRequestCallback>();
+  const marks: { name: string }[] = [];
+  let nextFrame = 0;
+  const now = performance.now.bind(performance);
+  vi.stubGlobal("performance", {
+    now,
+    getEntriesByName: (name: string) => marks.filter((entry) => entry.name === name),
+    mark: (name: string) => marks.push({ name }),
+  });
+  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+    frames.set(++nextFrame, callback);
+    return nextFrame;
+  });
+  vi.stubGlobal("cancelAnimationFrame", (id: number) => frames.delete(id));
+  const flushFrame = () => {
+    const batch = [...frames.values()];
+    frames.clear();
+    act(() => batch.forEach((callback) => callback(now())));
+  };
+  try {
+    renderApp();
+    await waitFor(() => expect(document.querySelector(".balance")?.textContent).toMatch(/\d/));
+    await waitFor(() => expect(frames.size).toBeGreaterThan(0));
+    expect(chart).not.toHaveBeenCalled();
+    expect(holdings).not.toHaveBeenCalled();
+    flushFrame();
+    expect(chart).not.toHaveBeenCalled();
+    expect(marks).toHaveLength(0);
+    flushFrame();
+    await waitFor(() => expect(chart).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(holdings).toHaveBeenCalledTimes(1));
+    expect(marks).toEqual([{ name: "portfolio-first-useful" }]);
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});

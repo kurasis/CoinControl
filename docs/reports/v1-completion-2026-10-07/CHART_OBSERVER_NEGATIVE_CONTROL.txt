@@ -1,0 +1,47 @@
+
+ RUN  v5.0.3 /workspace/CoinControl
+
+ ❯ src/App.test.tsx (28 tests | 1 failed | 27 skipped) 338ms
+   × waits for the useful balance paint before either chart observer starts optional queries 334ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/App.test.tsx > waits for the useful balance paint before either chart observer starts optional queries
+AssertionError: expected "chart" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st chart call:
+
+    Array [
+      Object {
+        "kind": "all",
+      },
+      "1m",
+      undefined,
+    ]
+
+
+Number of calls: 1
+
+ ❯ src/App.test.tsx:665:23
+    663|     await waitFor(() => expect(document.querySelector(".balance")?.tex…
+    664|     await waitFor(() => expect(frames.size).toBeGreaterThan(0));
+    665|     expect(chart).not.toHaveBeenCalled();
+       |                       ^
+    666|     expect(holdings).not.toHaveBeenCalled();
+    667|     flushFrame();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 27 skipped (28)
+   Start at  09:12:36
+   Duration  2.13s (environment 36%, transform 26%, tests 17%, import 14%, setup 5%, worker 1%)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
