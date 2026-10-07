@@ -65,23 +65,35 @@ export function signOf(value: string | null | undefined): -1 | 0 | 1 {
   return 1;
 }
 
+function dateFormatter(
+  locale: string,
+  options: Intl.DateTimeFormatOptions,
+  timeZone?: string | null,
+): Intl.DateTimeFormat {
+  try {
+    return new Intl.DateTimeFormat(locale, { ...options, timeZone: timeZone ?? undefined });
+  } catch (error) {
+    // Older backups or a WebView with an older timezone database can contain
+    // an unsupported override. Retry with the OS zone, keeping locale/style.
+    if (!(error instanceof RangeError) || timeZone == null) throw error;
+    return new Intl.DateTimeFormat(locale, options);
+  }
+}
+
 export function formatDateTime(
   unixSeconds: number,
   locale: string,
   timeZone?: string | null,
 ): string {
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: timeZone ?? undefined,
-  }).format(new Date(unixSeconds * 1000));
+  return dateFormatter(locale, { dateStyle: "medium", timeStyle: "short" }, timeZone).format(
+    new Date(unixSeconds * 1000),
+  );
 }
 
 export function formatDate(unixSeconds: number, locale: string, timeZone?: string | null): string {
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: "medium",
-    timeZone: timeZone ?? undefined,
-  }).format(new Date(unixSeconds * 1000));
+  return dateFormatter(locale, { dateStyle: "medium" }, timeZone).format(
+    new Date(unixSeconds * 1000),
+  );
 }
 
 export function truncateAddress(address: string): string {

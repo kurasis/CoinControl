@@ -1,0 +1,19 @@
+{
+  "provider": "toncenter",
+  "started_at": 1791349977,
+  "duration_ms": 1718,
+  "requests": 2,
+  "endpoints": ["balance reserve"],
+  "checks": [
+    {
+      "name": "ton native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "ton integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    }
+  ]
+}

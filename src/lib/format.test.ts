@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { compareDecimal } from "../components/AssetTable";
-import { DASH, formatPercent, formatQuantity, formatUsd, signOf } from "./format";
+import {
+  DASH,
+  formatDate,
+  formatDateTime,
+  formatPercent,
+  formatQuantity,
+  formatUsd,
+  signOf,
+} from "./format";
 
 describe("formatting", () => {
   it("renders missing values as a dash, never $0", () => {
@@ -47,5 +55,23 @@ describe("compareDecimal", () => {
       "9007199254740993",
     ]);
     expect(compareDecimal("1.50", "1.5")).toBe(0);
+  });
+});
+
+describe("timezones", () => {
+  const receipt = Date.parse("2026-07-31T11:09:00Z") / 1000;
+
+  it("uses the chosen IANA zone at date boundaries", () => {
+    const nearMidnight = Date.parse("2026-07-31T23:09:00Z") / 1000;
+    expect(formatDate(nearMidnight, "en-US", "UTC")).toBe("Jul 31, 2026");
+    expect(formatDate(nearMidnight, "en-US", "Africa/Nairobi")).toBe("Aug 1, 2026");
+    expect(formatDateTime(receipt, "en-GB", "Africa/Nairobi")).toContain("14:09");
+  });
+
+  it.each(["Invalid/Timezone", "", " UTC "])("falls back to the system zone for %j", (zone) => {
+    for (const locale of ["en-US", "ru-RU"]) {
+      expect(formatDate(receipt, locale, zone)).toBe(formatDate(receipt, locale));
+      expect(formatDateTime(receipt, locale, zone)).toBe(formatDateTime(receipt, locale));
+    }
   });
 });

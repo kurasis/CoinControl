@@ -1,0 +1,4 @@
+    Checking portfolio-store v0.1.0 (/workspace/CoinControl/crates/portfolio-store)
+    Checking portfolio-providers v0.1.0 (/workspace/CoinControl/crates/portfolio-providers)
+    Checking portfolio-desk v0.1.6 (/workspace/CoinControl/src-tauri)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.15s

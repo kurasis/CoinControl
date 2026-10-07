@@ -1,6 +1,19 @@
-# Verification report — 2026-10-06
+# Verification report — 2026-10-07
 
-## Current 0.1.6 verification
+## Current development follow-up
+
+[Code audit](docs/reports/code-audit-2026-10-07/README.md) merged as PR #24.
+Its exact source `153c246` CI completed: offline/build/load/native recovery passed;
+live had Alchemy 403 / Chainstack 401 / dRPC BNB 429, and the first production
+normal-network launch exceeded the unchanged 2000 ms gate (3499.30 ms).
+The other 11 production load checks passed. These results do not replace the
+successful earlier release-specific evidence below.
+
+The four owner-approved chart/timezone/Rust/Actions improvements and their
+[follow-up verification](docs/reports/chart-timezone-actions-2026-10-07/README.md)
+are recorded separately. The published ZIP remains the exact previous source.
+
+## Published 0.1.6 verification
 
 Automatic provider reserves are merged in main. Exact application source [acb280dbe73c4b6c4b8ede81f8523516d9769cc9](https://github.com/kurasis/CoinControl/commit/acb280dbe73c4b6c4b8ede81f8523516d9769cc9), [CI 37471182519](https://github.com/kurasis/CoinControl/actions/runs/37471182519), attempt 2: **six application/build jobs passed; the live job failed on external API restrictions**. The installer retry retained the same source and every assertion after a failure launching pinned previous 0.1.0, before any upgrade. Full [sanitized reports, failure history and native screenshot](docs/reports/provider-reserves-2026-10-06/README.md).
 

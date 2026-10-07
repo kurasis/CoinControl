@@ -3254,6 +3254,7 @@ dependencies = [
  "base64 0.22.1",
  "bigdecimal",
  "csv",
+ "jiff-tzdb",
  "num-bigint",
  "portfolio-core",
  "serde",
