@@ -153,7 +153,7 @@ export function AssetTable({
                 <>
                   <td>
                     <div className="asset-cell">
-                      <TokenIcon symbol={r.symbol} />
+                      <TokenIcon assetId={r.asset_id} symbol={r.symbol} />
                       <div className="stack">
                         <Link className="row-link" to={assetPath(r.asset_id)}>
                           {r.name ?? r.symbol ?? t("assets.unknownAsset")}

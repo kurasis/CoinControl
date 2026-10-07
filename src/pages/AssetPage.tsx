@@ -68,7 +68,7 @@ export function AssetPage() {
       {d && (
         <>
           <section className="row" aria-label={t("asset.identity")}>
-            <TokenIcon symbol={d.symbol} />
+            <TokenIcon assetId={d.asset_id} symbol={d.symbol} />
             <span>
               {d.symbol ?? "?"} · {networkNames.get(d.network) ?? d.network}
               {d.verification !== "verified" && ` · ${t("assets.unverified")}`}

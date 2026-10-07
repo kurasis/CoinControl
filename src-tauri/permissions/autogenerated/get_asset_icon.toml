@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-asset-icon"
+description = "Enables the get_asset_icon command without any pre-configured scope."
+commands.allow = ["get_asset_icon"]
+
+[[permission]]
+identifier = "deny-get-asset-icon"
+description = "Denies the get_asset_icon command without any pre-configured scope."
+commands.deny = ["get_asset_icon"]

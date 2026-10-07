@@ -308,6 +308,66 @@ jobs:
           path: target/native-load-report/
           if-no-files-found: error
 
+  windows-11-acceptance:
+    if: inputs.providers_only != true
+    name: Windows 11 ARM64 running the production x64 installer
+    needs: windows-installer
+    runs-on: windows-11-arm
+    timeout-minutes: 30
+    env:
+      ACCEPTANCE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Verify and record Windows 11 ARM64 host
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Get-ComputerInfo | Select-Object WindowsProductName, OsArchitecture
+          $os = Get-CimInstance Win32_OperatingSystem
+          $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
+          if ($os.Caption -notmatch 'Windows 11' -or $cpu.Architecture -ne 12) { throw 'Expected Windows 11 ARM64' }
+          New-Item -ItemType Directory -Path "$env:RUNNER_TEMP/windows11-host" -Force | Out-Null
+          @{ caption = $os.Caption; version = $os.Version; architecture = $os.OSArchitecture; processorArchitecture = $cpu.Architecture; applicationArchitecture = 'x64 (emulated)'; sourceSha = $env:ACCEPTANCE_SOURCE_SHA } | ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/windows11-host/HOST.json"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      - name: Install Rust toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          cache-on-failure: true
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: portfolio-desk-windows-nsis-unsigned
+          path: target/native-load-installer
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: windows-release-evidence
+          path: target/native-load-production
+      - name: Install pinned Tauri WebDriver
+        run: cargo install tauri-driver --version 2.0.5 --locked
+      - name: Install matching WebView2 Edge WebDriver
+        shell: pwsh
+        run: ./scripts/setup-webview-driver.ps1 -ReportDirectory target/native-load-report
+      - name: Installed production startup, large UI and CSV cancellation/replay
+        shell: pwsh
+        run: ./scripts/native-load-windows.ps1
+      - name: Production native load evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-11-arm-x64-evidence
+          path: target/native-load-report/
+          if-no-files-found: error
+
+      - name: Windows 11 host identity
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-11-host
+          path: ${{ runner.temp }}/windows11-host/
+          if-no-files-found: error
+
   performance:
     if: inputs.providers_only != true
     name: Cached load measurements (${{ matrix.os }})
