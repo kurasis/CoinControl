@@ -1,0 +1,26 @@
+{
+  "result": "PASS",
+  "zip": "CoinControl-0.1.9-windows-x64.zip",
+  "bytes": 8477871,
+  "sha256": "7f6e4f80fc13b211c79c48ab18788f27a72d78926be1ebd6aef6187b54c5dac6",
+  "sourceSha": "99123fce346d09a31e037d84306bdef205351359",
+  "ciRunId": 37636073946,
+  "files": [
+    "Portfolio Desk_0.1.9_x64-setup.exe",
+    "README.txt",
+    "BUILD_INFO.json",
+    "SHA256SUMS.txt"
+  ],
+  "checks": [
+    "ZIP CRC",
+    "exact four files",
+    "external SHA-256",
+    "all inner SHA-256",
+    "Windows executable header",
+    "installer/manifest checksum match",
+    "exact tested source/run",
+    "production report/payload matches",
+    "unchanged startup gate",
+    "prerelease acceptance label"
+  ]
+}

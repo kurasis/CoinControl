@@ -78,8 +78,21 @@ Server failure remains preserved; the final Server pass is a measurement of
 this exact payload, not a claim that startup variation is fixed. Windows 11
 Intel/AMD hardware remains unrun. [Server evidence](server-load/NATIVE_LOAD_REPORT.json)
 · [Windows 11 evidence](windows11-load/NATIVE_LOAD_REPORT.json).
-The inspected production payload is eligible for an unsigned **prerelease**;
-publication and redownload verification are recorded separately.
+
+## Published prerelease
+
+[Download Windows x64 ZIP 0.1.9](https://github.com/kurasis/CoinControl/releases/download/v0.1.9/CoinControl-0.1.9-windows-x64.zip).
+[Publisher 37639630437](https://github.com/kurasis/CoinControl/actions/runs/37639630437)
+PASS, using the exact inspected production source above. The publisher checks
+all six application/build gates; the extra ARM64 acceptance failure is preserved.
+The release is unsigned and `fullReleaseAcceptance: false`.
+
+Redownload verification PASS: ZIP CRC, exactly four expected files, internal and
+external SHA-256, installer/payload/report hashes, source/run/version and
+prerelease acceptance flag. Size 8477871 bytes; SHA-256
+`7f6e4f80fc13b211c79c48ab18788f27a72d78926be1ebd6aef6187b54c5dac6`.
+[Manifest](BUILD_INFO.json) · [Verification](PUBLISHED_ZIP_VERIFICATION.json).
+Older releases and their assets remain unchanged.
 
 ## Remaining constraints
 

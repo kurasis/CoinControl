@@ -1,0 +1,4 @@
+2026-10-07T14:13:07.696588Z  INFO portfolio_desk_lib: Startup context ready elapsed_ms=66
+2026-10-07T14:13:07.828946Z  INFO portfolio_desk_lib: Startup local profile ready elapsed_ms=199
+2026-10-07T14:13:08.019690Z  INFO portfolio_desk_lib: Startup cached summary ready elapsed_ms=390
+2026-10-07T14:13:10.087186Z  INFO portfolio_desk_lib: Startup native WebView ready elapsed_ms=2458

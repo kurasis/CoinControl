@@ -1,0 +1,21 @@
+{
+  "product": "Portfolio Desk / CoinControl",
+  "version": "0.1.9",
+  "platform": "windows-x64",
+  "channel": "prerelease",
+  "codeSigned": false,
+  "buildSourceSha": "99123fce346d09a31e037d84306bdef205351359",
+  "workflowRunId": 37636073946,
+  "workflowUrl": "https://github.com/kurasis/CoinControl/actions/runs/37636073946",
+  "installer": {
+    "filename": "Portfolio Desk_0.1.9_x64-setup.exe",
+    "sha256": "99c6cfd7a8ce7ccfd90e0563f33dab55f2a842e8742cc712f483a2a4a249a9e2"
+  },
+  "checks": {
+    "RELEASE_REPORT": 78,
+    "INSTALLER_REPORT": 12,
+    "NATIVE_LOAD_REPORT": 12
+  },
+  "firstNormalUsefulScreenMs": 1894.800048828125,
+  "fullReleaseAcceptance": false
+}
