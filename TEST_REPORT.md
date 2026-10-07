@@ -1,14 +1,44 @@
 # Verification report — 2026-10-07
 
-## 0.1.7 specification completion
+## Published 0.1.7 specification completion
 
-[Requirement mapping, implementation and external configuration steps](docs/reports/v1-completion-2026-10-07/README.md).
-Account management, maintenance/rescan jobs, queued manual synchronization,
-retained chart/table state, shared editable quotas, scheduling and bounded chain
-finality/rollback checks are implemented. Existing API contracts remain compatible.
-Local final checks and source-specific Windows/CI/release evidence are recorded
-in that report as they complete. Prior release evidence below remains historical;
-no full release or Windows 11 acceptance is claimed.
+[Download Windows x64 ZIP](https://github.com/kurasis/CoinControl/releases/download/v0.1.7/CoinControl-0.1.7-windows-x64.zip) · [Requirement mapping, all evidence and configuration steps](docs/reports/v1-completion-2026-10-07/README.md).
+
+Account/wallet management, safe removal, cache/diagnostics/rescan jobs, queued
+manual synchronization, retained chart/table state, shared editable quotas,
+scheduling and bounded chain finality/rollback checks are delivered. Existing
+public contracts remain compatible. Initial scope, native test, fixture-launch
+and startup failures are preserved with their corrections.
+
+Exact source `a3512b0121e7ce19fc93b70bcd5bd969902b599d`,
+[main CI 37601276788](https://github.com/kurasis/CoinControl/actions/runs/37601276788):
+**six application/build jobs PASS**. Overall CI is failed solely on the live API
+job: **16 suites PASS / 2 FAIL**, Alchemy 403 on Base/Arbitrum/Optimism/Polygon and
+Chainstack Solana 401. dRPC BNB passes after an intermittent earlier 429; no
+unchanged authentication-only retry was used to conceal a failure.
+
+| Scope                                       | Exact final result                                                                                              |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Static/offline/build/bindings               | PASS; 195 deterministic Rust / 60 frontend cases                                                                |
+| Browser mock IPC                            | PASS; 24 combinations and bounded 10000-row table                                                               |
+| Native actual Windows IPC                   | 30 PASS; installer scope is covered independently                                                               |
+| Native cancel/resume/offline/console        | PASS; cancellation acknowledgement 19 ms                                                                        |
+| Production upgrade/uninstall and inspection | 11 / 75 PASS                                                                                                    |
+| Installed production 100000-movement load   | 12 PASS; normal useful screen **1844.60 ms**, unchanged 2000 ms gate; later offline 801.90 / 770.20 / 765.00 ms |
+| Storage load Linux/Windows                  | PASS; 50 accounts / 500 assets / 100000 movements                                                               |
+
+[Publisher 37602970378](https://github.com/kurasis/CoinControl/actions/runs/37602970378)
+passed and packaged that exact inspected/tested installer. Re-downloaded ZIP CRC,
+four-file contents, internal/external checksums and source/payload report matching
+passed ([manifest](docs/reports/v1-completion-2026-10-07/BUILD_INFO.json),
+[verification](docs/reports/v1-completion-2026-10-07/PUBLISHED_ZIP_VERIFICATION.json)).
+SHA-256: `fd96d2b8bb0b910a74efeb499e38cd8b1025e1bfeeefcb53e51c7006f595480b` (8335521 bytes).
+
+This is an unsigned prerelease. Fix Alchemy mainnet entitlements and Chainstack
+node RPC credentials using the linked configuration instructions; Actions secrets
+are CI-only and must also be entered separately in app Settings → Data sources.
+Hosted Windows Server validation does not establish physical Windows 11 acceptance.
+Historical results and prior immutable release assets below remain separate.
 
 ## Current development follow-up
 
