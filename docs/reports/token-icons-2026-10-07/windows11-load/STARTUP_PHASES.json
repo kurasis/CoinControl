@@ -1,0 +1,43 @@
+{
+  "sourceSha": "4e7b48da7dcc02ad9544d4b8e82093f0cd6e625f",
+  "ciRunId": 37619951445,
+  "applicationSha256": "bca18be243c98e46efa01672d901067759ff04e024996c5e64bcee7029b51778",
+  "launches": [
+    {
+      "launchIndex": 0,
+      "phases": [
+        "2026-10-07T12:30:36.611909Z  INFO portfolio_desk_lib: Startup context ready elapsed_ms=71",
+        "2026-10-07T12:30:36.745744Z  INFO portfolio_desk_lib: Startup local profile ready elapsed_ms=206",
+        "2026-10-07T12:30:36.941350Z  INFO portfolio_desk_lib: Startup cached summary ready elapsed_ms=401",
+        "2026-10-07T12:30:39.075567Z  INFO portfolio_desk_lib: Startup native WebView ready elapsed_ms=2536"
+      ]
+    },
+    {
+      "launchIndex": 1,
+      "phases": [
+        "2026-10-07T12:31:24.199923Z  INFO portfolio_desk_lib: Startup context ready elapsed_ms=8",
+        "2026-10-07T12:31:24.219432Z  INFO portfolio_desk_lib: Startup local profile ready elapsed_ms=27",
+        "2026-10-07T12:31:24.375862Z  INFO portfolio_desk_lib: Startup cached summary ready elapsed_ms=184",
+        "2026-10-07T12:31:24.691706Z  INFO portfolio_desk_lib: Startup native WebView ready elapsed_ms=499"
+      ]
+    },
+    {
+      "launchIndex": 2,
+      "phases": [
+        "2026-10-07T12:31:28.422061Z  INFO portfolio_desk_lib: Startup context ready elapsed_ms=7",
+        "2026-10-07T12:31:28.441474Z  INFO portfolio_desk_lib: Startup local profile ready elapsed_ms=27",
+        "2026-10-07T12:31:28.596620Z  INFO portfolio_desk_lib: Startup cached summary ready elapsed_ms=182",
+        "2026-10-07T12:31:28.870675Z  INFO portfolio_desk_lib: Startup native WebView ready elapsed_ms=456"
+      ]
+    },
+    {
+      "launchIndex": 3,
+      "phases": [
+        "2026-10-07T12:31:31.784052Z  INFO portfolio_desk_lib: Startup context ready elapsed_ms=7",
+        "2026-10-07T12:31:31.803455Z  INFO portfolio_desk_lib: Startup local profile ready elapsed_ms=27",
+        "2026-10-07T12:31:31.968262Z  INFO portfolio_desk_lib: Startup cached summary ready elapsed_ms=191",
+        "2026-10-07T12:31:32.263045Z  INFO portfolio_desk_lib: Startup native WebView ready elapsed_ms=486"
+      ]
+    }
+  ]
+}

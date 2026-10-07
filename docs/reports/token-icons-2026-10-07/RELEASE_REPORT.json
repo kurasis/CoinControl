@@ -1,0 +1,404 @@
+{
+  "mode": "windows-release",
+  "at": "2026-10-07T12:26:18.461Z",
+  "signed": false,
+  "packagedApplications": [
+    {
+      "filename": "portfolio-desk.exe",
+      "installerSha256": "5a57a1d62baccf12a3f68506dda5e65b188003d8ddbd06df0e9ee138d5078ee9",
+      "applicationSha256": "bca18be243c98e46efa01672d901067759ff04e024996c5e64bcee7029b51778"
+    }
+  ],
+  "checks": [
+    {
+      "name": "Every application command is declared and scoped",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No generic privileged command",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Production CSP limits networking to IPC",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Production build uses packaged resources",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Frontend build exists",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No private resource files",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Windows release application exists",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "NSIS installer exists",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "PE artifact: target\\release\\portfolio-desk.exe",
+      "result": "PASS",
+      "detail": "sha256 8af618c98bf03d7277dcee71fe5b1c6964409b9d53bfb18d0da46ad15234752f"
+    },
+    {
+      "name": "PE artifact: target\\release\\bundle\\nsis\\Portfolio Desk_0.1.8_x64-setup.exe",
+      "result": "PASS",
+      "detail": "sha256 5a57a1d62baccf12a3f68506dda5e65b188003d8ddbd06df0e9ee138d5078ee9"
+    },
+    {
+      "name": "Installer contents: target\\release\\bundle\\nsis\\Portfolio Desk_0.1.8_x64-setup.exe",
+      "result": "PASS",
+      "detail": "No credential or backup files"
+    },
+    {
+      "name": "NSIS application payload: target\\release\\bundle\\nsis\\Portfolio Desk_0.1.8_x64-setup.exe",
+      "result": "PASS",
+      "detail": "sha256 bca18be243c98e46efa01672d901067759ff04e024996c5e64bcee7029b51778"
+    },
+    {
+      "name": "No sentinels or test-only code in NSIS payload: target\\release\\bundle\\nsis\\Portfolio Desk_0.1.8_x64-setup.exe",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\app-icon.svg",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\AccountPage-DCRf0p1a.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\ActivityPage-D39NL5cn.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\AssetPage-BUEqmNJ0.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\core-IUlRufS4.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\dist-js-CQO7wK3L.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\event-DEhpjajj.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\external-kg-cX26P.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\format-B7eBAewm.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\hooks-CPqRstOO.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\index-BxdUN_9P.css",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\index-z-Vn84bS.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-400-normal-HOLc17fK.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-400-normal-obahsSVq.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-500-normal-BasfLYem.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-500-normal-CxZf_p3X.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-600-normal-4D_pXhcN.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-600-normal-CWCymEST.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-ext-400-normal-BQZuk6qB.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-ext-400-normal-DQukG94-.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-ext-500-normal-B0yAr1jD.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-ext-500-normal-BmqWE9Dz.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-ext-600-normal-Bcila6Z-.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-cyrillic-ext-600-normal-Dfes3d0z.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-400-normal-B4URO6DV.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-400-normal-q2sYcFCs.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-500-normal-BIZE56-Y.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-500-normal-Xzm54t5V.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-600-normal-BZpKdvQh.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-600-normal-plRanbMR.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-ext-400-normal-DGGRlc-M.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-ext-400-normal-KugGGMne.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-ext-500-normal-2j5mBUwD.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-ext-500-normal-C4iEst2y.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-ext-600-normal-B8X0CLgF.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-greek-ext-600-normal-DRtmH8MT.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-400-normal-C38fXH4l.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-400-normal-CyCys3Eg.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-500-normal-BL9OpVg8.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-500-normal-Cerq10X2.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-600-normal-CiBQ2DWP.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-600-normal-LgqL8muc.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-ext-400-normal-77YHD8bZ.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-ext-400-normal-C1nco2VV.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-ext-500-normal-BxGbmqWO.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-ext-500-normal-CV4jyFjo.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-ext-600-normal-CIVaiw4L.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-latin-ext-600-normal-D2bJ5OIk.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-vietnamese-400-normal-Bbgyi5SW.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-vietnamese-400-normal-DMkecbls.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-vietnamese-500-normal-DOriooB6.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-vietnamese-500-normal-mJboJaSs.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-vietnamese-600-normal-BuLX-rYi.woff",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\inter-vietnamese-600-normal-Cc8MFFhd.woff2",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\LegDrawer-COeYy8k5.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\ReviewPage-CzRwY-M2.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\ScopedPage-BZDeaFxi.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\SeriesChartCanvas-DEJkDx11.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\SettingsPage-D8mWhzwD.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\TokenIcon-BNqB2HdC.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\WalletsPage-Dcm5nBrR.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\assets\\WindowedTableBody-B3du5cPg.js",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: dist\\index.html",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: target\\release\\portfolio-desk.exe",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "No sentinels or test-only code: target\\release\\bundle\\nsis\\Portfolio Desk_0.1.8_x64-setup.exe",
+      "result": "PASS",
+      "detail": ""
+    }
+  ]
+}
