@@ -1,5 +1,15 @@
 # Verification report — 2026-10-07
 
+## 0.1.7 specification completion
+
+[Requirement mapping, implementation and external configuration steps](docs/reports/v1-completion-2026-10-07/README.md).
+Account management, maintenance/rescan jobs, queued manual synchronization,
+retained chart/table state, shared editable quotas, scheduling and bounded chain
+finality/rollback checks are implemented. Existing API contracts remain compatible.
+Local final checks and source-specific Windows/CI/release evidence are recorded
+in that report as they complete. Prior release evidence below remains historical;
+no full release or Windows 11 acceptance is claimed.
+
 ## Current development follow-up
 
 [Code audit](docs/reports/code-audit-2026-10-07/README.md) merged as PR #24.

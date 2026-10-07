@@ -213,6 +213,30 @@ impl Reserve {
             solana,
         })
     }
+    pub fn validates_finality(&self, network: NetworkId) -> bool {
+        self.supports(network)
+            && matches!(self.kind, Kind::Rpc)
+            && (network.evm_chain_id().is_some() || network == NetworkId::Solana)
+    }
+    pub async fn validate_finality(
+        &self,
+        network: NetworkId,
+        candidates: &[(String, i64)],
+    ) -> Result<crate::finality::FinalityBatch, ProviderError> {
+        let url = self
+            .endpoints
+            .get(&network)
+            .ok_or_else(|| rpc::invalid(self.provider(), "finality", "unsupported network"))?
+            .clone();
+        if network == NetworkId::Solana {
+            if let Some(s) = &self.solana {
+                s.check_mainnet().await?;
+            }
+            crate::finality::solana(&self.http, url, candidates).await
+        } else {
+            crate::finality::evm(&self.http, url, network, candidates).await
+        }
+    }
     pub fn provider(&self) -> &'static str {
         self.http.provider()
     }

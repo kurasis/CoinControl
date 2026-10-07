@@ -1,10 +1,11 @@
 import { WindowedTableBody } from "./WindowedTableBody";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { HoldingRow } from "../ipc/bindings/HoldingRow";
 import type { NetworkId } from "../ipc/client";
 import { Percent, Price, Quantity, Usd } from "./Amount";
+import { useViewState } from "../app/useViewState";
 import { TokenIcon } from "./TokenIcon";
 
 type SortKey = "value" | "price" | "change" | "name" | "pnl";
@@ -46,9 +47,12 @@ export function AssetTable({
   networkNames: Map<NetworkId, string>;
 }) {
   const { t } = useTranslation();
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "value", dir: -1 });
-  const [query, setQuery] = useState("");
-  const [network, setNetwork] = useState<NetworkId | "">("");
+  const [sort, setSort] = useViewState<{ key: SortKey; dir: 1 | -1 }>("assets:sort", {
+    key: "value",
+    dir: -1,
+  });
+  const [query, setQuery] = useViewState("assets:query", "");
+  const [network, setNetwork] = useViewState<NetworkId | "">("assets:network", "");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();

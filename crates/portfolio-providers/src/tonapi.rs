@@ -172,6 +172,146 @@ impl TonApi {
         })
     }
 
+    /// Check event-root inclusion in a canonical shard block anchored by the current masterchain.
+    pub async fn validate_finality(
+        &self,
+        candidates: &[(String, i64)],
+    ) -> Result<crate::finality::FinalityBatch, ProviderError> {
+        async fn read(
+            api: &TonApi,
+            path: &str,
+            endpoint: &'static str,
+        ) -> Result<serde_json::Value, ProviderError> {
+            api.http
+                .get(endpoint, api.url(path)?)
+                .await?
+                .json(PROVIDER, endpoint)
+        }
+        let head = read(self, "blockchain/masterchain-head", "masterchain-head").await?;
+        if head["global_id"].as_i64() != Some(-239) || head["workchain_id"].as_i64() != Some(-1) {
+            return Err(invalid("masterchain-head", "wrong mainnet"));
+        }
+        let master = head["seqno"]
+            .as_i64()
+            .ok_or_else(|| invalid("masterchain-head", "missing masterchain sequence"))?;
+        let shards = read(
+            self,
+            &format!("blockchain/masterchain/{master}/shards"),
+            "masterchain-shards",
+        )
+        .await?;
+        let shards = shards["shards"]
+            .as_array()
+            .ok_or_else(|| invalid("masterchain-shards", "missing shard anchors"))?;
+        let mut results = Vec::new();
+        for (hash, _) in candidates.iter().take(2) {
+            if hash.len() != 64 || !hash.bytes().all(|b| b.is_ascii_hexdigit()) {
+                results.push((hash.clone(), crate::finality::Validation::Unavailable));
+                continue;
+            }
+            let transaction = match read(
+                self,
+                &format!("blockchain/transactions/{hash}"),
+                "blockchain-transaction",
+            )
+            .await
+            {
+                Ok(v) => v,
+                Err(ProviderError::NotFound { .. }) => {
+                    results.push((hash.clone(), crate::finality::Validation::Unavailable));
+                    continue;
+                }
+                Err(e) => return Err(e),
+            };
+            if !transaction["hash"]
+                .as_str()
+                .is_some_and(|h| h.eq_ignore_ascii_case(hash))
+            {
+                return Err(invalid(
+                    "blockchain-transaction",
+                    "wrong transaction identity",
+                ));
+            }
+            let block_id = transaction["block"]
+                .as_str()
+                .ok_or_else(|| invalid("blockchain-transaction", "missing block identity"))?;
+            if block_id.len() > 80
+                || !block_id
+                    .bytes()
+                    .all(|b| b.is_ascii_hexdigit() || b"(),:-".contains(&b))
+            {
+                return Err(invalid("blockchain-transaction", "invalid block identity"));
+            }
+            let block = read(
+                self,
+                &format!("blockchain/blocks/{block_id}"),
+                "blockchain-block",
+            )
+            .await?;
+            if block["global_id"].as_i64() != Some(-239) {
+                return Err(invalid("blockchain-block", "wrong mainnet"));
+            }
+            if block["workchain_id"].as_i64().is_none()
+                || block["seqno"].as_u64().is_none()
+                || !block["shard"]
+                    .as_str()
+                    .is_some_and(|s| s.len() == 16 && s.bytes().all(|b| b.is_ascii_hexdigit()))
+            {
+                return Err(invalid(
+                    "blockchain-block",
+                    "invalid canonical block identity",
+                ));
+            }
+            let anchored = shards.iter().any(|s| {
+                let anchor = &s["last_known_block"];
+                anchor["workchain_id"] == block["workchain_id"]
+                    && anchor["shard"] == block["shard"]
+                    && anchor["seqno"]
+                        .as_i64()
+                        .zip(block["seqno"].as_i64())
+                        .is_some_and(|(a, b)| a >= b)
+            });
+            if !anchored {
+                results.push((hash.clone(), crate::finality::Validation::Unavailable));
+                continue;
+            }
+            let membership = read(
+                self,
+                &format!("blockchain/blocks/{block_id}/transactions"),
+                "block-transactions",
+            )
+            .await?;
+            let transactions = membership["transactions"]
+                .as_array()
+                .ok_or_else(|| invalid("block-transactions", "missing block membership"))?;
+            let complete = block["tx_quantity"].as_u64() == Some(transactions.len() as u64);
+            let contains = transactions.iter().any(|t| {
+                t["hash"]
+                    .as_str()
+                    .is_some_and(|h| h.eq_ignore_ascii_case(hash))
+            });
+            if transactions.iter().any(|t| t["hash"].as_str().is_none()) {
+                return Err(invalid(
+                    "block-transactions",
+                    "invalid transaction membership",
+                ));
+            }
+            results.push((
+                hash.clone(),
+                if contains {
+                    crate::finality::Validation::Final
+                } else if complete {
+                    crate::finality::Validation::Reorged
+                } else {
+                    crate::finality::Validation::Unavailable
+                },
+            ));
+        }
+        Ok(crate::finality::FinalityBatch {
+            results,
+            boundary: format!("masterchain:{master}"),
+        })
+    }
     pub fn http(&self) -> &HttpClient {
         &self.http
     }

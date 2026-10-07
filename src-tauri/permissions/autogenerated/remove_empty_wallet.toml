@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-remove-empty-wallet"
+description = "Enables the remove_empty_wallet command without any pre-configured scope."
+commands.allow = ["remove_empty_wallet"]
+
+[[permission]]
+identifier = "deny-remove-empty-wallet"
+description = "Denies the remove_empty_wallet command without any pre-configured scope."
+commands.deny = ["remove_empty_wallet"]

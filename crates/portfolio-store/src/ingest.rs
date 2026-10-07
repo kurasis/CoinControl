@@ -255,7 +255,7 @@ impl Coverage {
         }
     }
 
-    fn parse(text: &str) -> Result<Self> {
+    pub(crate) fn parse(text: &str) -> Result<Self> {
         Ok(match text {
             "loading" => Coverage::Loading,
             "paused" => Coverage::Paused,
@@ -544,7 +544,9 @@ impl Store {
                      occurred_at = CASE WHEN excluded.status = 'pending' AND chain_transactions.status != 'pending'
                                         THEN chain_transactions.occurred_at ELSE excluded.occurred_at END,
                      status = CASE WHEN excluded.status = 'pending' AND chain_transactions.status IN ('confirmed', 'final', 'failed')
-                                   THEN chain_transactions.status ELSE excluded.status END,
+                                   THEN chain_transactions.status
+                                   WHEN chain_transactions.status='final' AND excluded.status='confirmed' AND excluded.block_height=chain_transactions.block_height THEN 'final'
+                                   ELSE excluded.status END,
                      source_provider = excluded.source_provider,
                      source_refs = excluded.source_refs",
             )
@@ -845,6 +847,12 @@ impl Store {
         let mut tx = self.pool.begin().await?;
         sqlx::query("UPDATE chain_transactions SET status=?,block_height=NULL,position=NULL WHERE network_id=? AND canonical_tx_id=?")
             .bind(if pending {"pending"} else {"reorged"}).bind(network.as_str()).bind(hash).execute(&mut *tx).await?;
+        sqlx::query("DELETE FROM portfolio_snapshots WHERE quality='reconstructed' AND account_id IN (SELECT account_id FROM account_transactions WHERE transaction_id IN (SELECT id FROM chain_transactions WHERE network_id=? AND canonical_tx_id=?)) AND at >= (SELECT occurred_at FROM chain_transactions WHERE network_id=? AND canonical_tx_id=?)")
+            .bind(network.as_str()).bind(hash).bind(network.as_str()).bind(hash).execute(&mut *tx).await?;
+        sqlx::query("UPDATE balance_observations SET status='stale' WHERE account_id IN (SELECT account_id FROM account_transactions WHERE transaction_id IN (SELECT id FROM chain_transactions WHERE network_id=? AND canonical_tx_id=?))")
+            .bind(network.as_str()).bind(hash).execute(&mut *tx).await?;
+        sqlx::query("INSERT INTO settings(key,value_json,updated_at) SELECT 'rollback:'||account_id,'true',? FROM account_transactions WHERE transaction_id IN (SELECT id FROM chain_transactions WHERE network_id=? AND canonical_tx_id=?) ON CONFLICT(key) DO UPDATE SET value_json='true',updated_at=excluded.updated_at")
+            .bind(self.now()).bind(network.as_str()).bind(hash).execute(&mut *tx).await?;
         mark_dirty_in(&mut tx).await?;
         tx.commit().await?;
         Ok(())
@@ -1298,4 +1306,43 @@ async fn upsert_asset_in(
         .await?;
     }
     Ok(id)
+}
+
+impl Store {
+    pub async fn finality_candidates(&self, id: &str, limit: u32) -> Result<Vec<(String, i64)>> {
+        let rows=sqlx::query("SELECT t.canonical_tx_id,COALESCE(t.block_height,0) AS block_height FROM account_transactions a JOIN chain_transactions t ON t.id=a.transaction_id WHERE a.account_id=? AND t.status='confirmed' AND (t.block_height IS NOT NULL OR t.network_id='ton') ORDER BY t.block_height DESC,t.id LIMIT ?").bind(id).bind(i64::from(limit.min(5))).fetch_all(&self.pool).await?;
+        Ok(rows
+            .iter()
+            .map(|r| (r.get("canonical_tx_id"), r.get("block_height")))
+            .collect())
+    }
+    pub async fn apply_final_status(
+        &self,
+        network: NetworkId,
+        hash: &str,
+        status: &str,
+    ) -> Result<()> {
+        if !matches!(status, "final" | "failed") {
+            return Err(StoreError::Invalid("invalid final status".into()));
+        }
+        let _guard = self.write_lock.lock().await;
+        let mut tx = self.pool.begin().await?;
+        sqlx::query("UPDATE chain_transactions SET status=? WHERE network_id=? AND canonical_tx_id=? AND status='confirmed'").bind(status).bind(network.as_str()).bind(hash).execute(&mut *tx).await?;
+        mark_dirty_in(&mut tx).await?;
+        tx.commit().await?;
+        Ok(())
+    }
+    pub async fn resume_after_rollback(&self, id: &str) -> Result<()> {
+        let _guard = self.write_lock.lock().await;
+        let mut tx = self.pool.begin().await?;
+        let flag = sqlx::query("DELETE FROM settings WHERE key=?")
+            .bind(format!("rollback:{id}"))
+            .execute(&mut *tx)
+            .await?;
+        if flag.rows_affected() > 0 {
+            sqlx::query("UPDATE sync_checkpoints SET backfill_cursor=NULL,forward_cursor=NULL,boundary=NULL,coverage='loading',retry_state='{}' WHERE account_id=? AND category!='finality'").bind(id).execute(&mut *tx).await?;
+        }
+        tx.commit().await?;
+        Ok(())
+    }
 }

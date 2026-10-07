@@ -71,6 +71,25 @@ export function isCommandError(e: unknown): e is CommandError {
 }
 
 export const api = {
+  cancelSyncJob: (id: string) => call<void>("cancel_sync_job", { id }),
+  startRescan: (ids: string[]) =>
+    call<import("./bindings/SyncJob").SyncJob>("start_rescan", { ids }),
+  syncJob: (id: string) => call<import("./bindings/SyncJob").SyncJob>("get_sync_job", { id }),
+  accountCoverage: (id: string) =>
+    call<import("./bindings/AccountCoverage").AccountCoverage[]>("account_coverage", { id }),
+  removeEmptyWallet: (id: string) => call<void>("remove_empty_wallet", { id }),
+  previewAccountRemoval: (id: string) =>
+    call<import("./bindings/RemovalPreview").RemovalPreview>("preview_account_removal", { id }),
+  removeAccount: (id: string, revision: string) => call<void>("remove_account", { id, revision }),
+  clearCaches: () => call<void>("clear_caches"),
+  rescanAccounts: (ids: string[]) => call<SyncSummary>("rescan_accounts", { ids }),
+  getProviderQuota: (provider: string) =>
+    call<import("./bindings/ProviderQuota").ProviderQuota>("get_provider_quota", { provider }),
+  setProviderQuota: (provider: string, quota: import("./bindings/ProviderQuota").ProviderQuota) =>
+    call<void>("set_provider_quota", { provider, quota }),
+  accountExplorer: (id: string) => call<string | null>("account_explorer", { id }),
+  exportDiagnostics: () => call<boolean>("export_diagnostics"),
+  setSyncScope: (scope: Scope) => call<void>("set_sync_scope", { scope }),
   appInfo: () => call<AppInfo>("app_info"),
   switchProfile: (profile: ProfileKind) => call<ProfileKind>("switch_profile", { profile }),
   getSettings: () => call<Settings>("get_settings"),
@@ -128,8 +147,19 @@ export const api = {
     }),
   assetDetail: (scope: Scope, assetId: string) =>
     call<AssetDetail>("get_asset_detail", { scope, assetId }),
-  assetChart: (scope: Scope, assetId: string, range: ChartRange) =>
-    call<AssetChart>("get_asset_chart", { scope, assetId, range }),
+  assetChart: (
+    scope: Scope,
+    assetId: string,
+    range: ChartRange,
+    window?: { start: number; end: number },
+  ) =>
+    call<AssetChart>("get_asset_chart", {
+      scope,
+      assetId,
+      range,
+      start: window?.start ?? null,
+      end: window?.end ?? null,
+    }),
   listReviewItems: (scope: Scope, limit?: number) =>
     call<ReviewList>("list_review_items", { scope, limit: limit ?? null }),
   legDetail: (legId: string) => call<LegDetail>("get_leg_detail", { legId }),
@@ -146,6 +176,8 @@ export const api = {
   removeProviderKey: (provider: string) =>
     call<ProviderStatus>("remove_provider_key", { provider }),
   syncNow: (accountId?: string) => call<SyncSummary>("sync_now", { accountId: accountId ?? null }),
+  startSync: (accountId?: string) =>
+    call<import("./bindings/SyncJob").SyncJob>("start_sync", { accountId: accountId ?? null }),
   cancelSync: () => call<void>("cancel_sync"),
   syncProgress: () => call<SyncProgress>("get_sync_progress"),
   networkLog: () => call<NetworkRequest[]>("get_network_log"),

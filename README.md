@@ -10,7 +10,10 @@ The authoritative product specification lives in [`docs/spec`](docs/spec/README.
 Start with its README, which lists the reading order.
 
 [Code audit, 2026-10-07](docs/reports/code-audit-2026-10-07/README.md): priorities,
-targeted fixes, baseline/final checks and remaining contract decisions.
+targeted fixes, baseline/final checks and subsequent owner-approved decisions.
+
+[Specification completion, 0.1.7](docs/reports/v1-completion-2026-10-07/README.md):
+account management, maintenance jobs, retained navigation state and chain finality.
 
 ## Status
 
@@ -32,6 +35,33 @@ cost-basis lots with realized/unrealized P&L, fees and flow-adjusted period
 returns. The separate
 **demo profile** uses synthetic data, is labeled as such, and never contacts a
 provider.
+
+## Operations and synchronization (0.1.7)
+
+Wallets support inline rename and deletion of empty wallets. Accounts can move
+between wallets, copy/open their explorer address, show category-level history
+coverage, and be removed after a revision-checked dependency preview and explicit
+confirmation. Removal affects local records only; it can make another account's
+transfer cost basis unknown. Group deletion preserves wallets and accounts.
+
+Settings exposes price/background intervals, local provider request/monthly and
+estimated-credit ceilings, cache cleanup, diagnostics export and selected-account
+rescan. Cleanup retains transactions, quotes, lot lineage and reviewed decisions.
+Rescan has a reconnectable process-local job ID, progress and checkpointed cancel;
+reviewed decisions survive. Diagnostics excludes addresses, transaction IDs,
+credentials and raw responses. Lowering quotas never resets consumed usage; the
+local daily reset is UTC, while actual provider limits may be stricter.
+
+Chart presets/custom UTC endpoints, hidden assets and table search/network/sort
+survive navigation within the current profile. Asset charts retain exact custom
+window endpoints. Wallet detail and account breadcrumbs remain directly linked.
+Multi-asset activity collapses details while retaining every asset quantity.
+
+Manual synchronization has priority over background work and shares the same
+budgets. Active scopes poll ahead of inactive accounts; larger profiles extend
+intervals. Minimized windows slow prices and skip active polling; resume performs
+one catch-up. See [chain validation limits](docs/NETWORK_COVERAGE.md#confirmation-and-rollback-017):
+missing indexes and transport errors never prove a rollback.
 
 ## Helius and Alchemy (0.1.4)
 
@@ -241,7 +271,7 @@ Portfolio Desk never ships with keys. Each user supplies their own:
 
 Sources that need no key (Blockstream Esplora, DefiLlama) show "No key needed".
 TonAPI works without a key at a slower rate. Optional sources that this build
-does not use (Helius, Alchemy, Ankr) say so on their cards.
+does not use (Ankr) says so on its card. Helius and Alchemy are active alternatives when configured.
 
 ### Keys for live tests
 

@@ -1,3 +1,4 @@
+import { useViewState } from "../app/useViewState";
 import { WindowedTableBody } from "./WindowedTableBody";
 import { useTranslation } from "react-i18next";
 import type { ActivityRow } from "../ipc/bindings/ActivityRow";
@@ -20,6 +21,7 @@ export function ActivityTable({
 }) {
   const { t } = useTranslation();
   const { locale, timeZone } = useApp();
+  const [expanded, setExpanded] = useViewState<Record<string, boolean>>("activity:expanded", {});
   if (rows.length === 0) {
     return (
       <div className="empty">
@@ -60,30 +62,52 @@ export function ActivityTable({
               </td>
               <td>{t(`activity.status.${r.status}`, { defaultValue: r.status })}</td>
               <td className="right">
-                <div className="stack">
+                <div
+                  className={
+                    r.legs.length > 1 && !expanded[`${r.transaction_id}:${r.account_id}`]
+                      ? "row"
+                      : "stack"
+                  }
+                >
+                  {r.legs.length > 1 && (
+                    <button
+                      className="btn btn-ghost"
+                      aria-expanded={!!expanded[`${r.transaction_id}:${r.account_id}`]}
+                      onClick={() =>
+                        setExpanded((previous) => ({
+                          ...previous,
+                          [`${r.transaction_id}:${r.account_id}`]:
+                            !previous[`${r.transaction_id}:${r.account_id}`],
+                        }))
+                      }
+                    >
+                      {t("manage.legs", { count: r.legs.length })}
+                    </button>
+                  )}
                   {r.legs.map((l) => (
                     <span key={l.leg_id} className="row-inline">
                       <span className={l.signed_quantity.startsWith("-") ? "negative" : "positive"}>
                         {l.signed_quantity.startsWith("-") ? "" : "+"}
                         <Quantity value={l.signed_quantity} symbol={l.symbol} />
                       </span>
-                      {onOpenLeg && (
-                        <button
-                          className={
-                            l.review ? "chip chip-warning chip-button" : "chip chip-button"
-                          }
-                          onClick={() => onOpenLeg(l.leg_id)}
-                          aria-label={t("activity.openLeg", {
-                            symbol: l.symbol ?? "",
-                          })}
-                        >
-                          {l.review
-                            ? t(`review.reason.${l.review}`, { defaultValue: l.review })
-                            : l.treatment
-                              ? t(`treatment.${l.treatment}`, { defaultValue: l.treatment })
-                              : t("activity.details")}
-                        </button>
-                      )}
+                      {onOpenLeg &&
+                        (r.legs.length <= 1 || expanded[`${r.transaction_id}:${r.account_id}`]) && (
+                          <button
+                            className={
+                              l.review ? "chip chip-warning chip-button" : "chip chip-button"
+                            }
+                            onClick={() => onOpenLeg(l.leg_id)}
+                            aria-label={t("activity.openLeg", {
+                              symbol: l.symbol ?? "",
+                            })}
+                          >
+                            {l.review
+                              ? t(`review.reason.${l.review}`, { defaultValue: l.review })
+                              : l.treatment
+                                ? t(`treatment.${l.treatment}`, { defaultValue: l.treatment })
+                                : t("activity.details")}
+                          </button>
+                        )}
                     </span>
                   ))}
                 </div>

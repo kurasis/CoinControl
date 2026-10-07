@@ -278,6 +278,20 @@ async fn helius_live() {
         b.credits() <= 5_000,
         format!("{} estimated credits; ceiling 5000", b.credits()),
     );
+    let tx = first.txs.first().unwrap();
+    let validation = api
+        .validate_finality(&[(tx.hash.clone(), tx.block_height.unwrap())])
+        .await
+        .unwrap();
+    r.endpoint("getSlot/getSignatureStatuses");
+    r.check(
+        "canonical finalized Solana signature",
+        validation
+            .results
+            .first()
+            .is_some_and(|(_, state)| *state == portfolio_providers::finality::Validation::Final),
+        "finalized mainnet signature agrees with the stored slot",
+    );
     r.finish(b.used() - before);
 }
 
@@ -1027,6 +1041,19 @@ async fn tonapi_live() {
                 .and_then(|x| x.fee.as_ref().map(|f| f.raw.to_string()))
         ),
     );
+    let validation = api
+        .validate_finality(&[(s(&k["event_id"]).to_owned(), 0)])
+        .await
+        .unwrap();
+    r.endpoint("blockchain/masterchain-head/shards/blocks/transactions");
+    r.check(
+        "canonical TON event root anchored by masterchain",
+        validation
+            .results
+            .first()
+            .is_some_and(|(_, state)| *state == portfolio_providers::finality::Validation::Final),
+        "event root is included in its canonical shard block",
+    );
     r.finish(b.used() - used_before);
 }
 
@@ -1595,6 +1622,7 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
     }
     use portfolio_providers::mirrors::{EVM, Reserve};
     let mut report = Report::new(provider);
+    let before = budget(provider).used();
     let credential = var.map(key).unwrap_or_default();
     let api = Reserve::new(provider, &credential, budget(provider)).unwrap();
     let t = targets();
@@ -1647,11 +1675,43 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
             ),
         }
     }
-    let count = api
-        .clients()
-        .into_iter()
-        .map(|c| c.take_usage().requests)
-        .sum();
+    if provider == "publicnode" {
+        let http = portfolio_providers::http::HttpClient::new(
+            provider,
+            Default::default(),
+            budget(provider),
+            Default::default(),
+        )
+        .unwrap();
+        let hash = s(&t["ethereum"]["known_transactions"][0]["hash"]);
+        let response: Value = http
+            .post_json_cost(
+                "eth_getTransactionReceipt",
+                url::Url::parse("https://ethereum-rpc.publicnode.com/").unwrap(),
+                &serde_json::json!({"jsonrpc":"2.0","id":1,"method":"eth_getTransactionReceipt","params":[hash]}),
+                0,
+            )
+            .await
+            .unwrap()
+            .json(provider, "eth_getTransactionReceipt")
+            .unwrap();
+        let receipt = &response["result"];
+        let height =
+            i64::from_str_radix(s(&receipt["blockNumber"]).trim_start_matches("0x"), 16).unwrap();
+        let validation = api
+            .validate_finality(NetworkId::Ethereum, &[(hash.to_owned(), height)])
+            .await
+            .unwrap();
+        report.endpoint("eth_chainId/eth_getBlockByNumber/eth_getTransactionReceipt");
+        report.check(
+            "canonical finalized Ethereum receipt",
+            validation.results.first().is_some_and(|(_, state)| {
+                *state == portfolio_providers::finality::Validation::Final
+            }),
+            "receipt block hash agrees with the canonical mainnet block below finalized",
+        );
+    }
+    let count = budget(provider).used() - before;
     report.finish(count);
 }
 #[tokio::test]

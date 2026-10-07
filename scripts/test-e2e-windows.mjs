@@ -757,6 +757,55 @@ try {
   await screenshot("privacy");
   record("Privacy masks portfolio values", "PASS");
   await clickText("Show balances and addresses");
+  // Exercise the production UI and real IPC permissions on the isolated demo profile.
+  await route("/wallets");
+  const originalWallet = await execute(
+    `return document.querySelector('h2 a[href^="#/wallets/"]').textContent;`,
+  );
+  await clickText("Rename");
+  await input('input[aria-label="Wallet name"]', "Native renamed wallet");
+  await clickText("Save");
+  await until(async () => (await body()).includes("Native renamed wallet"));
+  await clickText("Rename");
+  await input('input[aria-label="Wallet name"]', originalWallet);
+  await clickText("Save");
+  await until(async () => (await body()).includes(originalWallet));
+  record("Wallet rename persists through real Rust IPC", "PASS");
+  await route("/settings/data");
+  const retainedBefore = readProfile(
+    "SELECT (SELECT COUNT(*) FROM movement_legs) AS legs, (SELECT COUNT(*) FROM lots) AS lots, (SELECT COUNT(*) FROM accounting_overrides) AS decisions",
+    "demo",
+  );
+  await clickText("Clear temporary caches");
+  await until(async () => (await body()).includes("Temporary caches cleared."));
+  const retainedAfter = readProfile(
+    "SELECT (SELECT COUNT(*) FROM movement_legs) AS legs, (SELECT COUNT(*) FROM lots) AS lots, (SELECT COUNT(*) FROM accounting_overrides) AS decisions",
+    "demo",
+  );
+  if (JSON.stringify(retainedBefore) !== JSON.stringify(retainedAfter))
+    throw Error("Cache cleanup changed retained evidence");
+  record("Native cache cleanup retains accounting evidence", "PASS");
+  await route("/settings/sources");
+  await until(() =>
+    execute("return document.querySelectorAll('details input[type=number]').length>0;"),
+  );
+  record("Local provider quotas are reachable through scoped IPC", "PASS");
+  await route("/settings");
+  await select("#price-refresh", "120");
+  await select("#sweep-interval", "30");
+  await route("/");
+  await route("/settings");
+  if (
+    !(await execute(
+      "return document.querySelector('#price-refresh').value==='120' && document.querySelector('#sweep-interval').value==='30';",
+    ))
+  )
+    throw Error("Refresh intervals did not persist");
+  await select("#price-refresh", "60");
+  await select("#sweep-interval", "60");
+  record("Native refresh interval settings persist", "PASS");
+  await route("/");
+
   // A dummy OS credential remains configured while exporting, proving exclusion.
   await route("/settings/sources");
   await until(() => execute("return Boolean(document.querySelector('#key-zerion'));"));

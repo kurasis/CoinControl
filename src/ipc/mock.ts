@@ -544,6 +544,67 @@ export async function mockInvoke(
 ): Promise<unknown> {
   await new Promise((r) => setTimeout(r, 30));
   switch (cmd) {
+    case "set_sync_scope":
+    case "clear_caches":
+      return null;
+    case "start_sync":
+    case "start_rescan":
+      if (current.profile !== "real")
+        throw err("demo_profile", "The demo profile cannot synchronize.");
+      return {
+        id: "mock-sync",
+        status: "queued",
+        error_code: null,
+        created_at: NOW,
+        finished_at: null,
+      };
+    case "get_sync_job":
+      return {
+        id: String(args.id),
+        status: "completed",
+        error_code: null,
+        created_at: NOW,
+        finished_at: NOW,
+      };
+    case "cancel_sync_job":
+      return null;
+    case "get_provider_quota":
+      return { daily_requests: 1000, daily_credits: 1000, monthly_requests: 30000 };
+    case "set_provider_quota":
+      return null;
+    case "account_coverage":
+      return [];
+    case "account_explorer":
+      return null;
+    case "rename_wallet": {
+      const wallet = current.wallets.find((w) => w.id === args.id);
+      if (wallet) wallet.label = String(args.label).trim();
+      return null;
+    }
+    case "move_account": {
+      const account = current.accounts.find((a) => a.id === args.id);
+      if (account) account.wallet_id = String(args.walletId);
+      return null;
+    }
+    case "preview_account_removal":
+      return {
+        account: current.accounts.find((a) => a.id === args.id),
+        related_accounts: [],
+        movements: 0,
+        decisions: 0,
+        revision: "browser-preview",
+        fees: 0,
+        transactions: 0,
+      };
+    case "remove_account":
+      current.accounts = current.accounts.filter((a) => a.id !== args.id);
+      return null;
+    case "remove_empty_wallet":
+      current.wallets = current.wallets.filter((w) => w.id !== args.id);
+      return null;
+    case "export_diagnostics":
+    case "rescan_accounts":
+      throw { code: "preview", message: "This operation requires the desktop application." };
     case "get_sync_progress":
       return {
         running: false,

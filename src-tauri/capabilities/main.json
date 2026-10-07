@@ -134,6 +134,21 @@
     "allow-list-asset-policies",
     "allow-set-asset-policy",
     "allow-get-network-log",
-    "allow-clear-network-log"
+    "allow-clear-network-log",
+    "allow-preview-account-removal",
+    "allow-remove-account",
+    "allow-clear-caches",
+    "allow-rescan-accounts",
+    "allow-start-rescan",
+    "allow-start-sync",
+    "allow-get-sync-job",
+    "allow-cancel-sync-job",
+    "allow-get-provider-quota",
+    "allow-set-provider-quota",
+    "allow-account-explorer",
+    "allow-export-diagnostics",
+    "allow-set-sync-scope",
+    "allow-account-coverage",
+    "allow-remove-empty-wallet"
   ]
 }

@@ -7,8 +7,10 @@ import type { AccountSyncStatus } from "../ipc/bindings/AccountSyncStatus";
 import type { NormalizedAddress } from "../ipc/bindings/NormalizedAddress";
 import type { Wallet } from "../ipc/bindings/Wallet";
 import { useApp } from "../app/AppContext";
+import { useViewState } from "../app/useViewState";
 import { useNetworkNames } from "../app/hooks";
 import { Page } from "../components/Layout";
+import { AccountManagement, WalletManagement } from "../components/AccountManagement";
 import { PlusIcon } from "../components/Icons";
 import { Spinner, SyncStatus } from "../components/SyncStatus";
 import { MASK, formatDateTime } from "../lib/format";
@@ -42,38 +44,61 @@ export function WalletsPage() {
 }
 
 /** Synchronizes every active account now (the real profile only). */
-function SyncButton() {
+export function SyncButton({ accountId }: { accountId?: string } = {}) {
   const { t } = useTranslation();
   const { profile, syncProgress: progress } = useApp();
   const queryClient = useQueryClient();
+  const [jobId, setJobId] = useViewState<string | undefined>("sync:job", undefined);
+  const job = useQuery({
+    queryKey: ["sync-job", jobId],
+    queryFn: () => api.syncJob(jobId!),
+    enabled: !!jobId,
+    refetchInterval: (q) =>
+      ["queued", "running", "cancelling"].includes(q.state.data?.status ?? "queued") ? 1000 : false,
+  });
   const sync = useMutation({
-    mutationFn: () => api.syncNow(),
+    mutationFn: () => api.startSync(accountId),
+    onSuccess: (result) => setJobId(result.id),
     onSettled: () => queryClient.invalidateQueries(),
   });
   const cancel = useMutation({
-    mutationFn: api.cancelSync,
+    mutationFn: () =>
+      jobId && ["queued", "running", "cancelling"].includes(job.data?.status ?? "queued")
+        ? api.cancelSyncJob(jobId)
+        : api.cancelSync(),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["sync-progress"] });
+      void queryClient.invalidateQueries({ queryKey: ["sync-job", jobId] });
     },
   });
   if (profile !== "real") return null;
-  const running = sync.isPending || progress?.running;
-  const failed = sync.data?.accounts.some((a) => a.error !== null) ?? false;
+  const manualPending =
+    sync.isPending ||
+    ["queued", "running", "cancelling"].includes(
+      job.data?.status ?? (jobId && !job.isError ? "queued" : "idle"),
+    );
+  const running = manualPending || progress?.running;
   return (
     <>
       <span className="meta" aria-live="polite">
-        {sync.isSuccess && (failed ? t("sync.doneWithErrors") : t("sync.done"))}
+        {job.data?.status === "completed" && t("sync.done")}
+        {["partial", "errors"].includes(job.data?.status ?? "") && t("sync.doneWithErrors")}
+        {["failed", "cancelled"].includes(job.data?.status ?? "") &&
+          t(`maintenance.jobs.${job.data!.status}`)}
         {sync.isError && errorText(sync.error, t)}
+        {job.isError && t("errors.generic")}
       </span>
-      <button className="btn" onClick={() => sync.mutate()} disabled={running}>
+      <button className="btn" onClick={() => sync.mutate()} disabled={manualPending}>
         {running && <Spinner />}
-        {running ? t("sync.running") : t("sync.now")}
+        {manualPending ? t("sync.running") : progress?.running ? t("sync.queueNow") : t("sync.now")}
       </button>
       {running && (
         <button
           className="btn"
           onClick={() => cancel.mutate()}
-          disabled={cancel.isPending || progress?.cancel_requested}
+          disabled={
+            cancel.isPending || progress?.cancel_requested || job.data?.status === "cancelling"
+          }
         >
           {t("ops.cancelSync")}
         </button>
@@ -296,6 +321,13 @@ function AddAddressForm({ onDone }: { onDone: () => void }) {
           <p className="notice meta">{t("addAddress.evmScope")}</p>
         )}
       {submit.isError && <p className="field-error">{errorText(submit.error, t)}</p>}
+      {isCommandError(submit.error) &&
+        submit.error.code === "account_exists" &&
+        submit.error.detail && (
+          <Link className="btn" to={`/accounts/${submit.error.detail}`}>
+            {t("manage.openExisting")}
+          </Link>
+        )}
       <div className="row gap-top">
         <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
           {t("addAddress.button")}
@@ -308,7 +340,7 @@ function AddAddressForm({ onDone }: { onDone: () => void }) {
   );
 }
 
-function WalletList() {
+export function WalletList({ walletId }: { walletId?: string } = {}) {
   const { t } = useTranslation();
   const { privacy } = useApp();
   const queryClient = useQueryClient();
@@ -341,46 +373,52 @@ function WalletList() {
 
   return (
     <>
-      {(wallets.data ?? []).map((w: Wallet) => (
-        <section key={w.id} className="card" aria-label={w.label}>
-          <div className="section-header card-pad card-pad-head">
-            <h2>{w.label}</h2>
-            <span className="meta">{t("wallets.accountCount", { count: w.account_count })}</span>
-          </div>
-          <div className="list">
-            {(accounts.data ?? [])
-              .filter((a) => a.wallet_id === w.id)
-              .map((a) => (
-                <div key={a.id} className="list-row">
-                  <span className="chip">{networkNames.get(a.network) ?? a.network}</span>
-                  <Link
-                    to={`/accounts/${a.id}`}
-                    className="address"
-                    title={privacy ? undefined : a.display_address}
-                  >
-                    {privacy ? MASK : a.display_address}
-                  </Link>
-                  {a.archived && <span className="chip">{t("wallets.archived")}</span>}
-                  <SyncLine status={syncStatus.data?.find((s) => s.account_id === a.id)} />
-                  <div className="toolbar-spacer" />
-                  <button
-                    className="btn btn-ghost"
-                    onClick={() => void navigator.clipboard?.writeText(a.display_address)}
-                    aria-label={t("wallets.copyAddress")}
-                  >
-                    {t("wallets.copy")}
-                  </button>
-                  <button
-                    className="btn"
-                    onClick={() => archive.mutate({ id: a.id, archived: !a.archived })}
-                  >
-                    {a.archived ? t("wallets.unarchive") : t("wallets.archive")}
-                  </button>
-                </div>
-              ))}
-          </div>
-        </section>
-      ))}
+      {(wallets.data ?? [])
+        .filter((w) => !walletId || w.id === walletId)
+        .map((w: Wallet) => (
+          <section key={w.id} className="card" aria-label={w.label}>
+            <div className="section-header card-pad card-pad-head">
+              <h2>
+                <Link to={`/wallets/${w.id}`}>{w.label}</Link>
+              </h2>
+              <WalletManagement wallet={w} />
+              <span className="meta">{t("wallets.accountCount", { count: w.account_count })}</span>
+            </div>
+            <div className="list">
+              {(accounts.data ?? [])
+                .filter((a) => a.wallet_id === w.id)
+                .map((a) => (
+                  <div key={a.id} className="list-row">
+                    <span className="chip">{networkNames.get(a.network) ?? a.network}</span>
+                    <Link
+                      to={`/accounts/${a.id}`}
+                      className="address"
+                      title={privacy ? undefined : a.display_address}
+                    >
+                      {privacy ? MASK : a.display_address}
+                    </Link>
+                    <AccountManagement account={a} wallets={wallets.data ?? []} />
+                    {a.archived && <span className="chip">{t("wallets.archived")}</span>}
+                    <SyncLine status={syncStatus.data?.find((s) => s.account_id === a.id)} />
+                    <div className="toolbar-spacer" />
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => void navigator.clipboard?.writeText(a.display_address)}
+                      aria-label={t("wallets.copyAddress")}
+                    >
+                      {t("wallets.copy")}
+                    </button>
+                    <button
+                      className="btn"
+                      onClick={() => archive.mutate({ id: a.id, archived: !a.archived })}
+                    >
+                      {a.archived ? t("wallets.unarchive") : t("wallets.archive")}
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </section>
+        ))}
     </>
   );
 }

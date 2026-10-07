@@ -635,12 +635,27 @@ impl Store {
         asset_id: &str,
         range: ChartRange,
     ) -> Result<AssetChart> {
+        self.asset_chart_window(scope, asset_id, range, None).await
+    }
+    pub async fn asset_chart_window(
+        &self,
+        scope: &Scope,
+        asset_id: &str,
+        range: ChartRange,
+        window: Option<(i64, i64)>,
+    ) -> Result<AssetChart> {
+        if window.is_some_and(|(start, end)| start < 0 || start >= end || end > self.now()) {
+            return Err(StoreError::Invalid("invalid custom chart interval".into()));
+        }
         let accounts = self.resolve_scope(scope).await?;
         let holdings = self
-            .holdings_series(&accounts, Some(asset_id), range, None)
+            .holdings_series(&accounts, Some(asset_id), range, window)
             .await?;
-        let now = self.now();
-        let (interval, start) = grid_params(range, now, None);
+        let now = window.map_or(self.now(), |(_, end)| end);
+        let (interval, start) = window.map_or_else(
+            || grid_params(range, now, None),
+            |(start, end)| (((end - start) / (MAX_CHART_POINTS - 2) + 1).max(1), start),
+        );
         let book = self
             .price_book(&BTreeSet::from([asset_id.to_owned()]), start - DAY)
             .await?;
@@ -651,12 +666,19 @@ impl Store {
         .bind(asset_id)
         .fetch_one(&self.pool)
         .await?;
-        let (interval, start) = if range == ChartRange::All {
+        let (interval, start) = if range == ChartRange::All && window.is_none() {
             grid_params(range, now, earliest_price)
         } else {
             (interval, start)
         };
-        let price = grid(start, interval, now)
+        let mut price_grid = grid(start, interval, now);
+        if window.is_some() {
+            price_grid.push(start);
+            price_grid.push(now);
+            price_grid.sort_unstable();
+            price_grid.dedup();
+        }
+        let price = price_grid
             .into_iter()
             .map(|t| {
                 let quote = book.at(asset_id, t);

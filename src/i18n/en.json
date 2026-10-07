@@ -11,7 +11,8 @@
   },
   "common": {
     "cancel": "Cancel",
-    "close": "Close"
+    "close": "Close",
+    "save": "Save"
   },
   "errors": {
     "generic": "Something went wrong. Your data was not changed."
@@ -261,7 +262,8 @@
     "pausedHistory": "History download stopped: {{count}} transactions",
     "source": "Source: {{provider}}",
     "balanceReserve": "reserve updated balances; cached history retained, coverage partial",
-    "reserveUsed": "Reserve used (hover for reason)"
+    "reserveUsed": "Reserve used (hover for reason)",
+    "queueNow": "Sync now (queue)"
   },
   "accounting": {
     "partial": "Partial",
@@ -652,6 +654,68 @@
       "timeout": "Timed out",
       "connection_error": "Connection failed",
       "rpc_error": "RPC rejected the request"
+    }
+  },
+  "manage": {
+    "walletName": "Wallet name",
+    "rename": "Rename",
+    "destination": "Destination wallet",
+    "move": "Move account",
+    "remove": "Remove locally",
+    "removalPreview": "Review permanent removal",
+    "removalCounts": "This removes {{transactions}} account operations, {{movements}} movements, {{fees}} fees and {{decisions}} associated decision versions.",
+    "dependencies": "Other accounts on this network will be recalculated. Removing the source of an owned transfer may make their cost basis unknown. Their observations and decisions are retained:",
+    "removalConfirm": "I understand that this permanently deletes this account and its associated local decisions. I have a backup if needed.",
+    "removePermanently": "Delete permanently",
+    "openExisting": "Open existing account",
+    "earliest": "History starts: {{date}}",
+    "emptyWalletConfirm": "Permanently remove this empty wallet?",
+    "categories": {
+      "history": "Activity history",
+      "history_incoming": "Incoming transfers",
+      "history_outgoing": "Outgoing transfers",
+      "history_trc20": "Token transfers",
+      "finality": "Chain confirmations"
+    },
+    "coverage": {
+      "loading": "Loading",
+      "paused": "Paused",
+      "complete": "Complete for this source",
+      "partial": "Partial",
+      "unsupported": "Unsupported"
+    },
+    "legs": "{{count}} movements"
+  },
+  "maintenance": {
+    "title": "Maintenance",
+    "cacheNote": "Clear temporary quote-miss and view caches. History, historical prices, decisions, lots and provider usage are retained.",
+    "clearCache": "Clear temporary caches",
+    "cacheCleared": "Temporary caches cleared.",
+    "diagnostics": "Export sanitized diagnostics",
+    "rescanNote": "Rescan downloads history again from the beginning. Existing observations and decisions remain available while it runs. It uses your normal provider budgets.",
+    "rescanConfirm": "Restart history scanning for the selected accounts.",
+    "rescan": "Rescan selected accounts",
+    "priceInterval": "Price refresh interval",
+    "sweepInterval": "Background account sweep interval",
+    "seconds": "seconds",
+    "minutes": "minutes",
+    "quotas": "Local provider budgets",
+    "quotaNote": "App-only soft caps. You can lower them up to the conservative defaults. They do not include other applications using your key and do not change the provider plan.",
+    "daily_requests": "Requests per UTC day",
+    "daily_credits": "Estimated credits per UTC day",
+    "monthly_requests": "Requests per UTC month",
+    "localReset": "Local daily budget resets: {{time}}. The provider may use a different reset time.",
+    "saveQuotas": "Save budgets",
+    "queued": "Rescan queued.",
+    "jobs": {
+      "queued": "Queued",
+      "running": "Running",
+      "completed": "Completed",
+      "partial": "Completed with partial coverage",
+      "errors": "Completed with errors",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "cancelling": "Cancelling at a safe checkpoint"
     }
   }
 }

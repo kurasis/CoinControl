@@ -10,6 +10,7 @@ pub mod capabilities;
 pub mod defillama;
 pub mod error;
 pub mod esplora;
+pub mod finality;
 pub mod helius;
 pub mod http;
 pub mod livecoinwatch;

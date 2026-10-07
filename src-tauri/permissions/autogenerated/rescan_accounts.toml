@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-rescan-accounts"
+description = "Enables the rescan_accounts command without any pre-configured scope."
+commands.allow = ["rescan_accounts"]
+
+[[permission]]
+identifier = "deny-rescan-accounts"
+description = "Denies the rescan_accounts command without any pre-configured scope."
+commands.deny = ["rescan_accounts"]
