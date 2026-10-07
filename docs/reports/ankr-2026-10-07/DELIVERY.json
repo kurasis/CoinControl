@@ -1,0 +1,10 @@
+{
+  "appSourceSha": "c9913a1076079dd0ce7b0dd551a391477f8374be",
+  "ciRunId": 37652973461,
+  "version": "0.1.10",
+  "packagingScript": "scripts/package-windows-release.py (unchanged)",
+  "packagingResult": "PASS",
+  "releaseStatus": "BLOCKED",
+  "blocker": "GitHub HTTP 500 for workflow dispatch and direct release creation; no v0.1.10 release confirmed",
+  "fullReleaseAcceptance": false
+}

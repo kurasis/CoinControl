@@ -1,0 +1,12 @@
+{
+  "installerSha256": "ac22ecdc19c5b88b87f3fa752c00da9541653a8f5c0c5fc4a3b2b6ebe6591f69",
+  "mode": "webview2-runtime-setup",
+  "installerExitCode": 0,
+  "beforeVersion": "131.0.2903.86",
+  "at": "2026-10-07T16:43:12.8302872Z",
+  "installerUrl": "https://go.microsoft.com/fwlink/p/?LinkId=2124701",
+  "result": "PASS",
+  "refreshRequested": true,
+  "afterVersion": "154.0.4258.62",
+  "signatureStatus": "Valid"
+}

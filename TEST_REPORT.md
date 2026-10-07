@@ -1,5 +1,51 @@
 # Verification report — 2026-10-07
 
+## Ankr reserve and shared free-plan limits (0.1.10)
+
+[Implementation, official sources and preserved failed attempts](docs/reports/ankr-2026-10-07/README.md).
+Ankr Node RPC and exact Advanced EVM token balances are optional reserves.
+Separate credential-shared transport gates enforce the owner's 30 requests/second
+Node and 30 requests/minute Advanced limits. Both share request/credit ceilings.
+First 429 advances to an independent mirror; local-budget exhaustion persists a
+nonfatal pause until the next UTC day. Cached balances stay stale rather than
+being zeroed. Duplicate known-token Node reads after an Advanced response were
+removed without changing public DTOs or accounting formulas.
+
+Type/lint/format/rustfmt/Clippy/build PASS; **229 deterministic Rust / 67 frontend /
+8 report-policy tests PASS**. 23 disabled live entrypoints are not API evidence.
+Exact application source `c9913a1076079dd0ce7b0dd551a391477f8374be`,
+[main CI 37652973461](https://github.com/kurasis/CoinControl/actions/runs/37652973461):
+actual live gate PASS, **17 PASS / 2 RATE_LIMITED / 4 PARTIAL suites**.
+Ankr uses the unchanged shared 50-request / 50000-estimated-credit test ceiling;
+actual usage **50 requests / 16300 estimated credits**.
+
+Ankr Node native/mainnet reads PASS on Ethereum, Base, Arbitrum, Polygon and BNB.
+Optimism and Solana Node return HTTP 403: PARTIAL, with actual independently
+persisted Blockscout / Alchemy balances. Check those scopes and access/allowlist
+in the Ankr project; 403 does not establish a paid-plan requirement. Advanced
+returns valid exact tokens on all six EVM networks; Ethereum ignores requested
+page size and returns 1106 assets, so only 200 bounded fungible tokens are fresh
+and coverage remains PARTIAL. BNB Ankr persistence and all ten independent
+balance routes PASS. Zerion and dRPC are RATE_LIMITED with real mirror evidence;
+indexed BNB history is still not established. Existing Alchemy SOL/SPL/Token-2022
+reserve PASS; no Ankr Solana token acceptance is claimed.
+
+Installer inspection / populated upgrade: **78 / 12 PASS**. Native Windows IPC:
+32 PASS and one independently covered installer skip. Installed Windows Server
+production load: **12 PASS**, first normal useful screen **1499.80 ms**, offline
+starts **844.10 / 713.60 / 683.20 ms**. Additional Windows 11 ARM64 x64 emulation:
+**11 PASS / 1 FAIL**, first normal useful screen **4559.80 ms** against the unchanged
+2000 ms gate; offline starts **1669.60 / 676.50 / 666.70 ms** PASS. All six required
+app/build jobs and the live job PASS; overall CI FAIL due to the additional ARM64
+gate. This source was not rerun to seek a passing sample. Windows 11 Intel/AMD
+hardware acceptance remains unrun, and full release acceptance is not claimed.
+
+The unchanged ZIP packager verified the exact CI installer locally: 8486521 bytes,
+SHA-256 `70eaca0d0854359913ef13cb615cdd3dac1835fd0888eef0a8422a5d4eccf2ac`.
+GitHub returned HTTP 500 for both publisher dispatch and direct release creation;
+**0.1.10 is not published**. [Local verification](docs/reports/ankr-2026-10-07/LOCAL_ZIP_VERIFICATION.json).
+The previously published 0.1.9 remains the latest downloadable GitHub release.
+
 ## Free-plan throttling follow-up (0.1.9)
 
 [Download Windows x64 ZIP](https://github.com/kurasis/CoinControl/releases/download/v0.1.9/CoinControl-0.1.9-windows-x64.zip).

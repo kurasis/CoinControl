@@ -1,0 +1,48 @@
+{
+  "reviewedOn": "2026-10-07",
+  "configuredCredential": "ANKR_API_KEY",
+  "limitsChosenByOwner": {
+    "nodeRequestsPerSecond": 30,
+    "advancedRequestsPerMinute": 30
+  },
+  "transportSpacingMs": {
+    "node": 34,
+    "advanced": 2010
+  },
+  "sharedBudgets": {
+    "liveRequests": 50,
+    "liveEstimatedCredits": 50000,
+    "dailyRequests": 1000,
+    "dailyEstimatedCredits": 700000,
+    "monthlyEstimatedCredits": 180000000
+  },
+  "references": [
+    {
+      "url": "https://www.ankr.com/docs/rpc-service/service-plans/",
+      "observation": "Freemium 200M credits/month. Generic documentation advertises Advanced 50/min; the owner explicitly specifies 30/min, which is enforced."
+    },
+    {
+      "url": "https://www.ankr.com/docs/rpc-service/pricing/",
+      "observation": "EVM 200 credits/call, Solana 500, Advanced 700; local estimates include failed attempts and retries."
+    },
+    {
+      "url": "https://www.ankr.com/docs/advanced-api/token-methods/#ankr_getaccountbalance",
+      "observation": "Authenticated multichain endpoint; exact balanceRawInteger, wallet/chain/contract identity, pageSize/pageToken; six required EVM mainnets listed."
+    },
+    {
+      "url": "https://www.ankr.com/docs/rpc-service/chains/chains-api/optimism/",
+      "observation": "Optimism is documented, but the configured Node credential returns HTTP 403. This does not prove that a paid plan is required."
+    },
+    {
+      "url": "https://www.ankr.com/docs/rpc-service/chains/chains-api/solana/",
+      "observation": "Solana Node RPC is documented, but this credential returns HTTP 403 at genesis validation; no SPL support is claimed."
+    }
+  ],
+  "observedSchemaDeviation": {
+    "network": "ethereum",
+    "method": "ankr_getAccountBalance",
+    "requestedTokenPageSize": 200,
+    "responseAssets": 1106,
+    "handling": "2 MiB transport bound, 200 locally processed fungible tokens, explicit partial coverage; no skipping unseen entries with a server cursor."
+  }
+}

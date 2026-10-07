@@ -1,0 +1,144 @@
+{
+  "provider": "networks",
+  "started_at": 1791390994,
+  "duration_ms": 140611,
+  "requests": 156,
+  "endpoints": [],
+  "checks": [
+    {
+      "name": "base: holdings persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"ankr\"), coverage Partial, balance-only true, error None; fallback reasons: alchemy: local request budget exhausted; zerion positions: rate limited; drpc eth_chainId: rate limited"
+    },
+    {
+      "name": "Indexed history not refreshed",
+      "result": "PARTIAL",
+      "detail": "Independent balance mirror succeeded; historical acceptance is not established. Cached history remains intact."
+    },
+    {
+      "name": "base: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 0 pages"
+    },
+    {
+      "name": "arbitrum: holdings persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"blockscout\"), coverage Partial, balance-only true, error None; fallback reasons: alchemy: retry in 26582s; zerion: retry in 58s"
+    },
+    {
+      "name": "Indexed history not refreshed",
+      "result": "PARTIAL",
+      "detail": "Independent balance mirror succeeded; historical acceptance is not established. Cached history remains intact."
+    },
+    {
+      "name": "arbitrum: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 0 pages"
+    },
+    {
+      "name": "optimism: holdings persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"blockscout\"), coverage Partial, balance-only true, error None; fallback reasons: alchemy: retry in 26578s; zerion: retry in 54s"
+    },
+    {
+      "name": "Indexed history not refreshed",
+      "result": "PARTIAL",
+      "detail": "Independent balance mirror succeeded; historical acceptance is not established. Cached history remains intact."
+    },
+    {
+      "name": "optimism: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 0 pages"
+    },
+    {
+      "name": "polygon: holdings persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"etherscan\"), coverage Partial, balance-only true, error None; fallback reasons: alchemy: retry in 26567s; zerion: retry in 43s"
+    },
+    {
+      "name": "Indexed history not refreshed",
+      "result": "PARTIAL",
+      "detail": "Independent balance mirror succeeded; historical acceptance is not established. Cached history remains intact."
+    },
+    {
+      "name": "polygon: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 0 pages"
+    },
+    {
+      "name": "bsc: holdings persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"ankr\"), coverage Partial, balance-only true, error None; fallback reasons: zerion: retry in 42s; drpc: retry in 42s"
+    },
+    {
+      "name": "Indexed history not refreshed",
+      "result": "PARTIAL",
+      "detail": "Independent balance mirror succeeded; historical acceptance is not established. Cached history remains intact."
+    },
+    {
+      "name": "bsc: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 0 pages"
+    },
+    {
+      "name": "solana: holdings persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"helius\"), coverage Loading, balance-only false, error None; fallback reasons: "
+    },
+    {
+      "name": "First indexed history page persisted",
+      "result": "PASS",
+      "detail": "20 transactions in 1 pages"
+    },
+    {
+      "name": "solana: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 1 pages"
+    },
+    {
+      "name": "tron: holdings persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"trongrid\"), coverage Loading, balance-only false, error None; fallback reasons: "
+    },
+    {
+      "name": "First indexed history page persisted",
+      "result": "PASS",
+      "detail": "80 transactions in 2 pages"
+    },
+    {
+      "name": "tron: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 2 pages"
+    },
+    {
+      "name": "ton: holdings persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"tonapi\"), coverage Loading, balance-only false, error None; fallback reasons: "
+    },
+    {
+      "name": "First indexed history page persisted",
+      "result": "PASS",
+      "detail": "50 transactions in 1 pages"
+    },
+    {
+      "name": "ton: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 1 pages"
+    },
+    {
+      "name": "native assets of every network valued; case-sensitive token identity priced",
+      "result": "PASS",
+      "detail": "107 priced, 1035 unpriced, missing [], TRON USDT priced true, errors []"
+    },
+    {
+      "name": "accounting replay over all networks",
+      "result": "PASS",
+      "detail": "Ok(ReplayReport { events: 186, lots: 108, review_items: 140, reconciliation_items: 22, orphaned_overrides: 0 })"
+    },
+    {
+      "name": "coverage reported for every account",
+      "result": "PASS",
+      "detail": "Some(Loading), Some(Partial), Some(Partial), Some(Loading), Some(Partial), Some(Loading), Some(Partial), Some(Paused)"
+    }
+  ]
+}
