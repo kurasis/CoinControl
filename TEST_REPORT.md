@@ -2,6 +2,8 @@
 
 ## Ankr reserve and shared free-plan limits (0.1.10)
 
+[Download Windows x64 ZIP](https://github.com/kurasis/CoinControl/releases/download/v0.1.10/CoinControl-0.1.10-windows-x64.zip).
+
 [Implementation, official sources and preserved failed attempts](docs/reports/ankr-2026-10-07/README.md).
 Ankr Node RPC and exact Advanced EVM token balances are optional reserves.
 Separate credential-shared transport gates enforce the owner's 30 requests/second
@@ -40,12 +42,20 @@ app/build jobs and the live job PASS; overall CI FAIL due to the additional ARM6
 gate. This source was not rerun to seek a passing sample. Windows 11 Intel/AMD
 hardware acceptance remains unrun, and full release acceptance is not claimed.
 
-The unchanged ZIP packager verified the exact CI installer locally: 8486521 bytes,
-SHA-256 `70eaca0d0854359913ef13cb615cdd3dac1835fd0888eef0a8422a5d4eccf2ac`.
-GitHub returned HTTP 500 for publisher dispatch and initial release creation.
-A minimal REST request created a draft, but its asset uploads return HTTP 401;
-**0.1.10 is not published**. [Local verification](docs/reports/ankr-2026-10-07/LOCAL_ZIP_VERIFICATION.json).
-The previously published 0.1.9 remains the latest downloadable GitHub release.
+[Publisher 37656795461](https://github.com/kurasis/CoinControl/actions/runs/37656795461)
+PASS; redownload CRC, exact four files, internal/external SHA-256,
+source/run/version and tested installer/payload/report matches PASS.
+Published ZIP: **8486521 bytes**, SHA-256
+`d107898a0a89b685bb8f6e26cd309e89f5c6a0bcc62c2e3f5d24f536518f6a2d`.
+[Manifest](docs/reports/ankr-2026-10-07/BUILD_INFO.json) ·
+[Published verification](docs/reports/ankr-2026-10-07/PUBLISHED_ZIP_VERIFICATION.json).
+Unsigned prerelease; `fullReleaseAcceptance: false`.
+
+Initial dispatch/release API HTTP 500 and local upload HTTP 401 were resolved by
+running the unchanged packager and release gates through the Actions token on a
+temporary delivery branch. No app source, required gate or provider ceiling was
+changed, and no API tests were repeated. The temporary trigger is not merged into
+main. [Preserved local verification and delivery attempts](docs/reports/ankr-2026-10-07/DELIVERY.json).
 
 ## Free-plan throttling follow-up (0.1.9)
 

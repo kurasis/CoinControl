@@ -1,0 +1,10 @@
+{
+  "conclusion": "success",
+  "event": "push",
+  "head_branch": "delivery/ankr-0.1.10",
+  "head_sha": "865ebf252ebee7f7d2a84421925951e2a7145515",
+  "html_url": "https://github.com/kurasis/CoinControl/actions/runs/37656795461",
+  "id": 37656795461,
+  "name": "Publish verified Windows ZIP",
+  "status": "completed"
+}

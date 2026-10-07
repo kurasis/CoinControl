@@ -6,15 +6,26 @@ has six required application/build jobs and the actual live-provider job passing
 Overall CI is **FAIL** because the additional Windows 11 ARM64 startup gate fails.
 [Exact run](CI_RUN.json) · [Jobs](CI_JOBS.json) · [Live report](LIVE_REPORT.md).
 
-The exact CI installer was packaged locally with the unchanged
-`scripts/package-windows-release.py`; all packaging checks PASS. GitHub returned
-HTTP 500 for publisher workflow dispatch and initial direct release creation.
-A minimal REST request subsequently created draft release **405978713**, but
-both CLI and explicitly authenticated uploads returned **HTTP 401**. The draft
-has no assets; **0.1.10 is not published**. The verified local ZIP is 8486521 bytes, SHA-256
-`70eaca0d0854359913ef13cb615cdd3dac1835fd0888eef0a8422a5d4eccf2ac`.
-[Build manifest](BUILD_INFO.json) · [Local verification](LOCAL_ZIP_VERIFICATION.json)
-· [Delivery status](DELIVERY.json). Source reports are stored with normalized JSON
+[Download Windows x64 ZIP 0.1.10](https://github.com/kurasis/CoinControl/releases/download/v0.1.10/CoinControl-0.1.10-windows-x64.zip).
+[Publisher 37656795461](https://github.com/kurasis/CoinControl/actions/runs/37656795461)
+PASS. Redownloaded ZIP CRC, exact four files, internal/external SHA-256,
+source/run/version, installer/payload/report matches and unchanged startup gate
+PASS. Published ZIP: **8486521 bytes**, SHA-256
+`d107898a0a89b685bb8f6e26cd309e89f5c6a0bcc62c2e3f5d24f536518f6a2d`.
+[Build manifest](BUILD_INFO.json) · [Published verification](PUBLISHED_ZIP_VERIFICATION.json)
+· [Publisher run](PUBLISHER_RUN.json) · [Delivery status](DELIVERY.json).
+Unsigned prerelease, `fullReleaseAcceptance: false`.
+
+Initial workflow dispatch/release creation returned HTTP 500. A minimal REST
+request created draft release 405978713, but CLI and explicitly authenticated
+local uploads returned HTTP 401. The exact CI installer had already passed local
+packaging; [that local verification](LOCAL_ZIP_VERIFICATION.json) is preserved.
+Publication succeeded using the Actions token on temporary branch
+`delivery/ankr-0.1.10`, source `865ebf252ebee7f7d2a84421925951e2a7145515`.
+Only a branch-specific push trigger and explicit run-ID fallback were added
+there; the unchanged packager, six required verification gates, tested app source
+and provider ceilings were retained. No API tests were repeated. The temporary
+trigger is not merged into main. Source reports are stored with normalized JSON
 formatting; verification compares their data and the inspected installer/payload,
 not the formatting of report files.
 
