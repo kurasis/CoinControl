@@ -1180,8 +1180,8 @@ impl Store {
         Ok(())
     }
 
-    /// Shared price-source pause; survives process restarts without creating an
-    /// account history checkpoint or changing the account's active provider.
+    /// Shared quota pause, including price sources with no account checkpoint.
+    /// Survives process restarts without changing an account's active provider.
     pub async fn pause_provider(&self, provider: &str, until: i64) -> Result<()> {
         let _guard = self.write_lock.lock().await;
         sqlx::query("INSERT INTO app_meta (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=CAST(MAX(CAST(app_meta.value AS INTEGER),CAST(excluded.value AS INTEGER)) AS TEXT)")
