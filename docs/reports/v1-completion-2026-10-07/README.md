@@ -30,7 +30,7 @@ Windows acceptance.
 ## Local verification
 
 Baseline: static checks, build and offline tests passed with 178 deterministic Rust
-and 52 frontend cases. Final: **195 deterministic Rust / 59 frontend cases PASS**;
+and 52 frontend cases. Final: **195 deterministic Rust / 60 frontend cases PASS**;
 18 opt-in live functions return without external access in offline mode and are
 not counted as live passes. All-feature Clippy (warnings denied), TypeScript,
 ESLint, Prettier, rustfmt, generated bindings (71 DTO exports), production frontend
@@ -55,7 +55,8 @@ actual results must come from their reports. No controlled test is a live proof.
 ## External acceptance blockers and required configuration
 
 The owner confirmed on 2026-10-07 that Alchemy/Chainstack cannot currently be corrected.
-Keep these failures visible; do not repeat unchanged authentication tests.
+Keep these failures visible; do not retry unchanged authentication-only checks in
+isolation to conceal them. Each changed source receives one bounded main verification.
 
 1. **Alchemy:** the previous exact live run returned 403 on Base, Arbitrum, Optimism
    and Polygon. In the Alchemy dashboard enable those four mainnets for the app/key
@@ -67,9 +68,11 @@ Keep these failures visible; do not repeat unchanged authentication tests.
    endpoint or node RPC authentication token**. A platform management API key is
    not a node credential. Update `CHAINSTACK_API_KEY` in Actions and the installed
    app's source setting. Do not enable a paid plan or overage for this task.
-3. **dRPC BNB:** passed on corrected source `052e423` after an earlier 429. That
-   historical failure is preserved, but is not a current configuration blocker.
-   Local counts remain distinct from the provider's global allowance.
+3. **dRPC BNB:** passed on intermediate sources `052e423` and `76004e0`, but
+   the final `7b9435f` run again hit the provider rate limit (429). Check the free
+   BNB service availability/key allowance in dRPC and wait for its reset. Local
+   counts are distinct from the provider's global allowance; other reserves and
+   cached data continue to work. No paid overage or isolated retry is required.
 4. **Windows 11 x64:** hosted Windows Server automation does not establish the
    original Windows 11 installation/UI acceptance. A Windows 11 machine is needed
    for that gate. The unsigned ZIP remains a prerelease while external gates remain.
@@ -173,3 +176,50 @@ Intermediate main CI 37598456811 is superseded by the shared-observer correction
 Completed API/offline/load results remain evidence for that exact earlier source;
 uncompleted Windows jobs are cancelled, not claimed as passes. The final main CI
 will verify all application/build gates again.
+
+## Shared-observer source and completed API/load evidence
+
+The shared-observer fix is merged as [PR #30](https://github.com/kurasis/CoinControl/pull/30).
+Exact application source: **`7b9435f70a44ebc2475e1fa3781b3ea45051099b`**.
+[Main push CI 37599437253](https://github.com/kurasis/CoinControl/actions/runs/37599437253)
+records that exact source. Final live results: **15 passing / 3 failing suites**;
+Alchemy's four mainnets return 403, Chainstack Solana returns 401 and dRPC BNB is
+rate limited. Its two preceding successes remain historical, not a replacement
+for this last failure. Ethereum/Solana/TON finality, other reserves and the
+budget-to-reserve route pass ([final live report](ci/observer-before-native-label-fix/live/LIVE_REPORT.md)).
+All providers use at most 50 requests **in this run** (retries included, largest
+44); earlier changed-source and cancelled branch usage is additional and preserved.
+
+Linux static/offline/build/bindings/browser checks pass. The final offline set is
+195 deterministic Rust and 59 frontend cases; the browser matrix uses mock IPC.
+Release-mode storage measurements pass on both Linux and Windows: 50 accounts,
+500 assets and 100000 movements, with the worst repeated-query p95 on Windows
+14.64 ms against 300 ms. Their first cold chart/holdings queries are slower and
+remain explicitly recorded; this is not native process-to-screen startup.
+
+## Native background/manual label correction
+
+The `7b9435f` native run passed all new wallet/cache/quota/interval checks, backup,
+restore and display/UI scaling. It then timed out waiting for the old `Syncing…`
+button label during **background** synchronization, which now intentionally offers
+`Sync now (queue)`. The inspected failure screenshot shows valid imported BTC
+history (22 transactions), not a failed import. Native automation now requires the
+actual spinning account/sidebar status plus an enabled cancellation button. The
+spinner and safe-cancellation assertions remain enforced. A component regression
+also verifies the queue action remains enabled during background work and cancel
+uses the background command, rather than an unrelated job ID. Completion labels
+may carry the existing partial outcome suffix; the independent SQL assertion still
+requires refreshed balance and no current-source error.
+
+The [native failure report](ci/observer-before-native-label-fix/NATIVE_REPORT.json)
+and [inspected screenshot](ci/observer-before-native-label-fix/NATIVE_FAILURE.png)
+remain unchanged. Only test expectations change; product behavior is preserved.
+All corrected native scenarios will be run on the new main source before publishing.
+
+Production installed startup/load on `7b9435f` passed all **12 checks**. The first
+normal fresh-cache useful screen took **1471.90 ms**, within the original 2000 ms
+gate. Chart-query deferral reduced competing work; the criteria/mark/threshold
+were unchanged. The exact [installed load report](ci/observer-before-native-label-fix/NATIVE_LOAD_REPORT.json)
+is preserved. Installer/upgrade passed 11 checks and production inspection passed 75. The only application/build job failure was the native background-button text
+expectation described above. The next source changes tests/evidence only and must
+repeat the native checks before ZIP publication.

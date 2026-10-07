@@ -1,0 +1,71 @@
+{
+  "checks": [
+    {
+      "result": "PASS",
+      "name": "Pinned previous production artifact",
+      "detail": "main f0603fd; CI 37345501830; SHA-256 verified before execution"
+    },
+    {
+      "result": "PASS",
+      "name": "Installer fixture network isolated",
+      "detail": "Program-specific outbound firewall rule; removed in finally; live API acceptance is separate"
+    },
+    {
+      "result": "PASS",
+      "name": "Install previous production 0.1.0",
+      "detail": "version 0.1.0"
+    },
+    {
+      "result": "PASS",
+      "name": "Previous app creates an empty schema 6 portfolio",
+      "detail": "Production app creates and opens SQLite; no native-e2e feature"
+    },
+    {
+      "result": "PASS",
+      "name": "Previous app replays populated synthetic portfolio",
+      "detail": "2 accounts; 2 owned-transfer legs; 1 fee; 2 audit versions; overlapping groups"
+    },
+    {
+      "result": "PASS",
+      "name": "Upgrade installs production 0.1.7",
+      "detail": "version 0.1.7"
+    },
+    {
+      "result": "PASS",
+      "name": "Production launch migrates schema 6 to 7",
+      "detail": "Migration and accounting readiness checked after actual installed app launch"
+    },
+    {
+      "result": "PASS",
+      "name": "Populated upgrade preserves exact portfolio and audit",
+      "detail": "19 source/derived table fingerprints plus exact balance quantities, including groups, lots, history, settings and audit versions"
+    },
+    {
+      "result": "PASS",
+      "name": "Upgraded portfolio survives another process restart",
+      "detail": "No duplicated balance, movement, fee or accounting record"
+    },
+    {
+      "result": "PASS",
+      "name": "Uninstaller exists",
+      "detail": "NSIS uninstall executable"
+    },
+    {
+      "result": "PASS",
+      "name": "Normal uninstall preserves populated portfolio",
+      "detail": "Data and WAL-backed evidence retained without an opt-in deletion request; exact fingerprints and quantities verified after uninstall"
+    }
+  ],
+  "sourceSha": "7b9435f70a44ebc2475e1fa3781b3ea45051099b",
+  "at": "2026-10-07T09:25:11.5398057Z",
+  "mode": "windows-production-installer",
+  "baseline": {
+    "schema": 6,
+    "sourceSha": "f0603fde8a7f4e13d60509ee2c188ffe2486d136",
+    "runId": "37345501830",
+    "sha256": "00b4dc04679d3de435a6c91d494ef1960361a999a01a63b80978915bd621b7c5",
+    "version": "0.1.0"
+  },
+  "targetVersion": "0.1.7",
+  "ciSha": "7b9435f70a44ebc2475e1fa3781b3ea45051099b"
+}
