@@ -638,6 +638,9 @@ it("waits for the useful balance paint before either chart observer starts optio
   await api.switchProfile("demo");
   const chart = vi.spyOn(api, "chart");
   const holdings = vi.spyOn(api, "listHoldings");
+  const policies = vi.spyOn(api, "listAssetPolicies");
+  const accounts = vi.spyOn(api, "listAccounts");
+  const networks = vi.spyOn(api, "listNetworks");
   const frames = new Map<number, FrameRequestCallback>();
   const marks: { name: string }[] = [];
   let nextFrame = 0;
@@ -663,12 +666,18 @@ it("waits for the useful balance paint before either chart observer starts optio
     await waitFor(() => expect(frames.size).toBeGreaterThan(0));
     expect(chart).not.toHaveBeenCalled();
     expect(holdings).not.toHaveBeenCalled();
+    expect(policies).not.toHaveBeenCalled();
+    expect(accounts).not.toHaveBeenCalled();
+    expect(networks).not.toHaveBeenCalled();
     flushFrame();
     expect(chart).not.toHaveBeenCalled();
     expect(marks).toHaveLength(0);
     flushFrame();
     await waitFor(() => expect(chart).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(holdings).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(policies).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(accounts).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(networks).toHaveBeenCalledTimes(1));
     expect(marks).toEqual([{ name: "portfolio-first-useful" }]);
   } finally {
     vi.unstubAllGlobals();

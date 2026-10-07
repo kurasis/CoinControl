@@ -61,8 +61,6 @@ export function PortfolioView({ scope }: { scope: Scope }) {
     dates.end <= today &&
     dates.start >= "1970-01-01",
   );
-  const networkNames = useNetworkNames();
-  const accountLabels = useAccountLabels(privacy);
   const summary = useQuery({
     queryKey: ["summary", scope],
     queryFn: () => api.portfolioSummary(scope),
@@ -73,7 +71,13 @@ export function PortfolioView({ scope }: { scope: Scope }) {
     summary.data !== undefined && settings !== undefined && profile !== undefined,
   );
   const deferredReady = painted || summary.isError;
-  const policies = useQuery({ queryKey: ["asset-policies"], queryFn: api.listAssetPolicies });
+  const networkNames = useNetworkNames(deferredReady);
+  const accountLabels = useAccountLabels(privacy, deferredReady);
+  const policies = useQuery({
+    queryKey: ["asset-policies"],
+    queryFn: api.listAssetPolicies,
+    enabled: deferredReady,
+  });
   const [showHidden, setShowHidden] = useViewState("assets:hidden", false);
   const holdings = useQuery({
     queryKey: ["holdings", scope],
@@ -223,7 +227,7 @@ export function PortfolioView({ scope }: { scope: Scope }) {
         }}
       />
 
-      {holdings.isPending ? (
+      {holdings.isPending || policies.isPending ? (
         <div className="card skeleton skeleton-table" />
       ) : (
         <>

@@ -21,7 +21,8 @@ export function seedOwnedFixture(path, { groups = true } = {}) {
   const db = new DatabaseSync(path);
   db.exec("PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;");
   const version = db.prepare("SELECT MAX(version) AS v FROM _sqlx_migrations").get().v;
-  if (![6, 7].includes(version)) throw new Error("Fixture requires an app-created schema 6 or 7");
+  if (![6, 7, 8].includes(version))
+    throw new Error("Fixture requires an app-created schema 6, 7 or 8");
   if (db.prepare("SELECT COUNT(*) AS n FROM chain_transactions").get().n !== 0)
     throw new Error("Refusing to overwrite populated portfolio evidence");
   const now = Math.floor(Date.now() / 1000);
@@ -264,6 +265,12 @@ export function acceptanceSnapshot(path) {
       .all();
     return {
       schema: db.prepare("SELECT MAX(version) AS v FROM _sqlx_migrations").get().v,
+      valuationIndex:
+        db
+          .prepare(
+            "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='index' AND name='lots_valuation_remaining'",
+          )
+          .get().n === 1,
       integrity: db.prepare("PRAGMA integrity_check").get().integrity_check,
       accountingDirty: db.prepare("SELECT value FROM app_meta WHERE key='accounting_dirty'").get()
         ?.value,
