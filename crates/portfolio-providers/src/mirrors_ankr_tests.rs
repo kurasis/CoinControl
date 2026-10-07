@@ -258,3 +258,61 @@ async fn http_errors_never_echo_even_short_authenticated_tokens() {
             .contains("short-key")
     );
 }
+
+#[tokio::test]
+async fn forbidden_node_network_does_not_poison_other_chains_or_advanced_api() {
+    use wiremock::matchers::path;
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/optimism/key"))
+        .respond_with(ResponseTemplate::new(403))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/bsc/key"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"jsonrpc":"2.0","id":1,"result":"0x38"})),
+        )
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/multichain/key"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"jsonrpc":"2.0","id":1,"result":{"assets":[]}})),
+        )
+        .mount(&server)
+        .await;
+    let budget = Budget::limited(3);
+    let http = HttpClient::new("ankr", config(), budget.clone(), HeaderMap::new()).unwrap();
+    let forbidden = Url::parse(&format!("{}/optimism/key", server.uri())).unwrap();
+    assert!(matches!(
+        rpc::call(&http, forbidden.clone(), "eth_chainId", json!([]), 0).await,
+        Err(ProviderError::NetworkForbidden { .. })
+    ));
+    assert!(
+        rpc::call(&http, forbidden, "eth_chainId", json!([]), 0)
+            .await
+            .is_err()
+    );
+    let bsc = Url::parse(&format!("{}/bsc/key", server.uri())).unwrap();
+    assert_eq!(
+        rpc::call(&http, bsc, "eth_chainId", json!([]), 0)
+            .await
+            .unwrap(),
+        json!("0x38")
+    );
+    let advanced = Ankr::with_config(
+        Url::parse(&format!("{}/multichain/key", server.uri())).unwrap(),
+        budget.clone(),
+        config(),
+    )
+    .unwrap();
+    advanced
+        .balances_page(NetworkId::Bsc, ADDRESS, None)
+        .await
+        .unwrap();
+    assert_eq!(budget.used(), 3);
+}

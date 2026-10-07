@@ -107,7 +107,7 @@ async fn call_once(
                 endpoint: method,
                 code,
             }
-        } else if code == 403 && provider == "alchemy" {
+        } else if code == 403 && matches!(provider, "alchemy" | "ankr") {
             ProviderError::NetworkForbidden {
                 provider,
                 endpoint: method,

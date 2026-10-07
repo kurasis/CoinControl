@@ -120,49 +120,70 @@ fn parse_page(
     let invalid = || rpc::invalid(PROVIDER, METHOD, "invalid token balance evidence");
     let assets = value["assets"].as_array().ok_or_else(invalid)?;
     if assets.len() > PAGE_SIZE {
-        return Err(invalid());
+        return Err(rpc::invalid(
+            PROVIDER,
+            METHOD,
+            "page exceeded requested asset limit",
+        ));
     }
     let mut tokens = Vec::new();
     let mut seen = BTreeSet::new();
     for asset in assets {
-        if asset["blockchain"].as_str() != chain(network)
-            || asset["holderAddress"]
-                .as_str()
-                .map(str::to_ascii_lowercase)
-                .as_deref()
-                != Some(address)
+        if asset["blockchain"].as_str() != chain(network) {
+            return Err(rpc::invalid(PROVIDER, METHOD, "unexpected balance mainnet"));
+        }
+        if asset["holderAddress"]
+            .as_str()
+            .map(str::to_ascii_lowercase)
+            .as_deref()
+            != Some(address)
         {
-            return Err(invalid());
+            return Err(rpc::invalid(PROVIDER, METHOD, "unexpected balance holder"));
         }
         match asset["tokenType"].as_str() {
             Some("NATIVE") => continue, // Native balance is independently obtained from Node RPC.
             Some("ERC20") => {}
-            _ => return Err(invalid()),
+            _ => {
+                return Err(rpc::invalid(
+                    PROVIDER,
+                    METHOD,
+                    "unsupported balance token type",
+                ));
+            }
         }
         let contract = normalize_address(
             network,
             asset["contractAddress"].as_str().ok_or_else(invalid)?,
         )
-        .map_err(|_| invalid())?
+        .map_err(|_| rpc::invalid(PROVIDER, METHOD, "invalid token contract"))?
         .canonical;
         if network == NetworkId::Polygon && contract == "0x0000000000000000000000000000000000001010"
         {
             continue;
         }
         if !seen.insert(contract.clone()) {
-            return Err(invalid());
+            return Err(rpc::invalid(
+                PROVIDER,
+                METHOD,
+                "duplicate token identity in page",
+            ));
         }
         let decimals = asset["tokenDecimals"]
             .as_u64()
             .filter(|d| *d <= 255)
-            .ok_or_else(invalid)? as u32;
+            .ok_or_else(|| rpc::invalid(PROVIDER, METHOD, "invalid token decimals"))?
+            as u32;
         let raw = asset["balanceRawInteger"]
             .as_str()
             .filter(|s| !s.is_empty() && s.len() <= 78 && s.bytes().all(|b| b.is_ascii_digit()))
             .ok_or_else(invalid)?;
         let raw = raw.parse::<BigInt>().map_err(|_| invalid())?;
         if raw.bits() > 256 {
-            return Err(invalid());
+            return Err(rpc::invalid(
+                PROVIDER,
+                METHOD,
+                "raw token balance exceeds uint256",
+            ));
         }
         tokens.push((
             AssetSpec {
