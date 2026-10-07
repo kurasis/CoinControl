@@ -1149,3 +1149,65 @@ async fn all_throttled_sources_pause_without_erasing_cached_balances() {
         "new client/run must respect both stored pauses"
     );
 }
+
+#[tokio::test]
+async fn exhausted_local_budgets_pause_new_accounts_neutrally_and_preserve_cache() {
+    let server = MockServer::start().await;
+    let s = store().await;
+    let wallet = s.create_wallet("Budget pause").await.unwrap();
+    let first = s
+        .add_account(&wallet.id, NetworkId::Ethereum, ETH, None)
+        .await
+        .unwrap();
+    s.record_balance(
+        &first.id,
+        &AssetSpec::native(NetworkId::Ethereum, "publicnode"),
+        &BigInt::from(9007199254740993_u64),
+        None,
+        "fresh",
+    )
+    .await
+    .unwrap();
+    let engine = SyncEngine::new(
+        s.clone(),
+        Providers {
+            alchemy: Some(alchemy(&server, Budget::limited(0))),
+            reserves: vec![reserve(
+                &server,
+                "publicnode",
+                Kind::Rpc,
+                NetworkId::Ethereum,
+                Budget::limited(0),
+            )],
+            ..Providers::default()
+        },
+        SyncOptions::default(),
+    );
+    let rep = engine.sync_account(&first).await;
+    assert!(rep.error.is_none());
+    assert_eq!(rep.coverage, Coverage::Paused);
+    assert!(!rep.balance_refreshed);
+    let holding = s.list_holdings(&Scope::All).await.unwrap().remove(0);
+    assert_eq!(holding.quantity, "0.009007199254740993");
+    assert_eq!(holding.balance_status, BalanceStatus::Stale);
+    let second = s
+        .add_account(
+            &wallet.id,
+            NetworkId::Ethereum,
+            "0x0000000000000000000000000000000000000002",
+            None,
+        )
+        .await
+        .unwrap();
+    let again = engine.sync_account(&second).await;
+    assert!(again.error.is_none());
+    assert_eq!(again.coverage, Coverage::Paused);
+    assert!(!again.balance_refreshed);
+    for p in ["alchemy", "publicnode"] {
+        assert!(s.provider_pause(p).await.unwrap().is_some());
+        let cp = s.checkpoint(&second.id, p, "history").await.unwrap();
+        assert_eq!(cp.coverage, Coverage::Paused);
+        assert!(cp.state.last_error.is_none());
+    }
+    assert!(server.received_requests().await.unwrap().is_empty());
+}

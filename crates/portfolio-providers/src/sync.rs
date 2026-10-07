@@ -714,7 +714,11 @@ impl SyncEngine {
                                 matches!(error, ProviderError::NetworkForbidden { .. })
                                     || !error.stops_provider();
                             report.fallback_reasons.push(e.to_string());
-                            if matches!(error, ProviderError::RateLimited { .. }) {
+                            if matches!(
+                                error,
+                                ProviderError::RateLimited { .. }
+                                    | ProviderError::BudgetExhausted { .. }
+                            ) {
                                 // Throttling is an expected pause, not a failed
                                 // credential/data check. Another source still runs.
                                 cp.state.last_error = None;

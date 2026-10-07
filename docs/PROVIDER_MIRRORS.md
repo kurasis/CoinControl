@@ -102,7 +102,8 @@ are persisted separately in SQLite without changing the account history source;
 a new process respects the deadline. Credential changes clear these pauses
 along with account breakers. Storage and credential errors remain explicit.
 
-Retry-After is respected by a persistent breaker. Otherwise throttling pauses
+Retry-After is respected by a persistent breaker. Local request/credit exhaustion also pauses neutrally until the next UTC day and
+shares that pause with new accounts. Otherwise throttling pauses
 for 60 seconds, denied/authenticated access for one hour, temporary failures for
 30 seconds and an exhausted daily budget until the next UTC day. Credential
 changes clear the provider's persisted pause. An explicit Sync now retries connection/server errors immediately after reconnect, but preserves Retry-After, credential/plan rejection and hard budget pauses. Provider-wide errors are shared
@@ -181,8 +182,9 @@ Discovery is bounded to two 200-token pages and a 2 MiB response body. The live
 Ethereum API ignored `pageSize` and returned 1106 assets; local processing
 retains the first 200 tokens, stops cursor traversal and exposes partial coverage.
 Unseen balances stay stale rather
-than being set to zero. Known tokens retain their block-pinned RPC balances;
-new indexed balances carry no invented common block height. A plan-unavailable
+than being set to zero. Known tokens use the same exact indexed balances without duplicate Node calls;
+trusted metadata and decimals are preserved. Only missing known identities use
+bounded block-pinned RPC reads. Indexed balances carry no invented common block height. A plan-unavailable
 method retains Node balances with an explicit warning. A Node-network 403 is isolated to its chain/method and requires a real independent
 mirror in live verification; it does not poison other chains or Advanced. Invalid
 credential responses remain authentication failures and never echo error bodies.
