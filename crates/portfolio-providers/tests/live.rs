@@ -63,6 +63,7 @@ fn budget(provider: &'static str) -> Arc<Budget> {
         .or_insert_with(|| match provider {
             "helius" => Budget::limited_with_credits(max, 5_000),
             "alchemy" => Budget::limited_with_credits(max, 10_000),
+            "ankr" => Budget::limited_with_credits(max, 50_000),
             _ => Budget::limited(max),
         })
         .clone()
@@ -262,6 +263,7 @@ fn attach_live_mirrors(providers: &mut Providers) {
         ("blockscout", Some("BLOCKSCOUT_API_KEY")),
         ("etherscan", Some("ETHERSCAN_API_KEY")),
         ("drpc", Some("DRPC_API_KEY")),
+        ("ankr", Some("ANKR_API_KEY")),
         ("chainstack", Some("CHAINSTACK_API_KEY")),
         ("toncenter", Some("TONCENTER_API_KEY")),
         ("publicnode", None),
@@ -1718,7 +1720,11 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
             }
         })
         .unwrap_or_default();
-    let api = Reserve::new(provider, &credential, budget(provider)).unwrap();
+    let api = if provider == "ankr" {
+        Reserve::ankr_node(&credential, budget(provider)).unwrap()
+    } else {
+        Reserve::new(provider, &credential, budget(provider)).unwrap()
+    };
     let t = targets();
     let evm_address = s(&t["ethereum"]["address"]).to_ascii_lowercase();
     for n in EVM
@@ -1737,6 +1743,9 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
         report.endpoint("balance reserve");
         match api.snapshot(n, address, &[]).await {
             Ok(h) => {
+                if provider == "ankr" && !h.warnings.is_empty() {
+                    report.limitation("Solana token discovery", "PARTIAL", h.warnings.join("; "));
+                }
                 if !h.warnings.is_empty() {
                     report.check(
                         &format!("{} token discovery limitation", n.as_str()),
@@ -1925,6 +1934,7 @@ async fn live_reserve_routing_after_primary_budget_exhaustion() {
         ("blockscout", Some("BLOCKSCOUT_API_KEY")),
         ("etherscan", Some("ETHERSCAN_API_KEY")),
         ("drpc", Some("DRPC_API_KEY")),
+        ("ankr", Some("ANKR_API_KEY")),
         ("chainstack", Some("CHAINSTACK_API_KEY")),
         ("toncenter", Some("TONCENTER_API_KEY")),
         ("publicnode", None),
@@ -2138,6 +2148,131 @@ async fn live_alchemy_solana_balance_reserve() {
         Err(e @ ProviderError::NetworkForbidden { .. }) => report.limitation("Solana network not available on this key", "PARTIAL", format!("{e}; enable Solana mainnet in the Alchemy app, standard RPC is available on Free; other mirrors remain active")),
         Err(e @ ProviderError::RateLimited { .. }) => report.limitation("Shared Alchemy quota", "RATE_LIMITED", e.to_string()),
         Err(e) => report.check("Solana balance reserve", false, e.to_string()),
+    }
+    report.finish_usage();
+}
+
+#[tokio::test]
+async fn live_ankr_node_reserve() {
+    check_reserve("ankr", Some("ANKR_API_KEY")).await;
+}
+
+#[tokio::test]
+async fn live_ankr_advanced_balances() {
+    if !selected("ankr") {
+        return;
+    }
+    use portfolio_providers::{ankr::Ankr, mirrors::EVM};
+    let mut report = Report::new("ankr-advanced");
+    let api = Ankr::new(&key("ANKR_API_KEY"), budget("ankr")).unwrap();
+    let t = targets();
+    let address = s(&t["ethereum"]["address"]);
+    report.endpoint("ankr_getAccountBalance");
+    for n in EVM {
+        match api.balances_page(n, address, None).await {
+            Ok(page) => {
+                report.check(&format!("{} Advanced balances",n.as_str()),true,
+                    format!("authenticated response; {} fungible token balances with exact raw integers and mainnet/wallet identities; history not claimed",page.tokens.len()));
+                if n == NetworkId::Ethereum
+                    && let Some(cursor) = page.next
+                {
+                    let second =
+                        read_provider!(report, api.balances_page(n, address, Some(&cursor)).await);
+                    report.check(
+                        "Advanced balance pagination",
+                        !second.tokens.iter().any(|(a, _)| {
+                            page.tokens.iter().any(|(b, _)| a.contract == b.contract)
+                        }),
+                        "opaque cursor used; consecutive token pages do not overlap",
+                    );
+                }
+            }
+            Err(e @ ProviderError::CapabilityUnavailable { .. }) => report.limitation(
+                &format!("{} Advanced entitlement", n.as_str()),
+                "PARTIAL",
+                e.to_string(),
+            ),
+            Err(e @ ProviderError::RateLimited { .. }) => {
+                report.limitation("Advanced quota", "RATE_LIMITED", e.to_string());
+                break;
+            }
+            Err(e) => report.check(
+                &format!("{} Advanced access", n.as_str()),
+                false,
+                e.to_string(),
+            ),
+        }
+    }
+    report.finish_usage();
+}
+
+#[tokio::test]
+async fn live_ankr_bnb_balance_routing() {
+    if !selected("ankr") {
+        return;
+    }
+    use portfolio_providers::mirrors::Reserve;
+    let mut report = Report::new("ankr-routing");
+    let store = Store::open_in_memory(ProfileKind::Test, Arc::new(SystemClock))
+        .await
+        .unwrap();
+    let wallet = store.create_wallet("Ankr routing check").await.unwrap();
+    let t = targets();
+    let account = store
+        .add_account(
+            &wallet.id,
+            NetworkId::Bsc,
+            s(&t["ethereum"]["address"]),
+            None,
+        )
+        .await
+        .unwrap();
+    let mut reserves = vec![Reserve::new("ankr", &key("ANKR_API_KEY"), budget("ankr")).unwrap()];
+    if selected("publicnode") {
+        reserves.push(Reserve::new("publicnode", "", budget("publicnode")).unwrap());
+    }
+    let engine = SyncEngine::new(
+        store.clone(),
+        Providers {
+            zerion: Some(
+                Zerion::new(
+                    zerion::DEFAULT_BASE,
+                    "offline-primary-placeholder",
+                    Budget::limited(0),
+                )
+                .unwrap(),
+            ),
+            reserves,
+            ..Providers::default()
+        },
+        SyncOptions {
+            max_history_pages: 1,
+            ..SyncOptions::default()
+        },
+    );
+    let rep = engine.sync_account(&account).await;
+    report.check(
+        "BNB actual fallback balance",
+        rep.error.is_none() && rep.balance_refreshed,
+        format!(
+            "provider {:?}; history not claimed; reasons {}",
+            rep.provider,
+            rep.fallback_reasons.join("; ")
+        ),
+    );
+    if rep.provider.as_deref() == Some("ankr") {
+        let balances = store.nonzero_balance_assets(&account.id).await.unwrap();
+        report.check(
+            "Ankr balances persisted",
+            !balances.is_empty() && rep.balance_only,
+            "actual Ankr snapshot written through the production synchronization engine",
+        );
+    } else {
+        report.limitation(
+            "Ankr route not accepted",
+            "PARTIAL",
+            "Independent mirror served BNB; Ankr was unavailable and is not claimed as passed",
+        );
     }
     report.finish_usage();
 }

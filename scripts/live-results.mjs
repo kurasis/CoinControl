@@ -7,6 +7,8 @@ const scopes = {
   "alchemy-solana": ["solana"],
   helius: ["solana"],
   drpc: evm,
+  ankr: [...evm, "solana"],
+  "ankr-advanced": evm,
   publicnode: [...evm, "solana", "tron"],
   blockscout: ["ethereum", "arbitrum", "optimism"],
   etherscan: ["ethereum", "arbitrum", "polygon"],

@@ -1,4 +1,4 @@
-# Provider reserves — 0.1.9
+# Provider reserves — Ankr integration
 
 Reserves are implemented in normal desktop synchronization, rather than only in
 connection probes. GitHub Actions uses repository secrets for bounded read-only
@@ -9,12 +9,12 @@ build. Public reserves activate without a key.
 | Network            | Primary / indexed alternative       | Independent balance reserves                                         |
 | ------------------ | ----------------------------------- | -------------------------------------------------------------------- |
 | Bitcoin            | Blockstream Esplora → mempool.space | Both cover address balance and paginated Bitcoin history             |
-| Ethereum, Arbitrum | Alchemy → Zerion                    | Blockscout PRO → Etherscan V2 → dRPC → PublicNode                    |
-| Polygon            | Alchemy → Zerion                    | Etherscan V2 → dRPC → PublicNode                                     |
-| Optimism           | Alchemy → Zerion                    | Blockscout PRO → dRPC → PublicNode                                   |
-| Base               | Alchemy → Zerion                    | dRPC → PublicNode                                                    |
-| BNB Chain          | Zerion                              | dRPC → PublicNode                                                    |
-| Solana             | Helius → Zerion                     | Alchemy Solana (same key) → Chainstack SOL → PublicNode              |
+| Ethereum, Arbitrum | Alchemy → Zerion                    | Blockscout PRO → Etherscan V2 → dRPC → Ankr → PublicNode             |
+| Polygon            | Alchemy → Zerion                    | Etherscan V2 → dRPC → Ankr → PublicNode                              |
+| Optimism           | Alchemy → Zerion                    | Blockscout PRO → dRPC → Ankr → PublicNode                            |
+| Base               | Alchemy → Zerion                    | dRPC → Ankr → PublicNode                                             |
+| BNB Chain          | Zerion                              | dRPC → Ankr → PublicNode                                             |
+| Solana             | Helius → Zerion                     | Alchemy Solana (same key) → Ankr SOL → Chainstack SOL → PublicNode   |
 | TRON               | TronGrid                            | PublicNode confirmed Fullnode API                                    |
 | TON                | TonAPI                              | TON Center v3, with or without a key                                 |
 | Native prices      | Live Coin Watch                     | Existing DefiLlama identity-based fallback also handles LCW failures |
@@ -115,7 +115,7 @@ shipped REST call under an 80000-credit/day ceiling. Provider-reported quotas an
 other applications using a key can still impose stricter limits. dRPC compute
 units are not claimed to equal locally counted requests; RPC calls conservatively reserve
 100 estimated units each with an 80000-unit local daily ceiling. Editable local ceilings
-can only be lowered, without resetting consumed usage. All public reads pace
+can only be lowered, without resetting consumed usage. All anonymous public reads pace
 at no more than one request per second. Native acceptance retains the separate
 50-request ceiling per provider across restarts; live suites share 50/provider.
 
@@ -159,14 +159,40 @@ Alchemy Solana therefore fills a concrete SPL reserve gap when enabled on the ke
 **Indexed BNB history remains the main independent-source gap** when Zerion is
 limited. A plain RPC balance response does not close it.
 
-[Ankr Freemium](https://www.ankr.com/docs/rpc-service/service-plans/) is a useful
-optional next adapter: documentation offers 200M free API credits/month,
-Advanced API 50 requests/minute (500/10 min) and supports BNB Smart Chain in its
-[Advanced API](https://www.ankr.com/docs/advanced-api/overview/), including
-`ankr_getTransactionsByAddress`. Solana Node API could additionally reserve
-standard token reads if Alchemy cannot provide sufficient redundancy. It needs a new private endpoint token and its own adapter,
-normalization and bounded live verification; it is **not connected or verified**
-by this change. No deposits, subscriptions or paid overages are enabled.
+[Ankr Freemium](https://www.ankr.com/docs/rpc-service/service-plans/) is now an
+optional authenticated **balance reserve**, using `ANKR_API_KEY` in Actions and
+Settings → Data sources → Ankr in the desktop. It covers Ethereum, Base,
+Arbitrum, Optimism, Polygon, BNB Chain, and Solana. Node mainnet identity and
+integer balances are checked before persistence; Solana attempts standard SPL
+and Token-2022 owner reads, exposing any free-plan restrictions.
+
+The configured user tariff is **30 Node requests/sec and 30 Advanced requests/min**.
+Node starts are spaced by at least 34 ms; Advanced starts by at least 2010 ms.
+All chains, clients, concurrent calls and retries share their API class's gate.
+Spacing survives a rebuilt synchronization/probe budget within the process. Node
+and Advanced have separate gates but one credential request/credit allowance and
+provider pause. HTTP/RPC 429 advances immediately to an independent mirror.
+
+[Advanced token API](https://www.ankr.com/docs/advanced-api/token-methods/#ankr_getaccountbalance)
+adds ERC-20/BEP-20 discovery on the six EVM networks, including BNB. It requests
+all tokens without trusting USD valuations or whitelisting as verification,
+checks mainnet/wallet/contract identity, and parses `balanceRawInteger` exactly.
+Discovery is bounded to two 200-asset pages; unseen balances stay stale rather
+than being set to zero. Known tokens retain their block-pinned RPC balances;
+new indexed balances carry no invented common block height. A plan-unavailable
+method retains Node balances with an explicit warning. Auth, malformed evidence
+and wrong-chain errors remain failures; source acceptance is reported separately
+for Node and Advanced. Successful balances still do **not** establish indexed
+history, fees, swaps or cost basis; independent BNB history remains unfinished.
+
+[Current RPC pricing](https://www.ankr.com/docs/rpc-service/pricing/) assigns
+200 credits per EVM call, 500 per Solana call and 700 per Advanced call. Shared
+local ceilings are 1000 requests and 700000 credits/day, with a conservative
+180M estimated-credit monthly stop below the 200M allowance. Other apps using
+the key can exhaust credits sooner. Live tests retain 50 combined requests and
+50000 credits for Ankr across all suites/retries. No paid plan or overages are
+enabled. The Ankr-specific routing suite checks actual BNB balances through the
+production engine, without describing a mirror result as an Ankr pass.
 
 Solana Foundation's [public mainnet endpoint](https://solana.com/docs/references/clusters)
 is explicitly not intended for production apps and can return 403/429. It is not

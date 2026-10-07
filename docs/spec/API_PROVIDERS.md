@@ -4,7 +4,7 @@ Public documentation review: **2026-10-04**. Prices, quotas, entitlements, and c
 
 ## 1. Selected configuration
 
-Use **Live Coin Watch** for market prices/history, **Zerion** for supported EVM/Solana account data, **Blockstream Esplora** for BTC, **TronGrid** for TRON, and **TonAPI** for TON. Use **DefiLlama** for additional contract-address price coverage. Helius and Alchemy are supplemental sources when needed; Ankr and CoinLore are documented optional alternatives.
+Use **Live Coin Watch** for market prices/history, **Zerion** for supported EVM/Solana account data, **Blockstream Esplora** for BTC, **TronGrid** for TRON, and **TonAPI** for TON. Use **DefiLlama** for additional contract-address price coverage. Helius and Alchemy are supplemental sources when needed; Ankr provides an optional authenticated balance/token-discovery reserve; CoinLore is a documented optional alternative.
 
 Do not require the user to register with every provider before the first useful screen. Ask for keys only when enabling features that require them. One provider credential can query many public addresses within that account's shared quota.
 
@@ -18,7 +18,7 @@ Do not require the user to register with every provider before the first useful 
 | TonAPI | TON/Jetton account data | Documented default free rate 1 request/sec | Free Bearer token recommended | Anonymous access is more restricted; high-limit Tonkeeper proxy is not a desktop entitlement |
 | Helius Free | Supplemental Solana data/decoding | 1M credits/month; 10 RPC requests/sec; lower endpoint-class limits | API key in URL query | Credits are weighted; some methods are paid-only |
 | Alchemy Free | Optional EVM receipts/transfers/reconciliation | 30M CU/month; 25 requests/sec marketing limit, 500 CU/sec throughput listed | Project API key in endpoint URL | CU cost and transfer/internal coverage vary by method/network |
-| Ankr Freemium | Optional alternative indexed EVM source | 200M credits/month; Advanced API 50/min, max 500/10 min | Authenticated personal token | Different credits from other providers; indexed chain coverage is smaller than RPC coverage |
+| Ankr Freemium | Optional alternative indexed EVM source | 200M credits/month; configured tariff: Node API 30/sec, Advanced API 30/min | Authenticated personal token | Different credits from other providers; indexed chain coverage is smaller than RPC coverage |
 | CoinLore | Optional mapped market fallback | Public free access; recommends about 1 request/sec | None | Market data only; do not map by symbol alone |
 
 Sources: P1, Z1–Z3, D3, B1, R1–R2, N1–N2, H1–H4, A1–A2, A3, P3 in SOURCES.md. Request counts, credits, CUs, and per-second throughput are different units and must never be compared as if interchangeable.
@@ -33,7 +33,7 @@ Zerion's restricted endpoints should share a conservative **combined** sub-budge
 | `ZERION_API_KEY` | <https://dashboard.zerion.io/> | Basic authorization for `key:` — username is key, empty password |
 | `HELIUS_API_KEY` | <https://dashboard.helius.dev/> | `api-key` query parameter; redact entire sensitive URL values |
 | `ALCHEMY_API_KEY` | <https://dashboard.alchemy.com/> | Key in a fixed, validated network endpoint |
-| `ANKR_API_TOKEN` | <https://www.ankr.com/rpc/> | Personal authenticated endpoint/token; use current documentation |
+| `ANKR_API_KEY` | <https://www.ankr.com/rpc/> | Personal authenticated endpoint/token; use current documentation |
 | `TRONGRID_API_KEY` | <https://www.trongrid.io/> | Header `TRON-PRO-API-KEY` |
 | `TONAPI_API_KEY` | <https://tonconsole.com/> | `Authorization: Bearer ...` |
 
@@ -109,7 +109,7 @@ Use Alchemy for selected network receipts/native balances/token data or addition
 
 Alchemy's selected transfer method is documented at 120 CU per request; a per-second request limit alone is insufficient for scheduling. Source: A1–A2.
 
-Ankr Freemium requires sign-in without funding; Advanced API is authenticated. Current plan docs list 200M monthly credits, one personal token, and the Advanced API minute limits in the table. Their indexed API and ordinary RPC have different network coverage. Source: A3.
+Ankr Freemium requires sign-in without funding; Advanced API is authenticated. Current plan docs list 200M monthly credits and one personal token. The configured user tariff overrides the generic documented rate: Node API 30/sec and Advanced API 30/min. Their indexed API and ordinary RPC have different network coverage. Source: A3.
 
 Choose one source as canonical for a given scan. A fallback cross-check is an observation, not a second financial transaction. Never combine opaque provider event IDs blindly. Unsupported/capped categories remain visible as partial coverage.
 

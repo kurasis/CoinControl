@@ -6,6 +6,7 @@
 //! in errors or logs.
 
 pub mod alchemy;
+pub mod ankr;
 pub mod capabilities;
 pub mod defillama;
 pub mod error;

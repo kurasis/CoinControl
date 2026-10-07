@@ -19,6 +19,8 @@ use url::Url;
 use crate::error::ProviderError;
 use crate::network_log::NetworkLog;
 
+pub(crate) type PacingGate = Arc<Mutex<Option<Instant>>>;
+
 /// Transport policy for one provider.
 #[derive(Debug, Clone)]
 pub struct HttpConfig {
@@ -149,6 +151,7 @@ pub struct HttpClient {
     forbidden: StdMutex<std::collections::BTreeMap<String, ProviderError>>,
     network_log: StdMutex<Arc<NetworkLog>>,
     rate_limit_failover: AtomicBool,
+    pacing_class: StdMutex<Option<PacingGate>>,
 }
 
 /// A successful (2xx) response body.
@@ -210,6 +213,7 @@ impl HttpClient {
             cancelled: StdMutex::new(Arc::new(AtomicBool::new(false))),
             forbidden: StdMutex::new(std::collections::BTreeMap::new()),
             rate_limit_failover: AtomicBool::new(false),
+            pacing_class: StdMutex::new(None),
             network_log: StdMutex::new(Arc::new(NetworkLog::default())),
         })
     }
@@ -332,8 +336,18 @@ impl HttpClient {
             .await
     }
 
+    /// Distinct API rate limits still share the credential's request/credit budget.
+    /// Every physical attempt, including transport and RPC retries, uses this gate.
+    pub(crate) fn set_pacing_gate(&self, gate: PacingGate) {
+        *self.pacing_class.lock().expect("pacing class") = Some(gate);
+    }
+
     async fn pace(&self) {
-        let mut last = self.budget.last_start.lock().await;
+        let gate = self.pacing_class.lock().expect("pacing class").clone();
+        let mut last = match &gate {
+            Some(gate) => gate.lock().await,
+            None => self.budget.last_start.lock().await,
+        };
         if let Some(prev) = *last {
             let elapsed = prev.elapsed();
             if elapsed < self.config.min_interval {
@@ -410,7 +424,7 @@ impl HttpClient {
                 let rpc_error = outcome.as_ref().ok().and_then(|body| {
                     if !matches!(
                         provider,
-                        "helius" | "alchemy" | "drpc" | "publicnode" | "chainstack"
+                        "helius" | "alchemy" | "drpc" | "publicnode" | "chainstack" | "ankr"
                     ) {
                         return None;
                     }

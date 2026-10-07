@@ -40,6 +40,7 @@ impl ProviderQuota {
                 "alchemy" => 150000,
                 "helius" => 20000,
                 "drpc" | "blockscout" => 80000,
+                "ankr" => 700000,
                 _ => daily_requests,
             },
             monthly_requests: if matches!(provider, "drpc" | "chainstack") {

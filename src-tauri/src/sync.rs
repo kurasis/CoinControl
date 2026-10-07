@@ -193,6 +193,7 @@ async fn build_providers(
         ("blockscout", "BLOCKSCOUT_API_KEY"),
         ("etherscan", "ETHERSCAN_API_KEY"),
         ("drpc", "DRPC_API_KEY"),
+        ("ankr", "ANKR_API_KEY"),
         ("chainstack", "CHAINSTACK_API_KEY"),
         ("toncenter", "TONCENTER_API_KEY"),
     ] {
@@ -211,7 +212,7 @@ async fn build_providers(
             },
         )
         .await;
-        let (monthly_requests, _) = store
+        let (monthly_requests, monthly_credits) = store
             .provider_usage_month(&day[..7], id)
             .await
             .unwrap_or((u32::MAX, u32::MAX));
@@ -220,7 +221,7 @@ async fn build_providers(
         } else {
             daily
         };
-        let budget = if matches!(id, "blockscout" | "drpc") {
+        let budget = if matches!(id, "blockscout" | "drpc" | "ankr") {
             let used = match store.provider_usage(&day).await {
                 Ok(rows) => rows
                     .into_iter()
@@ -233,8 +234,16 @@ async fn build_providers(
                 store
                     .provider_quota(id)
                     .await
-                    .map_or(0, |q| q.daily_credits.min(80_000))
-                    .saturating_sub(used),
+                    .map_or(0, |q| {
+                        q.daily_credits
+                            .min(if id == "ankr" { 700_000 } else { 80_000 })
+                    })
+                    .saturating_sub(used)
+                    .min(if id == "ankr" {
+                        180_000_000u32.saturating_sub(monthly_credits)
+                    } else {
+                        u32::MAX
+                    }),
             )
         } else {
             Budget::limited(request_limit)
@@ -249,8 +258,9 @@ async fn build_providers(
         "etherscan" => 1,
         "toncenter" => 2,
         "drpc" => 3,
-        "chainstack" => 4,
-        _ => 5,
+        "ankr" => 4,
+        "chainstack" => 5,
+        _ => 6,
     });
     if let Some(key) = credential(secrets, zerion::PROVIDER, "ZERION_API_KEY") {
         let budget = remaining_today(store, zerion::PROVIDER, ZERION_DAILY_BUDGET).await;
@@ -753,7 +763,8 @@ pub async fn test_provider(
     let missing = || CommandError::new("missing_key", "Configure this provider's key first.");
     let reserve = p.reserves.iter().find(|p| p.provider() == id);
     let outcome = match id {
-        "blockscout" | "etherscan" | "drpc" | "publicnode" | "chainstack" | "toncenter" => {
+        "blockscout" | "etherscan" | "drpc" | "ankr" | "publicnode" | "chainstack"
+        | "toncenter" => {
             let api = reserve.ok_or_else(missing)?;
             let (network, address) = match id {
                 "chainstack" => (

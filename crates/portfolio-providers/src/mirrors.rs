@@ -2,6 +2,7 @@
 //! Every reserve leaves historical evidence untouched and returns partial coverage.
 use crate::{
     ProviderError,
+    ankr::{self, Ankr},
     helius::Helius,
     http::{Budget, HttpClient, HttpConfig},
     rpc,
@@ -46,6 +47,7 @@ pub struct Reserve {
     endpoints: BTreeMap<NetworkId, Url>,
     kind: Kind,
     solana: Option<Helius>,
+    ankr: Option<Ankr>,
 }
 pub struct Snapshot {
     pub warnings: Vec<String>,
@@ -54,6 +56,35 @@ pub struct Snapshot {
 }
 
 impl Reserve {
+    /// Authenticated Node RPC only, also used to verify this API independently
+    /// of Advanced API entitlements. Production `new("ankr", ..)` adds discovery.
+    pub fn ankr_node(key: &str, budget: Arc<Budget>) -> Result<Self, ProviderError> {
+        let endpoints = EVM
+            .into_iter()
+            .chain([NetworkId::Solana])
+            .map(|n| {
+                ankr::endpoint(ankr::chain(n).expect("supported mainnet"), key)
+                    .map(|u| (n, u.to_string()))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        Self::with_config(
+            "ankr",
+            Kind::Rpc,
+            &endpoints,
+            budget,
+            HeaderMap::new(),
+            HttpConfig {
+                min_interval: ankr::NODE_INTERVAL,
+                max_retries: 1,
+                ..HttpConfig::default()
+            },
+        )
+    }
+
+    pub fn ankr_advanced(&self) -> Option<&Ankr> {
+        self.ankr.as_ref()
+    }
+
     /// Reuses the Alchemy credential and shared request/CU budget for standard
     /// Solana token reads, independently of the indexed EVM adapter.
     pub fn alchemy_solana(key: &str, budget: Arc<Budget>) -> Result<Self, ProviderError> {
@@ -85,6 +116,11 @@ impl Reserve {
         key: &str,
         budget: Arc<Budget>,
     ) -> Result<Self, ProviderError> {
+        if provider == "ankr" {
+            let mut node = Self::ankr_node(key, budget.clone())?;
+            node.ankr = Some(Ankr::new(key, budget)?);
+            return Ok(node);
+        }
         let keyed = matches!(provider, "blockscout" | "etherscan" | "drpc" | "chainstack");
         if keyed && key.trim().is_empty() {
             return Err(ProviderError::MissingKey { provider });
@@ -232,11 +268,30 @@ impl Reserve {
             .get(&NetworkId::Solana)
             .map(|u| Helius::with_endpoint(provider, u.clone(), budget.clone(), config.clone()))
             .transpose()?;
+        let http = HttpClient::new(provider, config, budget, headers)?;
+        if provider == "ankr" {
+            ankr::configure_pacing(
+                &http,
+                endpoints
+                    .values()
+                    .next()
+                    .ok_or_else(|| rpc::invalid(provider, "config", "missing Ankr endpoint"))?,
+                false,
+            );
+            if let Some(s) = &solana {
+                ankr::configure_pacing(
+                    s.http(),
+                    endpoints.get(&NetworkId::Solana).expect("Solana endpoint"),
+                    false,
+                );
+            }
+        }
         Ok(Self {
-            http: HttpClient::new(provider, config, budget, headers)?,
+            http,
             endpoints,
             kind,
             solana,
+            ankr: None,
         })
     }
     pub fn validates_finality(&self, network: NetworkId) -> bool {
@@ -281,6 +336,9 @@ impl Reserve {
         if let Some(s) = &self.solana {
             c.push(s.http())
         };
+        if let Some(a) = &self.ankr {
+            c.push(a.http());
+        }
         c
     }
     pub fn http(&self) -> &HttpClient {
@@ -327,13 +385,65 @@ impl Reserve {
                 height: Some(h.slot),
             });
         }
-        match self.kind {
+        let mut snapshot = match self.kind {
             Kind::Blockscout => self.blockscout(base, n, address).await,
             Kind::Etherscan => self.etherscan(base, n, address, known).await,
             Kind::TonCenter => self.toncenter(base, address, known).await,
             Kind::Rpc if n == NetworkId::Tron => self.tron(base, address, known).await,
             Kind::Rpc => self.evm(base, n, address, known).await,
+        }?;
+        if let Some(advanced) = &self.ankr {
+            let mut cursor: Option<String> = None;
+            let mut seen_cursors = std::collections::BTreeSet::new();
+            let mut seen_tokens = std::collections::BTreeSet::new();
+            for _ in 0..2 {
+                let page = match advanced.balances_page(n, address, cursor.as_deref()).await {
+                    Ok(page) => page,
+                    Err(ProviderError::CapabilityUnavailable { .. }) => {
+                        snapshot.warnings.push("Ankr Advanced token discovery unavailable on this plan; Node balances retained".into());
+                        break;
+                    }
+                    Err(error) => return Err(error), // Quota immediately advances to an independent mirror.
+                };
+                for (asset, raw) in page.tokens {
+                    if !seen_tokens.insert(asset.contract.clone()) {
+                        return Err(rpc::invalid(
+                            p,
+                            "ankr_getAccountBalance",
+                            "repeated token across pages",
+                        ));
+                    }
+                    // Keep the block-pinned RPC balances of already known tokens.
+                    if !snapshot
+                        .assets
+                        .iter()
+                        .any(|(a, _)| a.contract == asset.contract)
+                    {
+                        snapshot.assets.push((asset, raw));
+                        snapshot.height = None; // Indexed token data has no common RPC block height.
+                    }
+                }
+                cursor = page.next;
+                match &cursor {
+                    None => break,
+                    Some(c) if !seen_cursors.insert(c.clone()) => {
+                        return Err(rpc::invalid(
+                            p,
+                            "ankr_getAccountBalance",
+                            "repeated pagination cursor",
+                        ));
+                    }
+                    _ => {}
+                }
+            }
+            if cursor.is_some() {
+                snapshot.warnings.push(
+                    "Ankr token discovery bounded to two pages; unseen assets retained as stale"
+                        .into(),
+                );
+            }
         }
+        Ok(snapshot)
     }
     async fn evm(
         &self,
@@ -778,3 +888,7 @@ fn indexer_error(p: &'static str, v: &Value) -> ProviderError {
         )
     }
 }
+
+#[cfg(test)]
+#[path = "mirrors_ankr_tests.rs"]
+mod ankr_tests;
