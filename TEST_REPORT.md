@@ -1,14 +1,49 @@
 # Verification report — 2026-10-07
 
-## Token logos and Windows 11 follow-up (development 0.1.8)
+## Published token logos and startup correction (0.1.8)
 
-[Implementation and verification scope](docs/reports/token-icons-2026-10-07/README.md).
-Bounded sanitized PNG cache and monogram fallback are implemented. A separate
-`windows-11-arm` job installs the inspected production x64 artifact and runs
-native startup/UI/import checks under emulation; results are pending CI.
-Windows 11 on Intel/AMD is not established by either hosted Windows Server or ARM64.
-The immutable 0.1.7 download and historical evidence remain below until 0.1.8
-publication is verified.
+[Download Windows x64 ZIP](https://github.com/kurasis/CoinControl/releases/download/v0.1.8/CoinControl-0.1.8-windows-x64.zip) · [Implementation and exact evidence](docs/reports/token-icons-2026-10-07/README.md).
+
+Bounded sanitized PNG cache and monogram fallback are implemented, with native
+logo/offline checks. Schema-8 covering index accelerates remaining-lot valuation
+without changing accounting results; SQLx now tracks new migration paths.
+Optional table metadata is fetched after the first useful paint.
+
+Exact source `4e7b48da7dcc02ad9544d4b8e82093f0cd6e625f`,
+[main CI 37619951445](https://github.com/kurasis/CoinControl/actions/runs/37619951445):
+six existing application/build jobs PASS. Overall CI FAIL: additional Windows 11
+ARM64 startup gate and live-provider checks have the failures detailed below.
+
+| Scope                                      | Result                                                                                                                                   |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Type/lint/format/Clippy/build/bindings     | PASS                                                                                                                                     |
+| Offline tests                              | 201 deterministic Rust / 66 frontend PASS; 18 opt-out live entrypoints are not live evidence                                             |
+| Browser mock IPC                           | PASS; 24 combinations and 10000-row bounded table                                                                                        |
+| Native real Windows IPC                    | 32 PASS; one installer-only case skipped, independently covered                                                                          |
+| Installer inspection / populated upgrade   | 78 / 12 PASS; schema 6 to 8, physical covering index checked                                                                             |
+| Installed Windows Server production load   | 12 PASS; normal useful screen 1617.20 ms; three offline starts all below one second                                                      |
+| Windows 11 ARM64, production x64 emulation | 11 PASS / 1 FAIL; normal useful screen 2938.90 ms exceeds unchanged 2000 ms gate; three offline starts 1458.90 / 678.00 / 713.10 ms PASS |
+| Actual live suites                         | 15 PASS / 3 FAIL; Zerion 429 plus network/vertical-slice suites depending on it                                                          |
+
+ARM64 first-start logs show cached summary ready at 401 ms, WebView ready at
+2536 ms after the Rust startup clock begins. This does not replace the failed
+process-to-screen measurement. Windows 11 Intel/AMD remains unrun. Alchemy's
+five mainnets and dRPC's six EVM networks pass; Chainstack native SOL passes,
+while `getTokenAccountsByOwner` still returns 403 (partial SPL discovery).
+Zerion needs available project quota/rate capacity; its bounded retries still
+receive 429. Full original-spec acceptance is not claimed.
+
+[Publisher 37622823297](https://github.com/kurasis/CoinControl/actions/runs/37622823297)
+PASS using the exact inspected production payload. Its six application/build
+gates passed; live and the extra ARM64 job are separate acceptance constraints.
+Re-downloaded ZIP CRC, exact four files, internal/external SHA-256 and
+manifest/source/installer/production-report matches PASS.
+SHA-256: `dba94a81b86b8758d4c98b1d104460016d4522c3d1c3e021dceadcd626d8d578`
+(8463065 bytes). [Manifest](docs/reports/token-icons-2026-10-07/BUILD_INFO.json) ·
+[ZIP verification](docs/reports/token-icons-2026-10-07/PUBLISHED_ZIP_VERIFICATION.json).
+Unsigned prerelease; `fullReleaseAcceptance: false`. Original failed candidate,
+targeted API retries and cancelled-PR usage are preserved; older published
+assets and their historical reports remain unchanged.
 
 ## Updated provider access — 2026-10-07
 
@@ -24,8 +59,9 @@ required token coverage. API-only jobs skip native/build checks; the published
 
 [Exact new reports and remaining tasks](docs/reports/provider-access-2026-10-07/README.md):
 at that revalidation, token-icon caching and Windows 11 acceptance were still
-open. The 0.1.8 follow-up above implements the cache and adds an ARM64 test job. These open requirements prevent a
-claim of complete original-specification acceptance. Historical credential errors
+open. The 0.1.8 follow-up above implements the cache and records actual ARM64 tests.
+Its first normal startup gate remains failed; Intel/AMD acceptance is unrun.
+These remaining requirements prevent a claim of complete original-specification acceptance. Historical credential errors
 below describe their original source/run, not current access.
 
 ## Published 0.1.7 specification completion

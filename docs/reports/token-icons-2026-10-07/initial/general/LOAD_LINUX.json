@@ -1,13 +1,13 @@
 {
   "arch": "x86_64",
   "build_mode": "release",
-  "cached_open_and_summary_ms": 46.166921,
+  "cached_open_and_summary_ms": 192.907318,
   "dataset": {
     "accounts": 50,
     "activity_legs": 100000,
     "assets": 500
   },
-  "fixture_load_ms": 2719.282489,
+  "fixture_load_ms": 2013.772314,
   "limits": [
     "Fixture load is direct normalized SQL, not 100000 provider requests or CSV rows.",
     "Startup measures store reopen plus first summary; native process/render startup is separate.",
@@ -18,56 +18,56 @@
   "mode": "offline-store-load",
   "os": "linux",
   "overlap_ingest": {
-    "ms": 982.312408,
+    "ms": 870.574079,
     "transactions": 1000
   },
-  "peak_process_memory_bytes": 534532096,
+  "peak_process_memory_bytes": 621252608,
   "queries": {
     "account": {
-      "first_ms": 6.1615530000000005,
-      "max_ms": 6.1615530000000005,
-      "p50_ms": 0.124184,
-      "p95_ms": 0.160688,
+      "first_ms": 8.076300999999999,
+      "max_ms": 8.076300999999999,
+      "p50_ms": 0.136874,
+      "p95_ms": 0.14877600000000002,
       "samples": 25
     },
     "activity": {
-      "first_ms": 11.069557000000001,
-      "max_ms": 11.069557000000001,
-      "p50_ms": 10.084589,
-      "p95_ms": 11.010990999999999,
+      "first_ms": 10.916194,
+      "max_ms": 12.875786999999999,
+      "p50_ms": 11.574358,
+      "p95_ms": 12.751327,
       "samples": 25
     },
     "chart": {
-      "first_ms": 253.80926399999998,
-      "max_ms": 253.80926399999998,
-      "p50_ms": 0.10188799999999999,
-      "p95_ms": 0.138616,
+      "first_ms": 297.57262299999996,
+      "max_ms": 297.57262299999996,
+      "p50_ms": 0.128329,
+      "p95_ms": 0.13724399999999998,
       "samples": 25
     },
     "holdings": {
-      "first_ms": 23.877274,
-      "max_ms": 23.877274,
-      "p50_ms": 1.115373,
-      "p95_ms": 1.269469,
+      "first_ms": 163.944862,
+      "max_ms": 163.944862,
+      "p50_ms": 1.089484,
+      "p95_ms": 1.144245,
       "samples": 25
     },
     "summary": {
-      "first_ms": 0.099833,
-      "max_ms": 0.133516,
-      "p50_ms": 0.115244,
-      "p95_ms": 0.127613,
+      "first_ms": 0.094275,
+      "max_ms": 0.13636299999999998,
+      "p50_ms": 0.12618500000000002,
+      "p95_ms": 0.132807,
       "samples": 25
     }
   },
   "query_p95_target_ms": 300,
-  "replay_ms": 17770.517914,
+  "replay_ms": 20085.124740000003,
   "result": "PASS",
-  "at": "2026-10-07T12:19:02.024Z",
-  "commit": "4e7b48da7dcc02ad9544d4b8e82093f0cd6e625f",
+  "at": "2026-10-07T11:36:58.506Z",
+  "commit": "b84d2388496ca73ac3826bdfa250b2d475a363ef",
   "hardware": {
-    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+    "cpu": "AMD EPYC 7763 64-Core Processor",
     "logicalCpus": 4,
-    "totalMemoryBytes": 16765374464,
+    "totalMemoryBytes": 16766414848,
     "osVersion": "6.17.0-1022-azure"
   }
 }

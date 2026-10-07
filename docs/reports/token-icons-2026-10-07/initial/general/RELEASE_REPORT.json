@@ -1,12 +1,12 @@
 {
   "mode": "windows-release",
-  "at": "2026-10-07T12:26:18.461Z",
+  "at": "2026-10-07T11:44:10.827Z",
   "signed": false,
   "packagedApplications": [
     {
       "filename": "portfolio-desk.exe",
-      "installerSha256": "5a57a1d62baccf12a3f68506dda5e65b188003d8ddbd06df0e9ee138d5078ee9",
-      "applicationSha256": "bca18be243c98e46efa01672d901067759ff04e024996c5e64bcee7029b51778"
+      "installerSha256": "7e77aa4e665cd7fffc33dce7c81c43acffa55b35dd5869eb4e8ea9066b094718",
+      "applicationSha256": "9ff97de9b6de2cf2e12768839acb12f31d8a8e57a45960162bb22cc4f0299712"
     }
   ],
   "checks": [
@@ -53,12 +53,12 @@
     {
       "name": "PE artifact: target\\release\\portfolio-desk.exe",
       "result": "PASS",
-      "detail": "sha256 8af618c98bf03d7277dcee71fe5b1c6964409b9d53bfb18d0da46ad15234752f"
+      "detail": "sha256 2a14b2cba937cab5ef5112c21534406749a5bd2efd78ee9b036ed99e827c8307"
     },
     {
       "name": "PE artifact: target\\release\\bundle\\nsis\\Portfolio Desk_0.1.8_x64-setup.exe",
       "result": "PASS",
-      "detail": "sha256 5a57a1d62baccf12a3f68506dda5e65b188003d8ddbd06df0e9ee138d5078ee9"
+      "detail": "sha256 7e77aa4e665cd7fffc33dce7c81c43acffa55b35dd5869eb4e8ea9066b094718"
     },
     {
       "name": "Installer contents: target\\release\\bundle\\nsis\\Portfolio Desk_0.1.8_x64-setup.exe",
@@ -68,7 +68,7 @@
     {
       "name": "NSIS application payload: target\\release\\bundle\\nsis\\Portfolio Desk_0.1.8_x64-setup.exe",
       "result": "PASS",
-      "detail": "sha256 bca18be243c98e46efa01672d901067759ff04e024996c5e64bcee7029b51778"
+      "detail": "sha256 9ff97de9b6de2cf2e12768839acb12f31d8a8e57a45960162bb22cc4f0299712"
     },
     {
       "name": "No sentinels or test-only code in NSIS payload: target\\release\\bundle\\nsis\\Portfolio Desk_0.1.8_x64-setup.exe",
@@ -81,17 +81,17 @@
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\AccountPage-DCRf0p1a.js",
+      "name": "No sentinels or test-only code: dist\\assets\\AccountPage-DN9iYY9l.js",
       "result": "PASS",
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\ActivityPage-D39NL5cn.js",
+      "name": "No sentinels or test-only code: dist\\assets\\ActivityPage-BbJTWz9q.js",
       "result": "PASS",
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\AssetPage-BUEqmNJ0.js",
+      "name": "No sentinels or test-only code: dist\\assets\\AssetPage-Bmccz6B2.js",
       "result": "PASS",
       "detail": ""
     },
@@ -121,7 +121,7 @@
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\hooks-CPqRstOO.js",
+      "name": "No sentinels or test-only code: dist\\assets\\hooks-P1Bh7V2g.js",
       "result": "PASS",
       "detail": ""
     },
@@ -131,7 +131,7 @@
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\index-z-Vn84bS.js",
+      "name": "No sentinels or test-only code: dist\\assets\\index-FBg90Go1.js",
       "result": "PASS",
       "detail": ""
     },
@@ -346,17 +346,17 @@
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\LegDrawer-COeYy8k5.js",
+      "name": "No sentinels or test-only code: dist\\assets\\LegDrawer-bVnHYdGx.js",
       "result": "PASS",
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\ReviewPage-CzRwY-M2.js",
+      "name": "No sentinels or test-only code: dist\\assets\\ReviewPage-C-zmw-jO.js",
       "result": "PASS",
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\ScopedPage-BZDeaFxi.js",
+      "name": "No sentinels or test-only code: dist\\assets\\ScopedPage-Cd5d7CtX.js",
       "result": "PASS",
       "detail": ""
     },
@@ -366,7 +366,7 @@
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\SettingsPage-D8mWhzwD.js",
+      "name": "No sentinels or test-only code: dist\\assets\\SettingsPage-CoDSty0D.js",
       "result": "PASS",
       "detail": ""
     },
@@ -376,7 +376,7 @@
       "detail": ""
     },
     {
-      "name": "No sentinels or test-only code: dist\\assets\\WalletsPage-Dcm5nBrR.js",
+      "name": "No sentinels or test-only code: dist\\assets\\WalletsPage-BH_mdV9C.js",
       "result": "PASS",
       "detail": ""
     },

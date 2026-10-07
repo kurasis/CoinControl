@@ -4,7 +4,7 @@ A personal, read-only cryptocurrency portfolio tracker for Windows, built with
 Tauri 2, React, TypeScript, Rust, and SQLite. The working product name inside
 the application is **Portfolio Desk**.
 
-[Download Windows x64 ZIP — 0.1.7 prerelease](https://github.com/kurasis/CoinControl/releases/download/v0.1.7/CoinControl-0.1.7-windows-x64.zip) · [Release notes](https://github.com/kurasis/CoinControl/releases/tag/v0.1.7). Extract the ZIP and run the setup EXE. This unsigned test build includes no keys or user data; full release acceptance remains subject to the gates in [TEST_REPORT.md](TEST_REPORT.md).
+[Download Windows x64 ZIP — 0.1.8 prerelease](https://github.com/kurasis/CoinControl/releases/download/v0.1.8/CoinControl-0.1.8-windows-x64.zip) · [Release notes](https://github.com/kurasis/CoinControl/releases/tag/v0.1.8). Extract the ZIP and run the setup EXE. This unsigned test build includes no keys or user data; full release acceptance remains subject to the gates in [TEST_REPORT.md](TEST_REPORT.md).
 
 The authoritative product specification lives in [`docs/spec`](docs/spec/README.md).
 Start with its README, which lists the reading order.
@@ -42,7 +42,11 @@ Optional logos use a fixed public catalog, validated network/contract identity
 and bounded normalized PNG cache. Missing/offline images retain a monogram.
 Settings → Clear caches also clears logos. No keys go to the logo catalog.
 A separate Windows 11 ARM64 CI job exercises the same production x64 installer
-under emulation; it does not establish Windows 11 Intel/AMD hardware acceptance.
+under emulation: 11 checks pass, but the first normal launch takes 2.94 s
+against the unchanged 2 s gate. Windows Server production checks all pass
+(first screen 1.62 s). Windows 11 Intel/AMD hardware acceptance remains unrun.
+The lot-valuation query now uses a covering index; migration tracking also
+handles newly added SQL files correctly.
 [Security limits and current evidence](docs/reports/token-icons-2026-10-07/README.md).
 
 ## Operations and synchronization (0.1.7)

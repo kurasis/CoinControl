@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-07T12:27:45.357575+00:00",
+  "sourceSha": "4e7b48da7dcc02ad9544d4b8e82093f0cd6e625f",
+  "check": "PASS",
+  "allFeaturesClippy": "PASS",
+  "deterministicRust": 201,
+  "disabledLiveEntrypoints": 18,
+  "frontend": 66,
+  "build": "PASS",
+  "bindings": "PASS (unchanged)",
+  "browserLayoutCombinations": 24,
+  "virtualizedRows": 10000,
+  "correctedEnvironment": "Removed obsolete generated test executables and incremental caches after cloud disk exhaustion; no source/user data removed. Repeated full tests successfully.",
+  "correctedBuild": "A workspace-cached SQLx migrator did not include added migration 8; the documented build.rs directory watch resolves this for new migration paths."
+}

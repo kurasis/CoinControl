@@ -1,0 +1,185 @@
+{
+  "mode": "windows-production-native-load",
+  "at": "2026-10-07T12:29:55.603Z",
+  "sourceSha": "4e7b48da7dcc02ad9544d4b8e82093f0cd6e625f",
+  "ciSha": "4e7b48da7dcc02ad9544d4b8e82093f0cd6e625f",
+  "buildMode": "production-release",
+  "checks": [
+    {
+      "name": "Installed production binary matches inspected NSIS payload hash",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Real profile has exactly 50 accounts, 500 assets and 100000 legs",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "First useful native screen with normal runtime networking within 2 seconds",
+      "result": "PASS",
+      "detail": "1617.20 ms"
+    },
+    {
+      "name": "Cached first useful native screen within 2 seconds in all three process launches",
+      "result": "PASS",
+      "detail": "993.80 ms maximum"
+    },
+    {
+      "name": "All 500 native holdings remain scrollable with fewer than 80 mounted rows",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Large-dataset pending CSV preview closes within one second",
+      "result": "PASS",
+      "detail": "25 ms"
+    },
+    {
+      "name": "Activity renders two 50-row pages while background preview calculates",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Virtualized native activity reaches row 200 with fewer than 80 mounted rows",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Late CSV preview is discarded without applying decisions or duplicating history",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "name": "Native renderer continues presenting frames during large-dataset preview/replay",
+      "result": "PASS",
+      "detail": "234.40 ms maximum frame gap"
+    },
+    {
+      "name": "CSV basis decision commits through native UI and replays all 100000 legs",
+      "result": "PASS",
+      "detail": "33505 ms commit/replay; one imported row"
+    },
+    {
+      "name": "Large portfolio and exact import/history counts survive process restart",
+      "result": "PASS",
+      "detail": ""
+    }
+  ],
+  "startupTargetMs": 2000,
+  "environment": {
+    "os": "win32",
+    "osVersion": "10.0.20348",
+    "node": "v22.23.3",
+    "cpu": "AMD EPYC 7763 64-Core Processor                ",
+    "logicalCpus": 4,
+    "totalMemoryBytes": 17174360064,
+    "webviewPolicyHive": "HKLM"
+  },
+  "limits": [
+    "Synthetic 50-account/500-asset/100000-leg normalized SQL fixture; not a production provider import.",
+    "Cold application processes; operating-system disk/page caches are not flushed.",
+    "First sample uses a fresh WebView2 data folder; later samples retain that browser cache.",
+    "Initial normal-network startup is measured and gated before the three offline samples; its browser folder is preserved separately; OS runtime/certificate caches are not reset.",
+    "First useful paint means cached balance and navigation, after two animation frames; not all charts/rows finished.",
+    "Closing a pending CSV preview acknowledges cancellation immediately; background calculation can finish before its staging is discarded.",
+    "Production binary uses documented per-app HKLM WebView2 options on the elevated disposable CI host (Runtime 150+ ignores environment/HKCU); original policy values are restored; no native-e2e feature."
+  ],
+  "dataset": {
+    "accounts": 50,
+    "activity_legs": 100000,
+    "assets": 500
+  },
+  "applicationSha256": "bca18be243c98e46efa01672d901067759ff04e024996c5e64bcee7029b51778",
+  "initialNormalNetworkStartup": {
+    "index": 0,
+    "height": 689,
+    "measuredEpochMs": 1791376197913.2,
+    "navigationEpochMs": 1791376197366.5,
+    "pixelRatio": 1,
+    "usefulFrameMs": 546.6999999997206,
+    "width": 1008,
+    "processStartUtcMs": 1791376196296,
+    "spawnRequestedUtcMs": 1791376196284,
+    "processToUsefulMs": 1617.199951171875,
+    "browserCache": "fresh",
+    "launchLog": "application-launch-0.log"
+  },
+  "startupSamples": [
+    {
+      "index": 0,
+      "height": 689,
+      "measuredEpochMs": 1791376206662.8,
+      "navigationEpochMs": 1791376206129.3,
+      "pixelRatio": 1,
+      "usefulFrameMs": 533.5,
+      "width": 1008,
+      "processStartUtcMs": 1791376205669,
+      "spawnRequestedUtcMs": 1791376205657,
+      "processToUsefulMs": 993.800048828125,
+      "browserCache": "fresh",
+      "launchLog": "application-launch-1.log"
+    },
+    {
+      "index": 1,
+      "height": 689,
+      "measuredEpochMs": 1791376209678.3,
+      "navigationEpochMs": 1791376209445.3,
+      "pixelRatio": 1,
+      "usefulFrameMs": 233,
+      "width": 1008,
+      "processStartUtcMs": 1791376209012,
+      "spawnRequestedUtcMs": 1791376208999,
+      "processToUsefulMs": 666.300048828125,
+      "browserCache": "retained",
+      "launchLog": "application-launch-2.log"
+    },
+    {
+      "index": 2,
+      "height": 689,
+      "measuredEpochMs": 1791376212803.4,
+      "navigationEpochMs": 1791376212553,
+      "pixelRatio": 1,
+      "usefulFrameMs": 250.39999999990687,
+      "width": 1008,
+      "processStartUtcMs": 1791376212113,
+      "spawnRequestedUtcMs": 1791376212101,
+      "processToUsefulMs": 690.39990234375,
+      "browserCache": "retained",
+      "launchLog": "application-launch-3.log"
+    }
+  ],
+  "previewCancellationFeedbackMs": 25,
+  "previewMs": 4151,
+  "commitAndReplayMs": 33505,
+  "rendererFrameGaps": {
+    "samples": 2748,
+    "p95Ms": 15.700000000004366,
+    "maxMs": 234.40000000000055,
+    "scope": "Review/Activity navigation, cancelled preview, completed preview and commit/replay"
+  },
+  "applicationMemory": {
+    "peakWorkingSetBytes": 452898816,
+    "workingSetBytes": 88915968,
+    "scope": "Application process only; WebView2 child processes are excluded"
+  },
+  "finalCounts": {
+    "accounts": 50,
+    "assets": 500,
+    "legs": 100000,
+    "overrides": 1,
+    "previews": 0,
+    "discarded": 1,
+    "committed": 1
+  },
+  "providerUsage": [
+    {
+      "provider": "defillama",
+      "requests": 3
+    },
+    {
+      "provider": "publicnode",
+      "requests": 2
+    }
+  ]
+}
