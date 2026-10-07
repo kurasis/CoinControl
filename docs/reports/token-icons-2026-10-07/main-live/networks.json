@@ -1,0 +1,104 @@
+{
+  "provider": "networks",
+  "started_at": 1791373060,
+  "duration_ms": 67274,
+  "requests": 79,
+  "endpoints": [],
+  "checks": [
+    {
+      "name": "base: holdings and first history page persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"zerion\"), 20 transactions in 1 pages, coverage Loading, error None"
+    },
+    {
+      "name": "base: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 1 pages"
+    },
+    {
+      "name": "arbitrum: holdings and first history page persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"zerion\"), 20 transactions in 1 pages, coverage Loading, error None"
+    },
+    {
+      "name": "arbitrum: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 1 pages"
+    },
+    {
+      "name": "optimism: holdings and first history page persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"zerion\"), 20 transactions in 1 pages, coverage Loading, error None"
+    },
+    {
+      "name": "optimism: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 1 pages"
+    },
+    {
+      "name": "polygon: holdings and first history page persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"zerion\"), 20 transactions in 1 pages, coverage Loading, error None"
+    },
+    {
+      "name": "polygon: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 1 pages"
+    },
+    {
+      "name": "bsc: holdings and first history page persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"zerion\"), 20 transactions in 1 pages, coverage Loading, error None"
+    },
+    {
+      "name": "bsc: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 1 pages"
+    },
+    {
+      "name": "solana: holdings and first history page persisted",
+      "result": "FAIL",
+      "detail": "provider Some(\"zerion\"), 0 transactions in 0 pages, coverage Loading, error Some(\"zerion positions: rate limited\")"
+    },
+    {
+      "name": "solana: immediate re-sync adds nothing",
+      "result": "FAIL",
+      "detail": "0 new, 0 pages"
+    },
+    {
+      "name": "tron: holdings and first history page persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"trongrid\"), 80 transactions in 2 pages, coverage Loading, error None"
+    },
+    {
+      "name": "tron: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 2 pages"
+    },
+    {
+      "name": "ton: holdings and first history page persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"tonapi\"), 50 transactions in 1 pages, coverage Loading, error None"
+    },
+    {
+      "name": "ton: immediate re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 1 pages"
+    },
+    {
+      "name": "native assets of every network valued; case-sensitive token identity priced",
+      "result": "FAIL",
+      "detail": "49 priced, 226 unpriced, missing [\"solana:native\"], TRON USDT priced true, errors []"
+    },
+    {
+      "name": "accounting replay over all networks",
+      "result": "PASS",
+      "detail": "Ok(ReplayReport { events: 225, lots: 128, review_items: 162, reconciliation_items: 38, orphaned_overrides: 0 })"
+    },
+    {
+      "name": "coverage reported for every account",
+      "result": "FAIL",
+      "detail": "Some(Loading), Some(Loading), Some(Loading), Some(Loading), Some(Loading), Some(Loading), Some(Loading), Some(Loading)"
+    }
+  ]
+}

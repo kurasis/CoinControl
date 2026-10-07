@@ -1,0 +1,24 @@
+{
+  "provider": "chainstack",
+  "started_at": 1791373000,
+  "duration_ms": 2061,
+  "requests": 3,
+  "endpoints": ["balance reserve"],
+  "checks": [
+    {
+      "name": "solana token discovery limitation",
+      "result": "PASS",
+      "detail": "native balance retained; token access partial: chainstack getTokenAccountsByOwner: credential rejected (HTTP 403)"
+    },
+    {
+      "name": "solana native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "solana integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    }
+  ]
+}

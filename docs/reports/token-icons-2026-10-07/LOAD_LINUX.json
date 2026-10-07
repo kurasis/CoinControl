@@ -1,0 +1,73 @@
+{
+  "arch": "x86_64",
+  "build_mode": "release",
+  "cached_open_and_summary_ms": 192.907318,
+  "dataset": {
+    "accounts": 50,
+    "activity_legs": 100000,
+    "assets": 500
+  },
+  "fixture_load_ms": 2013.772314,
+  "limits": [
+    "Fixture load is direct normalized SQL, not 100000 provider requests or CSV rows.",
+    "Startup measures store reopen plus first summary; native process/render startup is separate.",
+    "Cancellation is measured by native synchronization scenarios, not this store harness.",
+    "No network requests; synthetic account addresses are never queried."
+  ],
+  "logical_cpus": 4,
+  "mode": "offline-store-load",
+  "os": "linux",
+  "overlap_ingest": {
+    "ms": 870.574079,
+    "transactions": 1000
+  },
+  "peak_process_memory_bytes": 621252608,
+  "queries": {
+    "account": {
+      "first_ms": 8.076300999999999,
+      "max_ms": 8.076300999999999,
+      "p50_ms": 0.136874,
+      "p95_ms": 0.14877600000000002,
+      "samples": 25
+    },
+    "activity": {
+      "first_ms": 10.916194,
+      "max_ms": 12.875786999999999,
+      "p50_ms": 11.574358,
+      "p95_ms": 12.751327,
+      "samples": 25
+    },
+    "chart": {
+      "first_ms": 297.57262299999996,
+      "max_ms": 297.57262299999996,
+      "p50_ms": 0.128329,
+      "p95_ms": 0.13724399999999998,
+      "samples": 25
+    },
+    "holdings": {
+      "first_ms": 163.944862,
+      "max_ms": 163.944862,
+      "p50_ms": 1.089484,
+      "p95_ms": 1.144245,
+      "samples": 25
+    },
+    "summary": {
+      "first_ms": 0.094275,
+      "max_ms": 0.13636299999999998,
+      "p50_ms": 0.12618500000000002,
+      "p95_ms": 0.132807,
+      "samples": 25
+    }
+  },
+  "query_p95_target_ms": 300,
+  "replay_ms": 20085.124740000003,
+  "result": "PASS",
+  "at": "2026-10-07T11:36:58.506Z",
+  "commit": "b84d2388496ca73ac3826bdfa250b2d475a363ef",
+  "hardware": {
+    "cpu": "AMD EPYC 7763 64-Core Processor",
+    "logicalCpus": 4,
+    "totalMemoryBytes": 16766414848,
+    "osVersion": "6.17.0-1022-azure"
+  }
+}

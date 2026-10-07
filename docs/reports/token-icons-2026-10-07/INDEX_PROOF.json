@@ -1,0 +1,18 @@
+{
+  "scope": "Local Linux SQLite; 100000 activity legs / 75000 FIFO lots, identical result rows; not native startup evidence",
+  "beforePlan": [
+    "SEARCH lots USING INDEX lots_account_asset (account_id=?)",
+    "USE TEMP B-TREE FOR GROUP BY"
+  ],
+  "afterPlan": ["SEARCH lots USING COVERING INDEX lots_valuation_remaining (account_id=?)"],
+  "beforeMs": [
+    125.77030499232933, 93.47901000001002, 90.26252799958456, 85.83381299104076, 90.60447399679106
+  ],
+  "afterMs": [
+    7.466729992302135, 6.852028993307613, 6.529438003781252, 6.772234992240556, 6.406740008969791
+  ],
+  "identicalRows": 500,
+  "medianSpeedup": 13.378814246789018,
+  "activityLegs": 100000,
+  "fifoLots": 75000
+}

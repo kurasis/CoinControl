@@ -68,3 +68,28 @@ Windows 11 ARM64 running x64 emulation is separate evidence from Windows 11 on
 Intel/AMD hardware. The latter is unrun; do not claim it passed. Screenshots,
 performance reports, partial failures and OS identities remain traceable to
 their selected run and payload.
+
+## Initial main CI (retained failure)
+
+PR #34 merged source `b84d2388496ca73ac3826bdfa250b2d475a363ef`.
+[CI 37615103351](https://github.com/kurasis/CoinControl/actions/runs/37615103351):
+offline/browser, both storage loads, installer inspection (78 checks), upgrade
+(11 checks), and isolated native scenarios (32 checks) PASS. Production load
+startup gates FAIL: Server 2543.30 ms; Windows 11 ARM64/x64 emulation 3348.90 ms
+normal and 2306.00 ms worst offline. Both otherwise finish UI/import checks.
+No ZIP is published from this failed startup candidate. [Server report](initial/server-load/NATIVE_LOAD_REPORT.json),
+[Windows 11 report](initial/windows11-load/NATIVE_LOAD_REPORT.json), [host identity](initial/windows11-host/HOST.json).
+
+Live: 14 actual suites PASS / 4 FAIL (Zerion, dRPC, networks, vertical-slice);
+429 caused the source/integration failures. [Exact report](main-live/LIVE_REPORT.md).
+After a cooldown, separate API-only [CI 37615854857](https://github.com/kurasis/CoinControl/actions/runs/37615854857)
+on the identical source: dRPC all six EVM networks PASS (18 requests),
+Zerion FAIL (3 requests, 429 again). Other 16 entrypoints are disabled, not
+17 provider passes. Native/build jobs were skipped. No further blind retry.
+Cancelled PR CI 37615076728 retains [partial usage](cancelled-pr-live/usage.json).
+
+The Windows 11 slow log identifies grouped remaining-lot valuation: 1.346 s.
+A local identical fixture query uses a temporary GROUP BY B-tree; a partial
+covering index removes that sort and returns identical 500 grouped rows at
+13.38× median query speed in five samples. [Plan/timing proof](INDEX_PROOF.json).
+This is a demonstrated database optimization, not a native startup pass.
