@@ -34,8 +34,7 @@ npm notice
 
 === Clippy (deny warnings) ===
 > cargo clippy --workspace --all-targets -- -D warnings
-   Compiling portfolio-desk v0.1.7 (/workspace/CoinControl/src-tauri)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.14s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s
 
 Summary
   PASS  TypeScript typecheck (exit 0)

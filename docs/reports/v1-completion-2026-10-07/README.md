@@ -30,7 +30,7 @@ Windows acceptance.
 ## Local verification
 
 Baseline: static checks, build and offline tests passed with 178 deterministic Rust
-and 52 frontend cases. Final: **195 deterministic Rust / 58 frontend cases PASS**;
+and 52 frontend cases. Final: **195 deterministic Rust / 59 frontend cases PASS**;
 18 opt-in live functions return without external access in offline mode and are
 not counted as live passes. All-feature Clippy (warnings denied), TypeScript,
 ESLint, Prettier, rustfmt, generated bindings (71 DTO exports), production frontend
@@ -152,3 +152,24 @@ provider behavior changes.
 Local checks, 58 frontend cases, production build/source inspection and all 24
 browser layout scenarios pass after this correction. Actual Windows timing and
 native management checks must pass on the new source before publication.
+
+### Shared chart observer regression
+
+PR #29 (`76004e0`, CI 37598456811) reduced initial routing work, but additional
+screen-level testing found that `PortfolioChart` had a second observer of the same
+query. Its older enabled condition started the chart before the useful-paint mark.
+Both observers now use the same deferred readiness. The new screen test
+**rejects the earlier source** ([negative control](CHART_OBSERVER_NEGATIVE_CONTROL.txt))
+and passes the corrected screen ([regression](CHART_OBSERVER_REGRESSION.txt)); it
+asserts no chart or holdings IPC before the two ready frames, then one shared chart
+request and one holdings request. This is an additional frontend regression, bringing
+the total to 59. Live results from that intermediate source again had 16 passing
+suites and only Alchemy/Chainstack failures ([exact report](ci/lazy-routes/LIVE_REPORT.md)).
+The cancelled schema-only branch run 37596760661 made partial reads
+([actual usage](ci/CANCELLED_SCHEMA_PR_LIVE_USAGE.json)); these are additional to
+its later main CI and are not presented as task-wide usage below 50/provider.
+
+Intermediate main CI 37598456811 is superseded by the shared-observer correction.
+Completed API/offline/load results remain evidence for that exact earlier source;
+uncompleted Windows jobs are cancelled, not claimed as passes. The final main CI
+will verify all application/build gates again.

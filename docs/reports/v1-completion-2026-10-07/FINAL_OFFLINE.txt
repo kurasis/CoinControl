@@ -1,0 +1,384 @@
+
+> coincontrol@0.1.7 test:offline
+> node scripts/test-offline.mjs
+
+
+=== Rust domain, accounting and storage tests ===
+> cargo test --workspace --all-targets
+   Compiling portfolio-providers v0.1.0 (/workspace/CoinControl/crates/portfolio-providers)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.76s
+     Running unittests src/lib.rs (target/debug/deps/portfolio_core-f25acc3795407839)
+
+running 19 tests
+test address::tests::solana_is_case_sensitive ... ok
+test address::tests::evm_casing_does_not_change_identity_but_bad_checksum_is_rejected ... ok
+test address::tests::ton_testnet_flag_is_rejected ... ok
+test address::tests::evm_eip55_vectors ... ok
+test address::tests::ton_friendly_and_raw_forms_are_equivalent ... ok
+test address::tests::bitcoin_mainnet_only ... ok
+test clock::tests::rfc3339_parses_utc_and_offsets ... ok
+test clock::tests::utc_day_formats_calendar_dates ... ok
+test address::tests::tron_base58_and_hex_are_equivalent ... ok
+test decimal::tests::division_by_zero_is_unavailable_not_infinite ... ok
+test decimal::tests::display_rounding_is_half_even ... ok
+test decimal::tests::parses_exact_decimals_and_rejects_garbage ... ok
+test decimal::tests::quantity_to_raw_rejects_sub_unit_precision ... ok
+test decimal::tests::division_keeps_at_least_fifty_significant_digits ... ok
+test decimal::tests::values_above_js_safe_integer_stay_exact ... ok
+test decimal::tests::raw_conversion_supports_256_bit_values ... ok
+test network::tests::evm_chain_ids_match_the_spec ... ok
+test network::tests::explorer_links_reject_unsafe_identifiers ... ok
+test network::tests::identifiers_round_trip ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/golden_accounting.rs (target/debug/deps/golden_accounting-c30dc5ffc18e1982)
+
+running 1 test
+test all_fixture_cases_pass ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/invariants.rs (target/debug/deps/invariants-8b84d925c7c61103)
+
+running 10 tests
+test own_transfer_preserves_acquisition_order_at_recipient ... ok
+test live_coin_watch_ratio_conversion ... ok
+test dietz_zero_duration_and_flow_at_start_are_handled ... ok
+test fifo_never_consumes_another_accounts_lots_or_same_symbol_other_asset ... ok
+test price_change_requires_positive_reference ... ok
+test reimporting_identical_events_has_no_economic_effect ... ok
+test replay_is_deterministic_regardless_of_input_order ... ok
+test unclassified_withdrawal_makes_period_flows_incomplete ... ok
+test unknown_basis_is_not_zero_basis ... ok
+test split_lots_conserve_basis_exactly ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/portfolio_desk_lib-d229def3424d2650)
+
+running 9 tests
+test schedule::tests::large_profiles_extend_intervals_and_do_not_burst ... ok
+test jobs::cancellation_tests::queued_cancel_cannot_be_overwritten_by_start_and_finished_jobs_do_not_cancel_other_work ... ok
+test jobs::tests::active_jobs_are_retained_and_completed_history_is_bounded ... ok
+test schedule::tests::minimized_reduces_prices_and_skips_active_polling ... ok
+test secrets::tests::secrets_are_redacted_in_debug_output ... ok
+test window_geometry::tests::high_dpi_minimum_leaves_space_for_caption_and_taskbar ... ok
+test window_geometry::tests::preserves_valid_position_and_clamps_negative_monitor_bounds ... ok
+test sync::progress_tests::results_distinguish_partial_errors_cancellation_and_early_failure ... ok
+test sync::progress_tests::connection_probe_never_waits_on_an_already_held_run_lock ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running unittests src/main.rs (target/debug/deps/portfolio_desk-f922a2b138f182c1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/portfolio_providers-9bf3a9a4f301f12c)
+
+running 12 tests
+test capabilities::tests::every_required_network_has_a_working_adapter ... ok
+test defillama::identity_tests::price_identity_keeps_base58_case ... ok
+test http::tests::budget_counts_and_stops ... ok
+test capabilities::tests::configured_sources_keep_bnb_on_zerion_and_do_not_inherit_live_evidence ... ok
+test http::tests::sanitize_drops_urls_and_long_tokens ... ok
+test trongrid::tests::continuation_requires_a_next_link ... ok
+test http::tests::provider_messages_are_extracted ... ok
+test livecoinwatch::tests::day_ratio_becomes_percent ... ok
+test zerion::tests::basic_auth_encodes_key_with_empty_password ... ok
+test util::tests::floats_become_their_written_digits ... ok
+test zerion::tests::cursor_is_taken_from_next_link ... ok
+test network_log::tests::log_is_opt_in_bounded_and_cannot_retain_credential_urls ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/btc_normalize.rs (target/debug/deps/btc_normalize-8aff8ffafc691eed)
+
+running 7 tests
+test mixed_owner_inputs_make_the_fee_unknown ... ok
+test incoming_payment ... ok
+test multiple_owned_inputs_share_the_fee_pro_rata ... ok
+test coinbase_and_untouched_and_missing_prevout ... ok
+test outgoing_with_owned_change ... ok
+test pending_transaction_uses_observation_time ... ok
+test same_transaction_at_two_owned_accounts_is_stored_once ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/chain_normalize.rs (target/debug/deps/chain_normalize-e9c2fff86dc86528)
+
+running 14 tests
+test ton_bounced_transfer_moves_nothing_but_costs_fees ... ok
+test ton_event_with_several_messages_and_a_swap ... ok
+test ton_jetton_is_identified_by_master_not_wallet ... ok
+test ton_transfer_and_fee_from_extra ... ok
+test ton_unfinished_trace_is_pending_and_unknown_actions_partial ... ok
+test tron_failed_contract_call_charges_only_the_fee ... ok
+test tron_internal_trx_and_out_of_scope_records ... ok
+test tron_staking_moves_nothing_and_rewards_are_income ... ok
+test tron_token_send_record_carries_the_energy_fee ... ok
+test tron_trc20_events_are_components_with_contract_identity ... ok
+test tron_trx_transfers_in_out_and_self ... ok
+test solana_history_keeps_signatures_and_charges_fees_to_the_signer ... ok
+test polygon_native_pol_system_contract_is_the_native_asset ... ok
+test solana_positions_keep_case_and_merge_token_accounts ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/finality.rs (target/debug/deps/finality-9d5181e804c921b4)
+
+running 6 tests
+test authoritative_canonical_block_membership_proves_a_dropped_confirmation ... ok
+test missing_index_entry_is_not_a_reorg_when_block_still_contains_the_transaction ... ok
+test solana_finalized_status_and_missing_index_have_distinct_meanings ... ok
+test matching_canonical_receipt_is_final_but_a_fork_receipt_is_reorged ... ok
+test wrong_network_and_malformed_membership_never_produce_a_reorg ... ok
+test ton_masterchain_anchor_and_complete_membership_distinguish_finality_from_missing_data ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/http_failures.rs (target/debug/deps/http_failures-76033c2884f4c980)
+
+running 14 tests
+test json_schema_errors_never_echo_response_values ... ok
+test indexing_wallet_is_loading_not_empty ... ok
+test missing_keys_are_reported_without_requests ... ok
+test budget_counts_retries_and_stops ... ok
+test long_retry_after_and_exhausted_retries_fail_fast ... ok
+test authentication_failure_stops_every_client_sharing_the_credential_budget ... ok
+test provider_error_inside_http_200_is_an_error_not_empty_data ... ok
+test repeated_cursor_is_detected ... ok
+test rate_limit_with_retry_after_is_retried ... ok
+test opt_in_console_tracks_in_flight_retries_and_rpc_errors_without_payloads ... ok
+test server_errors_are_retried_then_succeed ... ok
+test unauthorized_fails_once_without_retry ... ok
+test reserve_http_errors_do_not_echo_short_credentials ... ok
+test timeout_invalid_json_too_large_and_not_found ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+     Running tests/live.rs (target/debug/deps/live-af1a32acbe9e7159)
+
+running 18 tests
+test defillama_live ... ok
+test alchemy_live ... ok
+test esplora_live ... ok
+test helius_live ... ok
+test live_blockscout_reserve ... ok
+test live_chainstack_reserve ... ok
+test live_etherscan_reserve ... ok
+test live_drpc_reserve ... ok
+test live_mempool_reserve ... ok
+test live_publicnode_reserve ... ok
+test live_reserve_routing_after_primary_budget_exhaustion ... ok
+test live_toncenter_reserve ... ok
+test livecoinwatch_live ... ok
+test networks_live ... ok
+test trongrid_live ... ok
+test tonapi_live ... ok
+test vertical_slice_live ... ok
+test zerion_live ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mirrors.rs (target/debug/deps/mirrors-b3ea0408e57384f8)
+
+running 13 tests
+test drpc_free_scope_excludes_premium_solana ... ok
+test etherscan_selected_free_chains_semantic_rate_limits_and_secret_redaction ... ok
+test blockscout_current_schema_keyset_and_credits_are_exact ... ok
+test forbidden_solana_token_method_preserves_native_and_other_network_access ... ok
+test local_storage_failure_does_not_issue_backup_requests_and_monthly_counts_share_networks ... ok
+test paid_plan_402_advances_to_available_balance_reserve ... ok
+test recovered_primary_has_one_healthy_status_while_reserve_keeps_its_pause ... ok
+test toncenter_discovers_only_exact_metadata_never_uses_transaction_hashes ... ok
+test tron_publicnode_includes_owned_stake_and_does_not_infer_missing_accounts ... ok
+test bitcoin_mirror_cursors_provenance_and_resume_are_independent ... ok
+test solana_standard_rpc_checks_mainnet_and_aggregates_owned_token_accounts ... ok
+test wrong_chain_and_cancel_do_not_use_a_reserve ... ok
+test failover_429_403_500_and_timeout_keeps_unknown_tokens_and_persists_breaker ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.46s
+
+     Running tests/networks_sync.rs (target/debug/deps/networks_sync-bc06e3a3c06402d2)
+
+running 4 tests
+test tron_without_key_reports_the_missing_credential ... ok
+test tokens_without_a_quote_are_not_requested_again_for_a_day ... ok
+test tron_native_and_trc20_categories_add_up_without_duplicates ... ok
+test ton_trace_in_progress_is_reread_until_final ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/rpc_sources.rs (target/debug/deps/rpc_sources-420935e46d95a1db)
+
+running 18 tests
+test alchemy_failed_transaction_has_fee_without_principal ... ok
+test alchemy_forbidden_network_does_not_stop_other_enabled_mainnets ... ok
+test alchemy_persistent_block_cursor_avoids_expired_page_keys ... ok
+test alchemy_actual_sync_preserves_foreign_evidence_and_deduplicates_rows ... ok
+test alchemy_receipt_logs_exact_amounts_and_fee_once ... ok
+test cancellation_stops_before_next_rpc_and_keeps_checkpoint_paused ... ok
+test credits_limit_counts_retries_and_prevents_next_request ... ok
+test helius_actual_sync_aggregates_mints_and_remains_partial ... ok
+test helius_minimum_context_lag_retries_with_accounted_cost ... ok
+test capped_token_scan_does_not_zero_omitted_cached_holdings ... ok
+test helius_unclassified_zero_decimal_assets_are_not_fungible_holdings ... ok
+test solana_exact_fee_and_closed_token_account_delta ... ok
+test solana_failed_fee_only_and_sponsored_fee ... ok
+test solana_program_and_rent_effects_stay_unresolved ... ok
+test fresh_alchemy_history_is_idempotent_and_reuses_persisted_metadata ... ok
+test rpc_error_redacts_key_and_stops_shared_budget ... ok
+test short_key_in_http_error_never_reaches_caller ... ok
+test wrong_chain_and_missing_metadata_do_not_fabricate_balances ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+     Running tests/sync_engine.rs (target/debug/deps/sync_engine-bb478d126df4cc6d)
+
+running 10 tests
+test a_confirmed_bitcoin_transaction_disappearing_from_the_chain_rolls_back ... ok
+test auth_failure_keeps_last_balance_as_stale_and_reports ... ok
+test missing_keys_are_explicit_on_every_keyed_network ... ok
+test ethereum_positions_history_fees_and_partitioning ... ok
+test pending_bitcoin_transaction_confirms_or_is_dropped ... ok
+test cancellation_saves_the_first_page_and_resumes_without_duplicates ... ok
+test token_without_quote_stays_unpriced ... ok
+test prices_value_holdings_exactly_and_never_as_zero ... ok
+test price_history_is_downloaded_once_and_remembered ... ok
+test bitcoin_history_backfills_resumes_and_never_duplicates ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.62s
+
+     Running unittests src/lib.rs (target/debug/deps/portfolio_store-20d5d2c8f4ab8a40)
+
+running 16 tests
+test accounting::tests::price_book_respects_tolerance_and_prefers_the_nearest_point ... ok
+test accounting::tests::split_conserves_the_total_exactly ... ok
+test maintenance::owner_decision_tests::permanent_removal_deletes_own_opening_and_fee_decisions_only ... ok
+test maintenance::owner_decision_tests::asset_custom_window_retains_exact_boundaries_and_rejects_invalid_dates ... ok
+test maintenance::rollback_tests::reorg_replay_removes_affected_value_and_preserves_reviewed_decisions ... ok
+test maintenance::tests::cache_cleanup_and_rescan_preserve_history_prices_decisions_and_lots ... ok
+test portfolio::tests::compact_valuation_preserves_exact_basis_and_observation_mismatches ... ok
+test portfolio::tests::grid_ends_at_now_and_is_bounded ... ok
+test portfolio::tests::unexplained_balance_has_unknown_basis_and_excess_lots_are_not_trusted ... ok
+test settings::tests::invalid_timezone_save_leaves_previous_settings_untouched ... ok
+test settings::tests::old_settings_keep_language_privacy_and_intervals_when_console_is_added ... ok
+test settings::tests::restored_invalid_timezone_keeps_other_preferences_and_backup_data ... ok
+test settings::tests::timezone_save_accepts_iana_names_and_system_default ... ok
+test maintenance::tests::only_empty_wallets_can_be_removed_and_groups_survive ... ok
+test maintenance::tests::stale_removal_preview_is_rejected_and_other_accounts_survive ... ok
+test maintenance::tests::quota_updates_preserve_usage_and_reject_zero_or_above_default ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.44s
+
+     Running tests/acceptance_fixture.rs (target/debug/deps/acceptance_fixture-4519f37be47d3401)
+
+running 1 test
+test windows_fixture_has_hand_computed_owned_transfer_and_group_totals ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/accounting.rs (target/debug/deps/accounting-ee3a958d7c960f30)
+
+running 23 tests
+test chain_position_orders_a_receipt_before_a_same_second_sale ... ok
+test activity_rows_carry_historical_value_and_review_state ... ok
+test cooccurrence_without_matching_payment_edges_never_moves_owned_basis ... ok
+test csv_import_previews_validates_and_commits_transactionally ... ok
+test first_event_keeps_long_and_custom_charts_bounded ... ok
+test csv_opening_lot_replaces_history_before_its_cutoff ... ok
+test custom_dates_have_exact_endpoints_and_filters_cover_only_the_selected_account ... ok
+test group_scope_counts_transfers_as_flows_but_portfolio_does_not ... ok
+test historical_chart_uses_historical_quantity_not_todays ... ok
+test first_event_respects_chart_boundaries_and_missing_prices ... ok
+test hidden_assets_keep_totals_but_accounting_exclusion_is_reversible ... ok
+test invalid_decisions_are_rejected ... ok
+test movement_identity_survives_reordering_and_never_recycles ... ok
+test manual_pairing_moves_basis_and_expenses_the_difference ... ok
+test overrides_are_versioned_and_the_original_observation_is_kept ... ok
+test overspending_and_balance_mismatch_become_reconciliation_items ... ok
+test own_transfer_preserves_acquisition_date_and_lineage ... ok
+test replay_is_deterministic_and_reingestion_has_no_economic_effect ... ok
+test reviewed_history_produces_the_hand_computed_figures ... ok
+test swap_assigns_one_gross_value_to_both_sides ... ok
+test unreviewed_history_keeps_basis_unknown_and_lists_review_items ... ok
+test unclassified_outflow_makes_period_return_unavailable ... ok
+test demo_profile_shows_known_estimated_and_missing_basis ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.69s
+
+     Running tests/recovery.rs (target/debug/deps/recovery-7d098802101735e4)
+
+running 3 tests
+test corrupt_future_and_wrong_profile_backups_cannot_replace_data ... ok
+test backup_round_trip_is_atomic_and_preserves_a_safety_snapshot ... ok
+test recovery_preserves_basis_audit_groups_preferences_and_exact_csv ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.18s
+
+     Running tests/store.rs (target/debug/deps/store-2ffad11c60047f10)
+
+running 13 tests
+test accounts_are_unique_per_network_and_canonical_address ... ok
+test address_batches_validate_all_rows_and_commit_atomically ... ok
+test demo_data_is_refused_outside_the_demo_profile ... ok
+test empty_portfolio_reports_value_unavailable_not_zero ... ok
+test file_database_reopens_and_guards_profile_and_schema ... ok
+test ingest::changed_decimals_are_a_conflict_not_a_silent_rescale ... ok
+test ingest::newest_live_tick_values_holdings ... ok
+test ingest::reingest_replaces_legs_and_never_downgrades_status ... ok
+test overlapping_groups_resolve_to_a_deduplicated_union ... ok
+test settings_round_trip_and_validate ... ok
+test demo_profile_exercises_required_states ... ok
+test activity_pages_do_not_overlap ... ok
+test demo_chart_has_bounded_points_and_no_backward_extrapolation ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s
+
+     Running tests/view_cache.rs (target/debug/deps/view_cache-2a0811188d387732)
+
+running 2 tests
+test uncommitted_prices_do_not_pollute_cached_values ... ok
+test committed_updates_from_clones_external_writers_and_restore_refresh_views ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running unittests examples/performance.rs (target/debug/examples/performance-9d3d6d16575febfb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+=== Frontend component and formatting tests ===
+> npx vitest run
+
+ RUN  v5.0.3 /workspace/CoinControl
+
+
+ Test Files  11 passed (11)
+      Tests  58 passed (58)
+   Start at  09:10:58
+   Duration  10.32s (tests 53%, environment 35%, setup 4%, transform 4%, import 4%)
+
+Environment  jsdom was created 11 times · 6.80s total, 35% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
+
+Summary
+  PASS  Rust domain, accounting and storage tests (exit 0)
+  PASS  Frontend component and formatting tests (exit 0)
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

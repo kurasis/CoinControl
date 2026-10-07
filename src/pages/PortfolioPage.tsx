@@ -213,7 +213,7 @@ export function PortfolioView({ scope }: { scope: Scope }) {
         </button>
       </form>
       <PortfolioChart
-        enabled={!summary.isPending}
+        enabled={deferredReady}
         scope={scope}
         range={range}
         window={window}
