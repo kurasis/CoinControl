@@ -15,8 +15,14 @@ import { SyncButton } from "./WalletsPage";
 export function AccountPage() {
   const { id = "" } = useParams();
   const { t } = useTranslation();
-  const { privacy, locale, timeZone, setScope } = useApp();
-  useEffect(() => setScope({ kind: "accounts", ids: [id] }), [id, setScope]);
+  const { privacy, locale, timeZone, scope, profile } = useApp();
+  useEffect(() => {
+    if (profile !== "real") return;
+    void api.setSyncScope({ kind: "accounts", ids: [id] }).catch(() => {});
+    return () => {
+      void api.setSyncScope(scope).catch(() => {});
+    };
+  }, [id, scope, profile]);
   const wallets = useQuery({ queryKey: ["wallets"], queryFn: api.listWallets });
   const coverage = useQuery({
     queryKey: ["account-coverage", id],

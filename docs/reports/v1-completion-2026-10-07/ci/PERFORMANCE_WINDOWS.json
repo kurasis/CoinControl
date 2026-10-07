@@ -1,0 +1,73 @@
+{
+  "arch": "x86_64",
+  "build_mode": "release",
+  "cached_open_and_summary_ms": 453.5302,
+  "dataset": {
+    "accounts": 50,
+    "activity_legs": 100000,
+    "assets": 500
+  },
+  "fixture_load_ms": 4755.4162,
+  "limits": [
+    "Fixture load is direct normalized SQL, not 100000 provider requests or CSV rows.",
+    "Startup measures store reopen plus first summary; native process/render startup is separate.",
+    "Cancellation is measured by native synchronization scenarios, not this store harness.",
+    "No network requests; synthetic account addresses are never queried."
+  ],
+  "logical_cpus": 4,
+  "mode": "offline-store-load",
+  "os": "windows",
+  "overlap_ingest": {
+    "ms": 4579.9755,
+    "transactions": 1000
+  },
+  "peak_process_memory_bytes": 404017152,
+  "queries": {
+    "account": {
+      "first_ms": 13.7945,
+      "max_ms": 13.7945,
+      "p50_ms": 0.1596,
+      "p95_ms": 0.2222,
+      "samples": 25
+    },
+    "activity": {
+      "first_ms": 15.1214,
+      "max_ms": 15.5219,
+      "p50_ms": 13.153,
+      "p95_ms": 15.1214,
+      "samples": 25
+    },
+    "chart": {
+      "first_ms": 442.8118,
+      "max_ms": 442.8118,
+      "p50_ms": 0.1682,
+      "p95_ms": 0.2266,
+      "samples": 25
+    },
+    "holdings": {
+      "first_ms": 408.0331,
+      "max_ms": 408.0331,
+      "p50_ms": 1.3822999999999999,
+      "p95_ms": 2.2999,
+      "samples": 25
+    },
+    "summary": {
+      "first_ms": 0.15919999999999998,
+      "max_ms": 0.2235,
+      "p50_ms": 0.1379,
+      "p95_ms": 0.1932,
+      "samples": 25
+    }
+  },
+  "query_p95_target_ms": 300,
+  "replay_ms": 30001.549600000002,
+  "result": "PASS",
+  "at": "2026-10-07T08:21:22.580Z",
+  "commit": "64e29e3b412e55bee29fa1207b57cc061ea2027d",
+  "hardware": {
+    "cpu": "AMD EPYC 7763 64-Core Processor                ",
+    "logicalCpus": 4,
+    "totalMemoryBytes": 17174360064,
+    "osVersion": "10.0.26100"
+  }
+}

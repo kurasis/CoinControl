@@ -270,8 +270,8 @@ Portfolio Desk never ships with keys. Each user supplies their own:
 4. **Remove** deletes the key from the credential store.
 
 Sources that need no key (Blockstream Esplora, DefiLlama) show "No key needed".
-TonAPI works without a key at a slower rate. Optional sources that this build
-does not use (Ankr) says so on its card. Helius and Alchemy are active alternatives when configured.
+TonAPI works without a key at a slower rate. Ankr is optional and unused, as shown
+on its card. Helius and Alchemy are active alternatives when configured.
 
 ### Keys for live tests
 

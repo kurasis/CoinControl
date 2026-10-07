@@ -30,7 +30,7 @@ Windows acceptance.
 ## Local verification
 
 Baseline: static checks, build and offline tests passed with 178 deterministic Rust
-and 52 frontend cases. Final: **195 deterministic Rust / 56 frontend cases PASS**;
+and 52 frontend cases. Final: **195 deterministic Rust / 57 frontend cases PASS**;
 18 opt-in live functions return without external access in offline mode and are
 not counted as live passes. All-feature Clippy (warnings denied), TypeScript,
 ESLint, Prettier, rustfmt, generated bindings (71 DTO exports), production frontend
@@ -76,3 +76,42 @@ Keep these failures visible; do not repeat unchanged authentication tests.
 
 GitHub Actions secrets are CI-only; production builds never embed or read them.
 Never send actual keys in chat. macOS/iOS are migration targets, not tested V1 platforms.
+
+## Delivery provenance
+
+Implementation [PR #27](https://github.com/kurasis/CoinControl/pull/27) is merged.
+Application source is `64e29e3b412e55bee29fa1207b57cc061ea2027d`;
+[main push CI 37592895467](https://github.com/kurasis/CoinControl/actions/runs/37592895467)
+validates exactly that source. The earlier branch run 37592868913 was cancelled
+after merge to avoid duplicate live work, but completed partial reads before
+cancellation ([actual usage](ci/CANCELLED_PR_LIVE_USAGE.json)); these requests are
+additional to the main run and are not presented as a completed acceptance pass.
+No unchanged failed run is retried in isolation; each corrected application source
+receives its own bounded CI verification with known external failures preserved.
+
+## Initial Windows/live failures and corrections
+
+Initial main CI 37592895467 passed Linux/offline/browser and both load harnesses,
+but failed native review navigation and the pinned 0.1.0 fixture launch. Native
+account drill-down accidentally changed the global portfolio scope, leaving review
+empty while the selector displayed all wallets. Account/wallet detail now supply
+only the active polling scope and restore it on leave; the user's portfolio scope
+is preserved. The new regression passes corrected behavior and **rejects the old
+implementation** ([negative control](SCOPE_NEGATIVE_CONTROL.txt)). Initial native
+report and [inspected failure screenshot](ci/initial/NATIVE_FAILURE.png) remain.
+
+The production upgrade fixture failed before updating the new app. Its initializer
+now starts in the installation directory and polls the old profile for at most 30 s
+before the existing 8 s replay settling wait. This setup readiness is distinct from
+the **unchanged 2000 ms current-production startup gate**. No failed check is relabelled
+as passed; [initial installer report](ci/initial/INSTALLER_REPORT.json) remains.
+
+Initial live results were 14 passing / 4 failing suites. New Solana and TON finality
+checks passed. A new PublicNode check assumed an old historical receipt was available;
+its missing result caused a test panic. It now samples an actual current finalized
+Ethereum block and verifies that receipt's canonical block through the product
+validator, keeping the same Final assertion and bounded shared budget. Known-amount
+historical Ethereum checks remain independently enforced by Alchemy/Zerion. The
+[initial live report](ci/initial-live/LIVE_REPORT.md) is preserved; corrected-source
+results are recorded separately. Alchemy 403, Chainstack 401 and dRPC BNB 429 were
+unchanged external failures in the initial run.
