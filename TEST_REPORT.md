@@ -1,5 +1,15 @@
 # Verification report — 2026-10-07
 
+## Token logos and Windows 11 follow-up (development 0.1.8)
+
+[Implementation and verification scope](docs/reports/token-icons-2026-10-07/README.md).
+Bounded sanitized PNG cache and monogram fallback are implemented. A separate
+`windows-11-arm` job installs the inspected production x64 artifact and runs
+native startup/UI/import checks under emulation; results are pending CI.
+Windows 11 on Intel/AMD is not established by either hosted Windows Server or ARM64.
+The immutable 0.1.7 download and historical evidence remain below until 0.1.8
+publication is verified.
+
 ## Updated provider access — 2026-10-07
 
 After the owner updated Alchemy/Chainstack credentials, targeted real access
@@ -13,8 +23,8 @@ required token coverage. API-only jobs skip native/build checks; the published
 0.1.7 payload and its historical Windows evidence below are unchanged.
 
 [Exact new reports and remaining tasks](docs/reports/provider-access-2026-10-07/README.md):
-implement bounded sanitized raster token-icon caching (currently monograms only)
-and complete physical Windows 11 acceptance. These open requirements prevent a
+at that revalidation, token-icon caching and Windows 11 acceptance were still
+open. The 0.1.8 follow-up above implements the cache and adds an ARM64 test job. These open requirements prevent a
 claim of complete original-specification acceptance. Historical credential errors
 below describe their original source/run, not current access.
 

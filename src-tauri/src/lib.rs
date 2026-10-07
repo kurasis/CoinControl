@@ -24,6 +24,7 @@ use secrets::{OsSecretStore, SecretStore};
 pub struct AppState {
     store: Arc<RwLock<Store>>,
     profiles_dir: PathBuf,
+    icons: portfolio_providers::icons::IconCache,
     secrets: Arc<dyn SecretStore>,
     sync: Arc<sync::SyncState>,
 }
@@ -156,6 +157,10 @@ pub fn run() {
                 store,
                 profiles_dir,
                 secrets: Arc::new(OsSecretStore::default()),
+                icons: portfolio_providers::icons::IconCache::new(
+                    data_dir.join("cache/token-icons"),
+                    sync_state.network_log.clone(),
+                ),
                 sync: sync_state,
             });
             tauri::WebviewWindowBuilder::from_config(app, &main_window_config)?.build()?;
@@ -194,6 +199,7 @@ pub fn run() {
             commands::get_chart,
             commands::list_activity,
             commands::get_asset_detail,
+            commands::get_asset_icon,
             commands::get_asset_chart,
             commands::list_review_items,
             commands::get_leg_detail,

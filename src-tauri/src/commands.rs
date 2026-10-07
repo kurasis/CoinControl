@@ -671,6 +671,11 @@ pub async fn remove_account(
 pub async fn clear_caches(state: State<'_, AppState>) -> CommandResult<()> {
     let _guard = state.sync.run_lock.lock().await;
     state.store().await.clear_caches().await?;
+    state
+        .icons
+        .clear()
+        .await
+        .map_err(|_| CommandError::new("cache", "Could not clear token icon cache."))?;
     Ok(())
 }
 #[tauri::command]
@@ -810,4 +815,20 @@ pub fn cancel_sync_job(state: State<'_, AppState>, id: String) -> CommandResult<
         return Err(CommandError::new("not_found", "Job no longer available."));
     }
     Ok(())
+}
+
+#[tauri::command]
+pub async fn get_asset_icon(
+    state: State<'_, AppState>,
+    asset_id: String,
+) -> CommandResult<Option<String>> {
+    let Some(asset) = state
+        .store()
+        .await
+        .asset_spec(&asset_id, "token-icons")
+        .await?
+    else {
+        return Ok(None);
+    };
+    Ok(state.icons.get(&asset).await)
 }

@@ -13,6 +13,7 @@ pub mod esplora;
 pub mod finality;
 pub mod helius;
 pub mod http;
+pub mod icons;
 pub mod livecoinwatch;
 pub mod mirrors;
 pub mod network_log;

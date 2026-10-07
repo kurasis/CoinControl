@@ -30,6 +30,7 @@
     "allow-get-chart",
     "allow-list-activity",
     "allow-get-asset-detail",
+    "allow-get-asset-icon",
     "allow-get-asset-chart",
     "allow-list-review-items",
     "allow-get-leg-detail",

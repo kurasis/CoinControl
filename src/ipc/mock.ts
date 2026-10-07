@@ -544,6 +544,8 @@ export async function mockInvoke(
 ): Promise<unknown> {
   await new Promise((r) => setTimeout(r, 30));
   switch (cmd) {
+    case "get_asset_icon":
+      return null;
     case "set_sync_scope":
     case "clear_caches":
       return null;

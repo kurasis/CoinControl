@@ -71,6 +71,7 @@ export function isCommandError(e: unknown): e is CommandError {
 }
 
 export const api = {
+  assetIcon: (assetId: string) => call<string | null>("get_asset_icon", { assetId }),
   cancelSyncJob: (id: string) => call<void>("cancel_sync_job", { id }),
   startRescan: (ids: string[]) =>
     call<import("./bindings/SyncJob").SyncJob>("start_rescan", { ids }),

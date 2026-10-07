@@ -985,6 +985,22 @@ try {
     await until(() => execute("return Boolean(document.querySelector('.balance'));"));
     await execute("document.querySelector('a[href^=\"#/assets/\"]').click();return true;");
     await until(() => execute("return Boolean(document.querySelector('.metrics'));"));
+    await until(
+      () =>
+        execute(
+          "return Boolean(document.querySelector('.asset-title .token-icon img, .page-title .token-icon img, .token-icon img'));",
+        ),
+      20000,
+    );
+    const iconSource = await execute(
+      "const image=document.querySelector('.token-icon img');return image?.complete&&image.naturalWidth===64&&image.naturalHeight===64&&image.src.startsWith('data:image/png;base64,');",
+    );
+    if (!iconSource) throw new Error("Native BTC icon was not a decoded sanitized 64x64 PNG");
+    record(
+      "Native canonical BTC logo rendered as sanitized PNG",
+      "PASS",
+      "Anonymous fixed catalog; no renderer HTTP request",
+    );
     await screenshot("live-bitcoin-asset");
     await route("/wallets");
     await execute("document.querySelector('a[href^=\"#/accounts/\"]').click();return true;");
@@ -1027,6 +1043,18 @@ try {
         throw new Error("Offline failure did not mark observations stale");
       await route("/");
       await until(async () => (await body()).toLowerCase().includes("stale"));
+      await execute("document.querySelector('a[href^=\"#/assets/\"]').click();return true;");
+      await until(() =>
+        execute(
+          "const image=document.querySelector('.token-icon img');return Boolean(image?.complete&&image.naturalWidth===64);",
+        ),
+      );
+      record(
+        "Native cached BTC logo remains available offline",
+        "PASS",
+        "No provider credential or balance changes",
+      );
+      await route("/");
       await screenshot("offline-cached-bitcoin");
     } finally {
       networkRule(true);

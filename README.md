@@ -36,6 +36,15 @@ returns. The separate
 **demo profile** uses synthetic data, is labeled as such, and never contacts a
 provider.
 
+## Token logos and Windows 11 follow-up (0.1.8)
+
+Optional logos use a fixed public catalog, validated network/contract identity
+and bounded normalized PNG cache. Missing/offline images retain a monogram.
+Settings → Clear caches also clears logos. No keys go to the logo catalog.
+A separate Windows 11 ARM64 CI job exercises the same production x64 installer
+under emulation; it does not establish Windows 11 Intel/AMD hardware acceptance.
+[Security limits and current evidence](docs/reports/token-icons-2026-10-07/README.md).
+
 ## Operations and synchronization (0.1.7)
 
 Wallets support inline rename and deletion of empty wallets. Accounts can move

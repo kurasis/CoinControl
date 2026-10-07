@@ -28,6 +28,7 @@ const COMMANDS: &[&str] = &[
     "get_chart",
     "list_activity",
     "get_asset_detail",
+    "get_asset_icon",
     "get_asset_chart",
     "list_review_items",
     "get_leg_detail",
