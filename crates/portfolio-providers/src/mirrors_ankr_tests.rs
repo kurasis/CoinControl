@@ -228,3 +228,161 @@ async fn transport_retries_count_separate_advanced_attempts_and_credits() {
     assert_eq!(budget.used(), 2);
     assert_eq!(budget.credits(), 1400);
 }
+
+#[tokio::test]
+async fn http_errors_never_echo_even_short_authenticated_tokens() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(
+            ResponseTemplate::new(400).set_body_json(json!({"message":"short-key rejected"})),
+        )
+        .mount(&server)
+        .await;
+    let api = Ankr::with_config(
+        Url::parse(&format!("{}/short-key", server.uri())).unwrap(),
+        Budget::limited(1),
+        config(),
+    )
+    .unwrap();
+    let error = match api.balances_page(NetworkId::Bsc, ADDRESS, None).await {
+        Err(error) => error,
+        Ok(_) => panic!("HTTP failure was accepted"),
+    };
+    assert!(matches!(error, ProviderError::Http { status: 400, .. }));
+    assert!(!error.to_string().contains("short-key"));
+    assert!(
+        !api.http()
+            .take_usage()
+            .last_error
+            .unwrap()
+            .contains("short-key")
+    );
+}
+
+#[tokio::test]
+async fn forbidden_node_network_does_not_poison_other_chains_or_advanced_api() {
+    use wiremock::matchers::path;
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/optimism/key"))
+        .respond_with(ResponseTemplate::new(403))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/bsc/key"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"jsonrpc":"2.0","id":1,"result":"0x38"})),
+        )
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/multichain/key"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"jsonrpc":"2.0","id":1,"result":{"assets":[]}})),
+        )
+        .mount(&server)
+        .await;
+    let budget = Budget::limited(3);
+    let http = HttpClient::new("ankr", config(), budget.clone(), HeaderMap::new()).unwrap();
+    let forbidden = Url::parse(&format!("{}/optimism/key", server.uri())).unwrap();
+    assert!(matches!(
+        rpc::call(&http, forbidden.clone(), "eth_chainId", json!([]), 0).await,
+        Err(ProviderError::NetworkForbidden { .. })
+    ));
+    assert!(
+        rpc::call(&http, forbidden, "eth_chainId", json!([]), 0)
+            .await
+            .is_err()
+    );
+    let bsc = Url::parse(&format!("{}/bsc/key", server.uri())).unwrap();
+    assert_eq!(
+        rpc::call(&http, bsc, "eth_chainId", json!([]), 0)
+            .await
+            .unwrap(),
+        json!("0x38")
+    );
+    let advanced = Ankr::with_config(
+        Url::parse(&format!("{}/multichain/key", server.uri())).unwrap(),
+        budget.clone(),
+        config(),
+    )
+    .unwrap();
+    advanced
+        .balances_page(NetworkId::Bsc, ADDRESS, None)
+        .await
+        .unwrap();
+    assert_eq!(budget.used(), 3);
+}
+
+#[tokio::test]
+async fn forbidden_invalid_credential_remains_an_authentication_failure() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(
+            ResponseTemplate::new(403)
+                .set_body_json(json!({"message":"Invalid API key short-key"})),
+        )
+        .mount(&server)
+        .await;
+    let api = Ankr::with_config(
+        Url::parse(&format!("{}/invalid-auth-key", server.uri())).unwrap(),
+        Budget::limited(1),
+        config(),
+    )
+    .unwrap();
+    let error = match api.balances_page(NetworkId::Bsc, ADDRESS, None).await {
+        Err(error) => error,
+        Ok(_) => panic!("Invalid key accepted"),
+    };
+    assert!(matches!(error, ProviderError::Auth { status: 403, .. }));
+    assert!(!error.to_string().contains("short-key"));
+}
+
+#[tokio::test]
+async fn an_oversized_server_page_is_locally_bounded_without_skipping_unseen_entries() {
+    let server = MockServer::start().await;
+    node(&server).await;
+    let assets: Vec<_> = (1..=201)
+        .map(|i| {
+            let mut a = token_page("", &format!("0x{i:040x}"))["assets"][0].clone();
+            a["balanceRawInteger"] = json!("9007199254740993");
+            a
+        })
+        .collect();
+    Mock::given(method("POST")).and(body_partial_json(json!({"method":"ankr_getAccountBalance"})))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"jsonrpc":"2.0","id":1,"result":{"assets":assets,"nextPageToken":"would-skip-unseen"}})))
+        .expect(1).mount(&server).await;
+    let budget = Budget::limited(10);
+    let api = reserve(&server, budget.clone(), true);
+    let h = api.snapshot(NetworkId::Bsc, ADDRESS, &[]).await.unwrap();
+    assert_eq!(h.assets.len(), 201); // Native Node balance plus 200 exact token entries.
+    assert!(
+        h.warnings
+            .iter()
+            .any(|w| w.contains("201 assets") && w.contains("limited to 200 tokens"))
+    );
+    assert_eq!(h.height, None);
+    assert_eq!(budget.used(), 4);
+}
+
+#[tokio::test]
+async fn advanced_response_bytes_are_bounded_even_when_pagination_is_ignored() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("x".repeat(2 * 1024 * 1024 + 1)))
+        .mount(&server)
+        .await;
+    let api = Ankr::with_config(
+        Url::parse(&format!("{}/oversized", server.uri())).unwrap(),
+        Budget::limited(1),
+        config(),
+    )
+    .unwrap();
+    assert!(matches!(
+        api.balances_page(NetworkId::Bsc, ADDRESS, None).await,
+        Err(ProviderError::TooLarge { .. })
+    ));
+}

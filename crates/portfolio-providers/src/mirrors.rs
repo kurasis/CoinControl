@@ -424,6 +424,11 @@ impl Reserve {
                     }
                 }
                 cursor = page.next;
+                if page.truncated {
+                    snapshot.warnings.push(format!("Ankr returned {} assets despite requested page size; discovery limited to {} tokens, unseen balances retained as stale", page.response_assets, ankr::PAGE_SIZE));
+                    cursor = None; // Do not skip unprocessed entries by following the server's cursor.
+                    break;
+                }
                 match &cursor {
                     None => break,
                     Some(c) if !seen_cursors.insert(c.clone()) => {

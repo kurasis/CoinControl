@@ -1776,6 +1776,12 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
                 "RATE_LIMITED",
                 e.to_string(),
             ),
+            Err(e @ ProviderError::NetworkForbidden { .. }) if provider == "ankr" => report
+                .limitation(
+                    &format!("{} Node access unavailable", n.as_str()),
+                    "PARTIAL",
+                    format!("{e}; independent balance mirror required, this source is not passed"),
+                ),
             Err(e) => report.check(
                 &format!("{} reserve access", n.as_str()),
                 false,
@@ -2042,6 +2048,16 @@ async fn live_reserve_routing_after_primary_budget_exhaustion() {
             }),
             "actual responding provider, independent checkpoint",
         );
+        if selected("ankr") && rep.provider.as_deref().is_some_and(|p| p != "ankr") {
+            report.check(
+                &format!("{}: independent Ankr balance mirror persisted", n.as_str()),
+                rep.error.is_none() && rep.balance_refreshed,
+                format!(
+                    "actual responding provider {:?} differs from Ankr",
+                    rep.provider
+                ),
+            );
+        }
         if n != NetworkId::Bitcoin {
             report.check(
                 &format!("{}: history remains partial", n.as_str()),
@@ -2173,7 +2189,12 @@ async fn live_ankr_advanced_balances() {
             Ok(page) => {
                 report.check(&format!("{} Advanced balances",n.as_str()),true,
                     format!("authenticated response; {} fungible token balances with exact raw integers and mainnet/wallet identities; history not claimed",page.tokens.len()));
-                if n == NetworkId::Ethereum
+                if page.truncated {
+                    report.limitation("Advanced response exceeded requested page size", "PARTIAL",
+                        format!("{} response assets; locally limited to {} exact token balances, remaining holdings not claimed fresh", page.response_assets, page.tokens.len()));
+                }
+                if !page.truncated
+                    && n == NetworkId::Ethereum
                     && let Some(cursor) = page.next
                 {
                     let second =

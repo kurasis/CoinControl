@@ -23,6 +23,7 @@ pub const NODE_INTERVAL: Duration = Duration::from_millis(34);
 pub const ADVANCED_INTERVAL: Duration = Duration::from_millis(2010);
 const METHOD: &str = "ankr_getAccountBalance";
 pub const PAGE_SIZE: usize = 200;
+const MAX_ADVANCED_BODY: usize = 2 * 1024 * 1024;
 
 pub fn chain(network: NetworkId) -> Option<&'static str> {
     Some(match network {
@@ -40,6 +41,8 @@ pub fn chain(network: NetworkId) -> Option<&'static str> {
 pub struct BalancePage {
     pub tokens: Vec<(AssetSpec, BigInt)>,
     pub next: Option<String>,
+    pub truncated: bool,
+    pub response_assets: usize,
 }
 
 pub struct Ankr {
@@ -63,8 +66,9 @@ impl Ankr {
     pub fn with_config(
         url: Url,
         budget: Arc<Budget>,
-        config: HttpConfig,
+        mut config: HttpConfig,
     ) -> Result<Self, ProviderError> {
+        config.max_body_bytes = config.max_body_bytes.min(MAX_ADVANCED_BODY);
         let http = HttpClient::new(PROVIDER, config, budget, Default::default())?;
         configure_pacing(&http, &url, true);
         Ok(Self { http, url })
@@ -119,50 +123,75 @@ fn parse_page(
 ) -> Result<BalancePage, ProviderError> {
     let invalid = || rpc::invalid(PROVIDER, METHOD, "invalid token balance evidence");
     let assets = value["assets"].as_array().ok_or_else(invalid)?;
-    if assets.len() > PAGE_SIZE {
-        return Err(invalid());
-    }
+    // Live Ethereum responses ignore the documented pageSize (1106 assets on
+    // 2026-10-07). Bound local work rather than failing an otherwise valid wallet.
+    // HTTP separately bounds response bytes; native balances come from Node RPC.
+    let native_count = assets
+        .iter()
+        .filter(|a| a["tokenType"].as_str() == Some("NATIVE"))
+        .count();
+    let truncated = assets.len().saturating_sub(native_count) > PAGE_SIZE;
     let mut tokens = Vec::new();
     let mut seen = BTreeSet::new();
-    for asset in assets {
-        if asset["blockchain"].as_str() != chain(network)
-            || asset["holderAddress"]
-                .as_str()
-                .map(str::to_ascii_lowercase)
-                .as_deref()
-                != Some(address)
+    for asset in assets
+        .iter()
+        .filter(|a| a["tokenType"].as_str() != Some("NATIVE"))
+        .take(PAGE_SIZE)
+    {
+        if asset["blockchain"].as_str() != chain(network) {
+            return Err(rpc::invalid(PROVIDER, METHOD, "unexpected balance mainnet"));
+        }
+        if asset["holderAddress"]
+            .as_str()
+            .map(str::to_ascii_lowercase)
+            .as_deref()
+            != Some(address)
         {
-            return Err(invalid());
+            return Err(rpc::invalid(PROVIDER, METHOD, "unexpected balance holder"));
         }
         match asset["tokenType"].as_str() {
-            Some("NATIVE") => continue, // Native balance is independently obtained from Node RPC.
             Some("ERC20") => {}
-            _ => return Err(invalid()),
+            _ => {
+                return Err(rpc::invalid(
+                    PROVIDER,
+                    METHOD,
+                    "unsupported balance token type",
+                ));
+            }
         }
         let contract = normalize_address(
             network,
             asset["contractAddress"].as_str().ok_or_else(invalid)?,
         )
-        .map_err(|_| invalid())?
+        .map_err(|_| rpc::invalid(PROVIDER, METHOD, "invalid token contract"))?
         .canonical;
         if network == NetworkId::Polygon && contract == "0x0000000000000000000000000000000000001010"
         {
             continue;
         }
         if !seen.insert(contract.clone()) {
-            return Err(invalid());
+            return Err(rpc::invalid(
+                PROVIDER,
+                METHOD,
+                "duplicate token identity in page",
+            ));
         }
         let decimals = asset["tokenDecimals"]
             .as_u64()
             .filter(|d| *d <= 255)
-            .ok_or_else(invalid)? as u32;
+            .ok_or_else(|| rpc::invalid(PROVIDER, METHOD, "invalid token decimals"))?
+            as u32;
         let raw = asset["balanceRawInteger"]
             .as_str()
             .filter(|s| !s.is_empty() && s.len() <= 78 && s.bytes().all(|b| b.is_ascii_digit()))
             .ok_or_else(invalid)?;
         let raw = raw.parse::<BigInt>().map_err(|_| invalid())?;
         if raw.bits() > 256 {
-            return Err(invalid());
+            return Err(rpc::invalid(
+                PROVIDER,
+                METHOD,
+                "raw token balance exceeds uint256",
+            ));
         }
         tokens.push((
             AssetSpec {
@@ -183,7 +212,12 @@ fn parse_page(
         Some(Value::String(s)) if s.len() <= 4096 => Some(s.clone()),
         _ => return Err(invalid()),
     };
-    Ok(BalancePage { tokens, next })
+    Ok(BalancePage {
+        tokens,
+        next,
+        truncated,
+        response_assets: assets.len(),
+    })
 }
 
 // Preserve spacing when a synchronization or connection probe rebuilds its
@@ -291,6 +325,32 @@ mod tests {
                 .tokens
                 .is_empty()
         );
+    }
+    #[test]
+    fn a_separately_included_native_coin_does_not_reduce_the_token_page_limit() {
+        let mut assets: Vec<_> = (0..PAGE_SIZE)
+            .map(|i| {
+                let mut a = asset();
+                a["contractAddress"] = json!(format!("0x{:040x}", i + 1));
+                a
+            })
+            .collect();
+        let mut native = asset();
+        native["tokenType"] = json!("NATIVE");
+        assets.insert(0, native);
+        assert_eq!(
+            parse_page(NetworkId::Bsc, WALLET, &json!({"assets":assets}))
+                .unwrap()
+                .tokens
+                .len(),
+            PAGE_SIZE
+        );
+        let mut extra = asset();
+        extra["contractAddress"] = json!(format!("0x{:040x}", PAGE_SIZE + 1));
+        assets.push(extra);
+        let page = parse_page(NetworkId::Bsc, WALLET, &json!({"assets":assets})).unwrap();
+        assert_eq!(page.tokens.len(), PAGE_SIZE);
+        assert!(page.truncated);
     }
     #[test]
     fn shipped_intervals_bound_rolling_windows_without_bursts() {

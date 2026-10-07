@@ -296,7 +296,7 @@ impl HttpClient {
         let origin = url.origin().ascii_serialization();
         match self.provider {
             "publicnode" => format!("{origin}/{endpoint}"),
-            "drpc" => format!(
+            "drpc" | "ankr" => format!(
                 "{origin}/{}/{endpoint}",
                 url.path_segments().and_then(|mut p| p.next()).unwrap_or("")
             ),
@@ -551,6 +551,7 @@ impl HttpClient {
             provider,
             "helius"
                 | "alchemy"
+                | "ankr"
                 | "drpc"
                 | "publicnode"
                 | "chainstack"
@@ -562,6 +563,12 @@ impl HttpClient {
         } else {
             provider_message(&bytes)
         };
+        let ankr_bad_key = provider == "ankr" && {
+            let message = provider_message(&bytes).to_ascii_lowercase();
+            message.contains("invalid api key")
+                || message.contains("invalid token")
+                || message.contains("unauthorized")
+        };
         let error = match status {
             StatusCode::PAYMENT_REQUIRED => {
                 ProviderError::CapabilityUnavailable { provider, endpoint }
@@ -569,7 +576,14 @@ impl HttpClient {
             StatusCode::BAD_REQUEST if provider == "drpc" => {
                 ProviderError::CapabilityUnavailable { provider, endpoint }
             }
-            StatusCode::FORBIDDEN if matches!(provider, "alchemy" | "publicnode" | "drpc") => {
+            StatusCode::FORBIDDEN if ankr_bad_key => ProviderError::Auth {
+                provider,
+                endpoint,
+                status: 403,
+            },
+            StatusCode::FORBIDDEN
+                if matches!(provider, "alchemy" | "publicnode" | "drpc" | "ankr") =>
+            {
                 ProviderError::NetworkForbidden { provider, endpoint }
             }
             StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => ProviderError::Auth {

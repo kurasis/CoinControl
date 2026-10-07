@@ -107,7 +107,18 @@ async fn call_once(
                 endpoint: method,
                 code,
             }
-        } else if code == 403 && provider == "alchemy" {
+        } else if provider == "ankr"
+            && (code == 401
+                || (code == 403
+                    && msg.contains("invalid")
+                    && (msg.contains("key") || msg.contains("token"))))
+        {
+            ProviderError::Auth {
+                provider,
+                endpoint: method,
+                status: code as u16,
+            }
+        } else if code == 403 && matches!(provider, "alchemy" | "ankr") {
             ProviderError::NetworkForbidden {
                 provider,
                 endpoint: method,
