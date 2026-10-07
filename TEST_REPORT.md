@@ -11,7 +11,14 @@ successful earlier release-specific evidence below.
 
 The four owner-approved chart/timezone/Rust/Actions improvements and their
 [follow-up verification](docs/reports/chart-timezone-actions-2026-10-07/README.md)
-are recorded separately. The published ZIP remains the exact previous source.
+are delivered in [PR #25](https://github.com/kurasis/CoinControl/pull/25).
+Exact code `cc2215edb3ef13899dc2e6a230efceae96decfc5`, full manual
+[CI 37583312836](https://github.com/kurasis/CoinControl/actions/runs/37583312836):
+six application/build jobs PASS; 12 production native checks PASS, first normal
+useful screen 1456.70 ms within the unchanged 2000 ms gate. Live still has 15
+passing suites and 3 failures (Alchemy 403, Chainstack 401, dRPC BNB 429).
+The old startup failure remains recorded. The published ZIP retains its exact
+previous source; publishing workflow was not invoked in this code task.
 
 ## Published 0.1.6 verification
 
