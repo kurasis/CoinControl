@@ -1,0 +1,2 @@
+PASS both native retention queries compile against schema 7 (all seven migrations)
+PASS old movement_legs queries fail against the same schema

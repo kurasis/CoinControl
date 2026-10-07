@@ -67,22 +67,28 @@ export function PortfolioView({ scope }: { scope: Scope }) {
     queryKey: ["summary", scope],
     queryFn: () => api.portfolioSummary(scope),
   });
+  // Present the cached balance/navigation before optional tables and chart work
+  // can compete with the first two frames. Keep the useful-paint criterion intact.
+  const painted = useFirstUsefulPaint(
+    summary.data !== undefined && settings !== undefined && profile !== undefined,
+  );
+  const deferredReady = painted || summary.isError;
   const policies = useQuery({ queryKey: ["asset-policies"], queryFn: api.listAssetPolicies });
   const [showHidden, setShowHidden] = useViewState("assets:hidden", false);
   const holdings = useQuery({
     queryKey: ["holdings", scope],
     queryFn: () => api.listHoldings(scope),
-    enabled: !summary.isPending,
+    enabled: deferredReady,
   });
   const activity = useQuery({
     queryKey: ["activity", scope, "preview"],
     queryFn: () => api.listActivity(scope, null, 5),
+    enabled: deferredReady,
   });
   // Let the cached balance finish before competing lot/chart computations.
-  const chart = useQuery({ ...chartQuery(scope, range, window), enabled: !summary.isPending });
+  const chart = useQuery({ ...chartQuery(scope, range, window), enabled: deferredReady });
   const s = summary.data;
   const a = s?.accounting;
-  useFirstUsefulPaint(s !== undefined && settings !== undefined && profile !== undefined);
 
   return (
     <>

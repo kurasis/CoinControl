@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import { Suspense, useLayoutEffect, useRef, type ReactNode } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -79,7 +79,15 @@ export function Layout() {
         </div>
       </aside>
       <main className="main">
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className="content" role="status">
+              {t("ops.working")}
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   );

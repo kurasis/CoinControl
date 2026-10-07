@@ -1,26 +1,31 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 /** Data-ready frame timing only; the mark contains no portfolio values. */
 export function useFirstUsefulPaint(ready: boolean) {
-  useEffect(() => {
-    if (
-      !ready ||
-      typeof performance.mark !== "function" ||
-      typeof performance.getEntriesByName !== "function" ||
+  const [painted, setPainted] = useState(
+    () =>
       typeof requestAnimationFrame !== "function" ||
-      performance.getEntriesByName("portfolio-first-useful").length
-    )
-      return;
-    let painted = 0;
+      (typeof performance.getEntriesByName === "function" &&
+        performance.getEntriesByName("portfolio-first-useful").length > 0),
+  );
+  useEffect(() => {
+    if (!ready || painted || typeof requestAnimationFrame !== "function") return;
+    let secondFrame = 0;
     const frame = requestAnimationFrame(() => {
-      painted = requestAnimationFrame(() => {
-        if (!performance.getEntriesByName("portfolio-first-useful").length)
+      secondFrame = requestAnimationFrame(() => {
+        if (
+          typeof performance.mark === "function" &&
+          typeof performance.getEntriesByName === "function" &&
+          !performance.getEntriesByName("portfolio-first-useful").length
+        )
           performance.mark("portfolio-first-useful");
+        setPainted(true);
       });
     });
     return () => {
       cancelAnimationFrame(frame);
-      cancelAnimationFrame(painted);
+      cancelAnimationFrame(secondFrame);
     };
-  }, [ready]);
+  }, [ready, painted]);
+  return ready && painted;
 }
