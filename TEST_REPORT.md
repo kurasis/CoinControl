@@ -1,5 +1,23 @@
 # Verification report — 2026-10-07
 
+## Updated provider access — 2026-10-07
+
+After the owner updated Alchemy/Chainstack credentials, targeted real access
+[CI 37606760853](https://github.com/kurasis/CoinControl/actions/runs/37606760853)
+passed, followed by the complete API-only
+[CI 37607032943](https://github.com/kurasis/CoinControl/actions/runs/37607032943):
+**18 suites PASS / 0 FAIL**. Alchemy Ethereum/Base/Arbitrum/Optimism/Polygon and
+Chainstack native SOL access now pass. Chainstack `getTokenAccountsByOwner` still
+returns 403: SPL discovery is explicitly partial, with Helius/Zerion supplying
+required token coverage. API-only jobs skip native/build checks; the published
+0.1.7 payload and its historical Windows evidence below are unchanged.
+
+[Exact new reports and remaining tasks](docs/reports/provider-access-2026-10-07/README.md):
+implement bounded sanitized raster token-icon caching (currently monograms only)
+and complete physical Windows 11 acceptance. These open requirements prevent a
+claim of complete original-specification acceptance. Historical credential errors
+below describe their original source/run, not current access.
+
 ## Published 0.1.7 specification completion
 
 [Download Windows x64 ZIP](https://github.com/kurasis/CoinControl/releases/download/v0.1.7/CoinControl-0.1.7-windows-x64.zip) · [Requirement mapping, all evidence and configuration steps](docs/reports/v1-completion-2026-10-07/README.md).
