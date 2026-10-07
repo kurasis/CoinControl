@@ -2,6 +2,8 @@
 
 ## Free-plan throttling follow-up (0.1.9)
 
+[Download Windows x64 ZIP](https://github.com/kurasis/CoinControl/releases/download/v0.1.9/CoinControl-0.1.9-windows-x64.zip).
+
 Chainstack Developer owner scans are officially paid-only, not a bad credential.
 The adapter now uses native SOL/finality only and tries an independent token
 mirror without requiring an upgrade. The existing Alchemy key adds a standard
@@ -32,6 +34,15 @@ The preceding source's Server first launch (2308 ms) and Windows 11 ARM64
 x64 emulation (2915.5 ms) both exceeded the unchanged 2000 ms gate. That
 candidate was not published; failures and cancelled-run API usage are preserved.
 Historical 0.1.8 quota/plan failures below remain unchanged.
+
+[Publisher 37639630437](https://github.com/kurasis/CoinControl/actions/runs/37639630437)
+PASS; redownload CRC, exact four files, internal/external SHA-256,
+source/run/version and tested installer/payload/report matches PASS.
+SHA-256 `7f6e4f80fc13b211c79c48ab18788f27a72d78926be1ebd6aef6187b54c5dac6`
+(8477871 bytes). [Manifest](docs/reports/free-plan-failover-2026-10-07/BUILD_INFO.json)
+· [Verification](docs/reports/free-plan-failover-2026-10-07/PUBLISHED_ZIP_VERIFICATION.json).
+Unsigned prerelease, `fullReleaseAcceptance: false`; the extra ARM64 failure
+and Windows 11 Intel/AMD acceptance remain separate limitations.
 
 ## Published token logos and startup correction (0.1.8)
 
