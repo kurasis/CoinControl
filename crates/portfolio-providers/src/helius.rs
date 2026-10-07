@@ -137,7 +137,16 @@ impl Helius {
         let mut assets = BTreeMap::<String, (AssetSpec, BigInt)>::new();
         let mut complete = true;
         let mut warnings = Vec::new();
-        for program in [TOKEN_PROGRAM, TOKEN_2022] {
+        // Chainstack Developer cannot scan token owners. Do not spend a request
+        // on a paid method or turn its plan restriction into a credential error.
+        let programs = if allow_partial && self.http.provider() == "chainstack" {
+            complete = false;
+            warnings.push("chainstack: free Solana plan supports native balance; SPL/Token-2022 discovery requires another source".into());
+            &[][..]
+        } else {
+            &[TOKEN_PROGRAM, TOKEN_2022][..]
+        };
+        for program in programs {
             const M: &str = "getTokenAccountsByOwner";
             let response = match rpc::call(&self.http,self.url.clone(),M,json!([address,{"programId":program},{"encoding":"jsonParsed","commitment":"finalized","minContextSlot":slot}]),1).await {
                 Ok(v)=>v,

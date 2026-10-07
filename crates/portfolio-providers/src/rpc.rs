@@ -3,6 +3,14 @@ use crate::{ProviderError, http::HttpClient};
 use serde_json::{Value, json};
 use url::Url;
 
+pub(crate) fn is_rate_limit(provider: &str, code: i64, message: &str) -> bool {
+    code == 429
+        || (code == -32005 && matches!(provider, "alchemy" | "chainstack" | "drpc"))
+        || message.contains("rate limit")
+        || message.contains("quota")
+        || message.contains("credits exceeded")
+}
+
 pub fn invalid(provider: &'static str, endpoint: &'static str, detail: &str) -> ProviderError {
     ProviderError::InvalidResponse {
         provider,
@@ -19,7 +27,15 @@ pub async fn call(
     cost: u32,
 ) -> Result<Value, ProviderError> {
     // Conservative local estimates for providers whose read methods have a credit cost.
-    let cost = if cost == 0 {
+    let cost = if http.provider() == "alchemy"
+        && matches!(
+            method,
+            "getGenesisHash" | "getBalance" | "getTokenAccountsByOwner"
+        ) {
+        // Deliberate conservative reserve, not the actual bill: token-owner
+        // scans currently cost 10 CU. Share estimates with the EVM credential.
+        100
+    } else if cost == 0 {
         match http.provider() {
             "drpc" => 100,
             "helius" if method == "getBlock" => 100,
@@ -71,12 +87,7 @@ async fn call_once(
             .and_then(Value::as_str)
             .unwrap_or("")
             .to_ascii_lowercase();
-        let error = if code == 429
-            || (code == -32005 && provider == "alchemy")
-            || msg.contains("rate limit")
-            || msg.contains("quota")
-            || msg.contains("credits exceeded")
-        {
+        let error = if is_rate_limit(provider, code, &msg) {
             ProviderError::RateLimited {
                 provider,
                 endpoint: method,

@@ -133,10 +133,11 @@ pub const PROVIDERS: &[ProviderSpec] = &[
             NetworkId::Arbitrum,
             NetworkId::Optimism,
             NetworkId::Polygon,
+            NetworkId::Solana,
         ],
         docs_url: "https://www.alchemy.com/docs",
         key_url: Some("https://dashboard.alchemy.com/"),
-        free_allowance: "30M compute units/month",
+        free_allowance: "30M compute units/month shared across EVM and optional Solana balance reserve; enable Solana mainnet on the key",
     },
     ProviderSpec {
         id: "mempool",
@@ -197,7 +198,7 @@ pub const PROVIDERS: &[ProviderSpec] = &[
         networks: &[NetworkId::Solana],
         docs_url: "https://docs.chainstack.com/docs/authentication-methods-for-different-scenarios",
         key_url: Some("https://console.chainstack.com/"),
-        free_allowance: "3M requests/month, 25 requests/sec, one node; node auth token or HTTPS endpoint",
+        free_allowance: "3M request units/month, Solana mainnet 5 requests/sec, one node; native SOL/finality only, no token-owner scans",
     },
     ProviderSpec {
         id: "toncenter",

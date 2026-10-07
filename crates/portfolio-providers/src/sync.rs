@@ -237,6 +237,9 @@ impl SyncEngine {
             .alchemy
             .take()
             .map(|a| a.with_metadata_store(store.clone()));
+        for client in providers.clients() {
+            client.prefer_rate_limit_failover();
+        }
         SyncEngine {
             retry_transient_now: false,
             progress_hook: None,
@@ -566,7 +569,10 @@ impl SyncEngine {
             fallback_reasons: Vec::new(),
             balance_only: false,
         };
+        let mut native_reserve = None;
+        let mut recoverable_last_attempt = false;
         for provider in self.candidates(account.network) {
+            recoverable_last_attempt = false;
             if self.is_cancelled() {
                 report.coverage = Coverage::Paused;
                 break;
@@ -587,15 +593,20 @@ impl SyncEngine {
                 Ok(Some(until)) if until > now => {
                     report.provider = Some(provider.into());
                     report.coverage = cp.coverage;
-                    report.error = cp
-                        .state
-                        .last_error
-                        .clone()
-                        .or_else(|| Some(format!("{provider}: temporarily paused")));
+                    report.error =
+                        if cp.coverage == Coverage::Paused && cp.state.last_error.is_none() {
+                            None
+                        } else {
+                            cp.state
+                                .last_error
+                                .clone()
+                                .or_else(|| Some(format!("{provider}: temporarily paused")))
+                        };
                     report.fallback_reasons.push(format!(
                         "{provider}: retry in {}s",
                         until.saturating_sub(now)
                     ));
+                    recoverable_last_attempt = true;
                     continue;
                 }
                 Err(e) => {
@@ -610,6 +621,10 @@ impl SyncEngine {
             cp.state.last_attempt_at = Some(now);
             cp.state.balance_only = false;
             let result = match provider {
+                alchemy::PROVIDER if account.network == NetworkId::Solana => {
+                    self.sync_reserve(account, provider, &mut cp, &mut report)
+                        .await
+                }
                 alchemy::PROVIDER => self.sync_alchemy(account, &mut cp, &mut report).await,
                 helius::PROVIDER => self.sync_helius(account, &mut cp, &mut report).await,
                 esplora::PROVIDER | "mempool" => {
@@ -675,6 +690,13 @@ impl SyncEngine {
                                 matches!(error, ProviderError::NetworkForbidden { .. })
                                     || !error.stops_provider();
                             report.fallback_reasons.push(e.to_string());
+                            if matches!(error, ProviderError::RateLimited { .. }) {
+                                // Throttling is an expected pause, not a failed
+                                // credential/data check. Another source still runs.
+                                cp.state.last_error = None;
+                                cp.coverage = Coverage::Paused;
+                                report.error = None;
+                            }
                         }
                     }
                 }
@@ -698,16 +720,42 @@ impl SyncEngine {
                 report.error = Some(e.to_string());
                 break;
             }
+            // Free Chainstack gives SOL, not owner-token scans. Keep its useful
+            // result while the next independent Solana source tries SPL balances.
+            if provider == "chainstack" && report.error.is_none() && report.balance_only {
+                native_reserve = Some((cp.clone(), report.clone()));
+                continue_fallback = true;
+            }
+            recoverable_last_attempt = continue_fallback;
             if !continue_fallback {
                 break;
+            }
+        }
+        if recoverable_last_attempt
+            && (report.error.is_some() || report.coverage == Coverage::Paused)
+            && !self.is_cancelled()
+            && let Some((mut cp, mut usable)) = native_reserve
+        {
+            // A later throttled/unavailable token mirror cannot erase observed
+            // SOL. Keep the failure as a coverage reason, not a failed balance sync.
+            usable.fallback_reasons = report.fallback_reasons;
+            cp.state.fallback_reasons = usable.fallback_reasons.clone();
+            report = usable;
+            if let Err(e) = self
+                .store
+                .save_checkpoint(&account.id, "chainstack", HISTORY, &cp)
+                .await
+            {
+                report.error = Some(e.to_string());
             }
         }
         if report.provider.is_none() && report.error.is_none() && !self.is_cancelled() {
             report.error =
                 Some("All account sources are temporarily paused; cached data is retained.".into());
         }
-        if report.error.is_some()
+        if (report.error.is_some() || report.coverage == Coverage::Paused)
             && !report.balance_refreshed
+            && !self.is_cancelled()
             && let Err(e) = self.store.mark_balances_stale(&account.id).await
         {
             report.error = Some(e.to_string());
@@ -1669,8 +1717,36 @@ impl SyncEngine {
 
     // ------------------------------------------------------------ prices
 
-    /// Refreshes quotes for every held, non-spam asset.
-    ///
+    async fn price_provider_paused(&self, provider: &str, errors: &mut Vec<String>) -> bool {
+        match self.store.provider_pause(provider).await {
+            Ok(until) => until.is_some_and(|t| t > self.store_now()),
+            Err(e) => {
+                errors.push(e.to_string());
+                true
+            }
+        }
+    }
+
+    async fn pause_price_source(&self, error: &ProviderError, errors: &mut Vec<String>) -> bool {
+        let ProviderError::RateLimited {
+            provider,
+            retry_after_secs,
+            ..
+        } = error
+        else {
+            return false;
+        };
+        let wait = retry_after_secs.unwrap_or(60).max(1).min(i64::MAX as u64) as i64;
+        if let Err(e) = self
+            .store
+            .pause_provider(provider, self.store_now().saturating_add(wait))
+            .await
+        {
+            errors.push(e.to_string());
+        }
+        true
+    }
+
     /// Native assets use Live Coin Watch with curated codes; without an LCW key
     /// they fall back to DefiLlama's verified CoinGecko identities. Tokens are
     /// priced only by contract identity through DefiLlama. An asset with no
@@ -1699,6 +1775,9 @@ impl SyncEngine {
         if let Some(lcw) = &self.providers.livecoinwatch
             && !natives.is_empty()
             && self.check_stopped(livecoinwatch::PROVIDER).is_ok()
+            && !self
+                .price_provider_paused(livecoinwatch::PROVIDER, &mut report.errors)
+                .await
         {
             let mut codes: Vec<&str> = natives.iter().map(|(_, c)| *c).collect();
             codes.sort_unstable();
@@ -1732,7 +1811,9 @@ impl SyncEngine {
                 }
                 Err(e) => {
                     self.observe(livecoinwatch::PROVIDER, &SyncError::Provider(e.clone()));
-                    report.errors.push(e.to_string());
+                    if !self.pause_price_source(&e, &mut report.errors).await {
+                        report.errors.push(e.to_string());
+                    }
                 }
             }
         }
@@ -1762,6 +1843,9 @@ impl SyncEngine {
         if let Some(llama) = &self.providers.defillama
             && !wanted.is_empty()
             && self.check_stopped(defillama::PROVIDER).is_ok()
+            && !self
+                .price_provider_paused(defillama::PROVIDER, &mut report.errors)
+                .await
         {
             let ids: Vec<String> = wanted.iter().map(|(_, c)| c.clone()).collect();
             match llama.current(&ids).await {
@@ -1833,7 +1917,9 @@ impl SyncEngine {
                 }
                 Err(e) => {
                     self.observe(defillama::PROVIDER, &SyncError::Provider(e.clone()));
-                    report.errors.push(e.to_string());
+                    if !self.pause_price_source(&e, &mut report.errors).await {
+                        report.errors.push(e.to_string());
+                    }
                 }
             }
         }
@@ -1904,6 +1990,9 @@ impl SyncEngine {
         while let Some((from, to)) = need_window(&need, today) {
             if report.requests >= self.options.max_price_history_requests
                 || self.check_stopped(defillama::PROVIDER).is_err()
+                || self
+                    .price_provider_paused(defillama::PROVIDER, &mut report.errors)
+                    .await
             {
                 report.pending_assets += 1;
                 return;
@@ -1959,6 +2048,10 @@ impl SyncEngine {
                 }
                 Err(e) => {
                     self.observe(defillama::PROVIDER, &SyncError::Provider(e.clone()));
+                    if self.pause_price_source(&e, &mut report.errors).await {
+                        report.pending_assets += 1;
+                        return;
+                    }
                     report.errors.push(e.to_string());
                     if !e.stops_provider() {
                         let _ = self

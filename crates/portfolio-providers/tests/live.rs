@@ -25,7 +25,7 @@ use portfolio_providers::livecoinwatch::{self, LiveCoinWatch};
 use portfolio_providers::tonapi::{self, TonApi};
 use portfolio_providers::trongrid::{self, TronGrid};
 use portfolio_providers::zerion::{self, Positions, Window, Zerion};
-use portfolio_providers::{Providers, SyncEngine, SyncOptions};
+use portfolio_providers::{ProviderError, Providers, SyncEngine, SyncOptions};
 use portfolio_providers::{alchemy::Alchemy, helius::Helius};
 use portfolio_store::ingest::{FeeAttribution, TxStatus};
 use portfolio_store::{ChartRange, Coverage, ProfileKind, Scope, Store};
@@ -156,6 +156,50 @@ impl Report {
         });
     }
 
+    fn limitation(&mut self, name: &str, result: &'static str, detail: impl Into<String>) {
+        self.checks.push(Check {
+            name: name.into(),
+            result,
+            detail: detail.into(),
+        });
+    }
+
+    fn finish_usage(self) {
+        let requests = budget_usage()
+            .iter()
+            .map(|(p, n)| n.saturating_sub(self.usage_start.get(*p).copied().unwrap_or(0)))
+            .sum();
+        self.finish(requests);
+    }
+
+    fn sync_holdings(&mut self, name: &str, rep: &portfolio_providers::sync::AccountSyncReport) {
+        self.check(
+            name,
+            rep.error.is_none() && rep.balance_refreshed,
+            format!(
+                "provider {:?}, coverage {:?}, balance-only {}, error {:?}; fallback reasons: {}",
+                rep.provider,
+                rep.coverage,
+                rep.balance_only,
+                rep.error,
+                rep.fallback_reasons.join("; ")
+            ),
+        );
+        if rep.balance_only {
+            self.limitation("Indexed history not refreshed", "PARTIAL",
+                "Independent balance mirror succeeded; historical acceptance is not established. Cached history remains intact.");
+        } else {
+            self.check(
+                "First indexed history page persisted",
+                rep.new_transactions > 0,
+                format!(
+                    "{} transactions in {} pages",
+                    rep.new_transactions, rep.pages_fetched
+                ),
+            );
+        }
+    }
+
     fn finish(mut self, requests: u32) {
         self.completed = true;
         self.requests = requests;
@@ -177,7 +221,7 @@ impl Report {
         let failed: Vec<_> = self
             .checks
             .iter()
-            .filter(|c| c.result != "PASS")
+            .filter(|c| !matches!(c.result, "PASS" | "RATE_LIMITED" | "PARTIAL"))
             .map(|c| c.name.clone())
             .collect();
         assert!(
@@ -185,6 +229,70 @@ impl Report {
             "{} failed checks: {failed:?}",
             self.provider
         );
+    }
+}
+
+// A source quota is an explicit limitation, never an authenticated-source pass.
+// scripts/test-live.mjs separately requires real mirror routing evidence.
+macro_rules! read_provider {
+    ($report:ident, $read:expr) => {{
+        match $read {
+            Ok(value) => value,
+            Err(e @ ProviderError::RateLimited { .. }) => {
+                $report.limitation(
+                    "Source throttled; remaining direct checks not run",
+                    "RATE_LIMITED",
+                    e.to_string(),
+                );
+                $report.finish_usage();
+                return;
+            }
+            Err(e) => {
+                $report.check("Provider read", false, e.to_string());
+                $report.finish_usage();
+                return;
+            }
+        }
+    }};
+}
+
+fn attach_live_mirrors(providers: &mut Providers) {
+    use portfolio_providers::mirrors::Reserve;
+    for (p, var) in [
+        ("blockscout", Some("BLOCKSCOUT_API_KEY")),
+        ("etherscan", Some("ETHERSCAN_API_KEY")),
+        ("drpc", Some("DRPC_API_KEY")),
+        ("chainstack", Some("CHAINSTACK_API_KEY")),
+        ("toncenter", Some("TONCENTER_API_KEY")),
+        ("publicnode", None),
+    ] {
+        if selected(p) {
+            providers.reserves.push(
+                Reserve::new(
+                    p,
+                    &var.map(|v| {
+                        if p == "toncenter" {
+                            std::env::var(v).unwrap_or_default()
+                        } else {
+                            key(v)
+                        }
+                    })
+                    .unwrap_or_default(),
+                    budget(p),
+                )
+                .unwrap(),
+            );
+        }
+    }
+    if selected("alchemy") {
+        providers.alchemy = Some(Alchemy::new(&key("ALCHEMY_API_KEY"), budget("alchemy")).unwrap());
+        providers.reserves.insert(
+            0,
+            Reserve::alchemy_solana(&key("ALCHEMY_API_KEY"), budget("alchemy")).unwrap(),
+        );
+    }
+    if selected("helius") {
+        providers.helius = Some(Helius::new(&key("HELIUS_API_KEY"), budget("helius")).unwrap());
     }
 }
 
@@ -238,7 +346,7 @@ async fn helius_live() {
     let mut r = Report::new("helius");
     let address = s(&t["solana"]["address"]);
     r.endpoint("getBalance/getTokenAccountsByOwner");
-    let holdings = api.holdings(address).await.unwrap();
+    let holdings = read_provider!(r, api.holdings(address).await);
     r.check(
         "SOL and SPL holdings",
         holdings
@@ -253,7 +361,7 @@ async fn helius_live() {
         ),
     );
     r.endpoint("getTransactionsForAddress");
-    let first = api.transactions(address, None).await.unwrap();
+    let first = read_provider!(r, api.transactions(address, None).await);
     r.check(
         "full related-account history",
         !first.txs.is_empty(),
@@ -263,7 +371,7 @@ async fn helius_live() {
         .next
         .as_deref()
         .expect("public target has multiple pages");
-    let second = api.transactions(address, Some(cursor)).await.unwrap();
+    let second = read_provider!(r, api.transactions(address, Some(cursor)).await);
     let hashes: BTreeSet<_> = first.txs.iter().map(|tx| &tx.hash).collect();
     r.check(
         "keyset pagination",
@@ -279,10 +387,11 @@ async fn helius_live() {
         format!("{} estimated credits; ceiling 5000", b.credits()),
     );
     let tx = first.txs.first().unwrap();
-    let validation = api
-        .validate_finality(&[(tx.hash.clone(), tx.block_height.unwrap())])
-        .await
-        .unwrap();
+    let validation = read_provider!(
+        r,
+        api.validate_finality(&[(tx.hash.clone(), tx.block_height.unwrap())])
+            .await
+    );
     r.endpoint("getSlot/getSignatureStatuses");
     r.check(
         "canonical finalized Solana signature",
@@ -308,15 +417,16 @@ async fn alchemy_live() {
     let address = s(&t["ethereum"]["address"]);
     r.endpoint("eth_getTransactionReceipt/eth_getTransactionByHash");
     let known = &t["ethereum"]["known_transactions"][0];
-    let tx = api
-        .transaction(
+    let tx = read_provider!(
+        r,
+        api.transaction(
             NetworkId::Ethereum,
             &address.to_ascii_lowercase(),
             s(&known["hash"]),
             parse_rfc3339(s(&known["mined_at"])).unwrap(),
         )
         .await
-        .unwrap();
+    );
     r.check(
         "known native payment and exact fee",
         tx.legs.iter().any(|l| {
@@ -328,14 +438,15 @@ async fn alchemy_live() {
         "independent known 79 ETH principal; exact sender receipt fee",
     );
     r.endpoint("alchemy_getTokenBalances/alchemy_getTokenMetadata");
-    let (usdc, raw) = api
-        .token_balance(
+    let (usdc, raw) = read_provider!(
+        r,
+        api.token_balance(
             NetworkId::Ethereum,
             address,
             "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
         )
         .await
-        .unwrap();
+    );
     r.check(
         "exact contract USDC balance",
         usdc.decimals == 6 && raw >= BigInt::from(0),
@@ -351,8 +462,8 @@ async fn alchemy_live() {
             );
             continue;
         }
-        let balance = api.native_balance(n, address).await.unwrap();
-        let page = api.transfer_index(n, address, true, None).await.unwrap();
+        let balance = read_provider!(r, api.native_balance(n, address).await);
+        let page = read_provider!(r, api.transfer_index(n, address, true, None).await);
         let rows = page["transfers"].as_array().unwrap();
         r.check(
             &format!("{} mainnet balance/history", n.as_str()),
@@ -366,10 +477,7 @@ async fn alchemy_live() {
             let cursor = page["pageKey"]
                 .as_str()
                 .expect("public target has multiple pages");
-            let next = api
-                .transfer_index(n, address, true, Some(cursor))
-                .await
-                .unwrap();
+            let next = read_provider!(r, api.transfer_index(n, address, true, Some(cursor)).await);
             let ids: BTreeSet<_> = rows
                 .iter()
                 .map(|v| v["uniqueId"].as_str().unwrap())
@@ -406,12 +514,12 @@ async fn esplora_live() {
     let mut r = Report::new("esplora");
 
     r.endpoint("blocks/tip/height");
-    let tip = api.tip_height().await.unwrap();
+    let tip = read_provider!(r, api.tip_height().await);
     r.check("tip height", tip > 900_000, format!("height {tip}"));
 
     let paging = s(&t["bitcoin"]["paging_address"]["address"]);
     r.endpoint("address");
-    let info = api.address(paging).await.unwrap();
+    let info = read_provider!(r, api.address(paging).await);
     let balance = info.confirmed_balance().unwrap();
     r.check(
         "balance and statistics",
@@ -423,9 +531,9 @@ async fn esplora_live() {
     );
 
     r.endpoint("txs/chain");
-    let page1 = api.chain_txs(paging, None).await.unwrap();
+    let page1 = read_provider!(r, api.chain_txs(paging, None).await);
     let last = page1.last().unwrap().txid.clone();
-    let page2 = api.chain_txs(paging, Some(&last)).await.unwrap();
+    let page2 = read_provider!(r, api.chain_txs(paging, Some(&last)).await);
     let ids1: BTreeSet<_> = page1.iter().map(|t| &t.txid).collect();
     let overlap = page2.iter().filter(|t| ids1.contains(&t.txid)).count();
     let ordered = page1
@@ -447,7 +555,7 @@ async fn esplora_live() {
 
     let known = &t["bitcoin"]["known_transaction"];
     r.endpoint("tx");
-    let tx = api.tx(s(&known["txid"])).await.unwrap().expect("known tx");
+    let tx = read_provider!(r, api.tx(s(&known["txid"])).await).expect("known tx");
     r.check(
         "known transaction status and fee",
         tx.status.confirmed
@@ -481,7 +589,7 @@ async fn esplora_live() {
         );
     }
     r.endpoint("txs/mempool");
-    let mempool = api.mempool_txs(paging).await.unwrap();
+    let mempool = read_provider!(r, api.mempool_txs(paging).await);
     r.check(
         "mempool listing within documented cap",
         mempool.len() <= esplora::MEMPOOL_CAP,
@@ -504,7 +612,7 @@ async fn zerion_live() {
     let address = s(&t["ethereum"]["address"]).to_ascii_lowercase();
 
     r.endpoint("positions");
-    match api.positions(NetworkId::Ethereum, &address).await.unwrap() {
+    match read_provider!(r, api.positions(NetworkId::Ethereum, &address).await) {
         Positions::Indexing => r.check("positions", false, "address still indexing"),
         Positions::Ready(p) => {
             let native = p.iter().find(|x| x.asset.contract.is_none());
@@ -526,13 +634,15 @@ async fn zerion_live() {
     }
 
     r.endpoint("transactions");
-    let p1 = api
-        .transactions(NetworkId::Ethereum, &address, None, 5, Window::default())
-        .await
-        .unwrap();
+    let p1 = read_provider!(
+        r,
+        api.transactions(NetworkId::Ethereum, &address, None, 5, Window::default())
+            .await
+    );
     let cursor = p1.next_cursor.clone().expect("second page");
-    let p2 = api
-        .transactions(
+    let p2 = read_provider!(
+        r,
+        api.transactions(
             NetworkId::Ethereum,
             &address,
             Some(&cursor),
@@ -540,7 +650,7 @@ async fn zerion_live() {
             Window::default(),
         )
         .await
-        .unwrap();
+    );
     let h1: BTreeSet<_> = p1.txs.iter().map(|t| t.hash.clone()).collect();
     let dup = p2.txs.iter().filter(|t| h1.contains(&t.hash)).count();
     let times: Vec<i64> = p1
@@ -571,10 +681,11 @@ async fn zerion_live() {
             min_mined_at_ms: Some(mined - 60_000),
             max_mined_at_ms: Some(mined + 60_000),
         };
-        let page = api
-            .transactions(NetworkId::Ethereum, &address, None, 20, window)
-            .await
-            .unwrap();
+        let page = read_provider!(
+            r,
+            api.transactions(NetworkId::Ethereum, &address, None, 20, window)
+                .await
+        );
         let Some(tx) = page.txs.iter().find(|t| t.hash == hash) else {
             r.check(
                 &format!("known activity {hash}"),
@@ -632,11 +743,12 @@ async fn zerion_live() {
         .filter(|_| !combined)
     {
         let network = NetworkId::parse(name).unwrap();
-        let positions = api.positions(network, &evm_address).await.unwrap();
-        let page = api
-            .transactions(network, &evm_address, None, 10, Window::default())
-            .await
-            .unwrap();
+        let positions = read_provider!(r, api.positions(network, &evm_address).await);
+        let page = read_provider!(
+            r,
+            api.transactions(network, &evm_address, None, 10, Window::default())
+                .await
+        );
         let (count, native, on_network) = match &positions {
             Positions::Ready(p) => (
                 p.len(),
@@ -673,7 +785,7 @@ async fn zerion_live() {
     // Solana through the same API: case-sensitive identities preserved.
     let sol = &t["solana"];
     let sol_address = s(&sol["address"]);
-    match api.positions(NetworkId::Solana, sol_address).await.unwrap() {
+    match read_provider!(r, api.positions(NetworkId::Solana, sol_address).await) {
         Positions::Indexing => r.check("solana: positions", false, "address still indexing"),
         Positions::Ready(p) => {
             let native = p.iter().find(|x| x.asset.contract.is_none());
@@ -698,8 +810,9 @@ async fn zerion_live() {
     let known = &sol["known_transaction"];
     let hash = s(&known["hash"]);
     let mined = parse_rfc3339(s(&known["mined_at"])).unwrap() * 1000;
-    let page = api
-        .transactions(
+    let page = read_provider!(
+        r,
+        api.transactions(
             NetworkId::Solana,
             sol_address,
             None,
@@ -710,7 +823,7 @@ async fn zerion_live() {
             },
         )
         .await
-        .unwrap();
+    );
     let tx = page.txs.iter().find(|t| t.hash == hash);
     r.check(
         "solana: known transfer found with its exact signature",
@@ -747,7 +860,7 @@ async fn trongrid_live() {
     let address = s(&tron["address"]);
 
     r.endpoint("v1/accounts");
-    let account = api.account(address).await.unwrap();
+    let account = read_provider!(r, api.account(address).await);
     r.check(
         "key access and balances",
         account.exists && account.total_trx() > BigInt::from(0) && !account.trc20.is_empty(),
@@ -760,9 +873,9 @@ async fn trongrid_live() {
     );
 
     r.endpoint("v1/accounts/transactions");
-    let p1 = api.transactions(address, None, 20).await.unwrap();
+    let p1 = read_provider!(r, api.transactions(address, None, 20).await);
     let cursor = p1.next.clone().expect("second native page");
-    let p2 = api.transactions(address, Some(&cursor), 20).await.unwrap();
+    let p2 = read_provider!(r, api.transactions(address, Some(&cursor), 20).await);
     let ids: BTreeSet<_> = p1.items.iter().map(|x| x.tx_id.clone()).collect();
     let overlap = p2.items.iter().filter(|x| ids.contains(&x.tx_id)).count();
     let ordered = p1
@@ -795,12 +908,9 @@ async fn trongrid_live() {
     );
 
     r.endpoint("v1/accounts/transactions/trc20");
-    let t1 = api.trc20_transfers(address, None, 20, None).await.unwrap();
+    let t1 = read_provider!(r, api.trc20_transfers(address, None, 20, None).await);
     let tcur = t1.next.clone().expect("second TRC-20 page");
-    let t2 = api
-        .trc20_transfers(address, Some(&tcur), 20, None)
-        .await
-        .unwrap();
+    let t2 = read_provider!(r, api.trc20_transfers(address, Some(&tcur), 20, None).await);
     let keys: BTreeSet<_> = trongrid::trc20_specs_for_account(&t1.items, address)
         .into_iter()
         .map(|x| (x.hash, x.part))
@@ -827,10 +937,11 @@ async fn trongrid_live() {
     let mut found = None;
     let mut cursor: Option<String> = None;
     for _ in 0..4 {
-        let page = api
-            .trc20_transfers(address, cursor.as_deref(), 50, Some(contract))
-            .await
-            .unwrap();
+        let page = read_provider!(
+            r,
+            api.trc20_transfers(address, cursor.as_deref(), 50, Some(contract))
+                .await
+        );
         if let Some(e) = page
             .items
             .iter()
@@ -873,10 +984,7 @@ async fn trongrid_live() {
     let mut cursor: Option<String> = None;
     let wanted = [&tron["known_trc20_send"], &tron["known_trx_send"]];
     for _ in 0..6 {
-        let page = api
-            .transactions(address, cursor.as_deref(), 200)
-            .await
-            .unwrap();
+        let page = read_provider!(r, api.transactions(address, cursor.as_deref(), 200).await);
         for w in wanted {
             if let Some(tx) = page.items.iter().find(|x| x.tx_id == s(&w["tx_id"])) {
                 let spec = trongrid::native_tx_for_account(tx, address).unwrap();
@@ -945,7 +1053,7 @@ async fn tonapi_live() {
 
     r.endpoint("accounts");
     r.endpoint("accounts/jettons");
-    let holdings = api.holdings(raw).await.unwrap();
+    let holdings = read_provider!(r, api.holdings(raw).await);
     let masters_raw = holdings.jettons.iter().all(|(a, _)| {
         a.contract
             .as_deref()
@@ -972,9 +1080,9 @@ async fn tonapi_live() {
     );
 
     r.endpoint("accounts/events");
-    let p1 = api.events(raw, None, 10).await.unwrap();
+    let p1 = read_provider!(r, api.events(raw, None, 10).await);
     let next = p1.next.clone().expect("second page");
-    let p2 = api.events(raw, Some(&next), 10).await.unwrap();
+    let p2 = read_provider!(r, api.events(raw, Some(&next), 10).await);
     let ids: BTreeSet<_> = p1.events.iter().map(|e| e.event_id.clone()).collect();
     let overlap = p2
         .events
@@ -1020,7 +1128,7 @@ async fn tonapi_live() {
 
     r.endpoint("accounts/events/{id}");
     let k = &ton["known_event"];
-    let event = api.event(raw, s(&k["event_id"])).await.unwrap();
+    let event = read_provider!(r, api.event(raw, s(&k["event_id"])).await);
     let spec = event.as_ref().map(|e| tonapi::event_for_account(e, raw));
     r.check(
         "known Jetton receipt with master identity and fee",
@@ -1041,10 +1149,11 @@ async fn tonapi_live() {
                 .and_then(|x| x.fee.as_ref().map(|f| f.raw.to_string()))
         ),
     );
-    let validation = api
-        .validate_finality(&[(s(&k["event_id"]).to_owned(), 0)])
-        .await
-        .unwrap();
+    let validation = read_provider!(
+        r,
+        api.validate_finality(&[(s(&k["event_id"]).to_owned(), 0)])
+            .await
+    );
     r.endpoint("blockchain/masterchain-head/shards/blocks/transactions");
     r.check(
         "canonical TON event root anchored by masterchain",
@@ -1095,8 +1204,7 @@ async fn networks_live() {
         budget("livecoinwatch"),
         budget("defillama"),
     ];
-    let used_before: u32 = budgets.iter().map(|b| b.used()).sum();
-    let providers = Providers {
+    let mut providers = Providers {
         zerion: Some(
             Zerion::new(
                 zerion::DEFAULT_BASE,
@@ -1133,6 +1241,7 @@ async fn networks_live() {
             .then(|| DefiLlama::new(defillama::DEFAULT_BASE, budgets[4].clone()).unwrap()),
         ..Providers::default()
     };
+    attach_live_mirrors(&mut providers);
     let engine = SyncEngine::new(
         store.clone(),
         providers,
@@ -1146,16 +1255,9 @@ async fn networks_live() {
     let mut r = Report::new("networks");
     for account in &accounts {
         let rep = engine.sync_account(account).await;
-        r.check(
-            &format!(
-                "{}: holdings and first history page persisted",
-                account.network.as_str()
-            ),
-            rep.error.is_none() && rep.balance_refreshed && rep.new_transactions > 0,
-            format!(
-                "provider {:?}, {} transactions in {} pages, coverage {:?}, error {:?}",
-                rep.provider, rep.new_transactions, rep.pages_fetched, rep.coverage, rep.error
-            ),
+        r.sync_holdings(
+            &format!("{}: holdings persisted", account.network.as_str()),
+            &rep,
         );
         let again = engine.sync_account(account).await;
         r.check(
@@ -1222,7 +1324,7 @@ async fn networks_live() {
             .collect::<Vec<_>>()
             .join(", "),
     );
-    r.finish(budgets.iter().map(|b| b.used()).sum::<u32>() - used_before);
+    r.finish_usage();
 }
 
 #[tokio::test]
@@ -1244,7 +1346,7 @@ async fn livecoinwatch_live() {
     let lcw = &t["livecoinwatch"];
 
     r.endpoint("credits");
-    let credits = api.credits().await.unwrap();
+    let credits = read_provider!(r, api.credits().await);
     r.check(
         "authenticated credits",
         credits.limit > 0,
@@ -1257,7 +1359,7 @@ async fn livecoinwatch_live() {
     r.endpoint("coins/map");
     let mut codes: Vec<&str> = lcw["codes"].as_array().unwrap().iter().map(s).collect();
     codes.push(s(&lcw["missing_code"]));
-    let quotes = api.quotes(&codes).await.unwrap();
+    let quotes = read_provider!(r, api.quotes(&codes).await);
     let got: BTreeSet<_> = quotes.iter().map(|q| q.code.as_str()).collect();
     let all_positive = quotes.iter().all(|q| q.rate_usd > parse_dec("0").unwrap());
     let sane_change = quotes.iter().all(|q| {
@@ -1307,7 +1409,7 @@ async fn livecoinwatch_live() {
     let h = &lcw["history"];
     let start = parse_rfc3339(s(&h["start"])).unwrap();
     let end = parse_rfc3339(s(&h["end"])).unwrap();
-    let points = api.history(s(&h["code"]), start, end).await.unwrap();
+    let points = read_provider!(r, api.history(s(&h["code"]), start, end).await);
     let ascending = points.windows(2).all(|w| w[0].at < w[1].at);
     let in_range = points
         .iter()
@@ -1343,10 +1445,7 @@ async fn defillama_live() {
     let now = SystemClock.now();
 
     r.endpoint("prices/current");
-    let current = api
-        .current(&[token.clone(), missing.clone()])
-        .await
-        .unwrap();
+    let current = read_provider!(r, api.current(&[token.clone(), missing.clone()]).await);
     let q = current.get(&token);
     r.check(
         "current price by contract identity",
@@ -1371,10 +1470,7 @@ async fn defillama_live() {
 
     r.endpoint("prices/historical");
     let at = d["historical_at"].as_i64().unwrap();
-    let hist = api
-        .historical(at, std::slice::from_ref(&token))
-        .await
-        .unwrap();
+    let hist = read_provider!(r, api.historical(at, std::slice::from_ref(&token)).await);
     let hq = hist.get(&token);
     r.check(
         "historical price near the requested time",
@@ -1392,7 +1488,7 @@ async fn defillama_live() {
 
     r.endpoint("chart");
     let start = at - at.rem_euclid(86_400);
-    let series = api.daily_chart(&token, start, 30).await.unwrap();
+    let series = read_provider!(r, api.daily_chart(&token, start, 30).await);
     let pts = series.as_ref().map_or(&[][..], |s| &s.points[..]);
     r.check(
         "daily chart returns one dollar-pegged point per day in range",
@@ -1411,10 +1507,7 @@ async fn defillama_live() {
             pts.last().map(|(t, p)| (*t, to_canonical(p)))
         ),
     );
-    let native = api
-        .daily_chart("coingecko:ethereum", start, 7)
-        .await
-        .unwrap();
+    let native = read_provider!(r, api.daily_chart("coingecko:ethereum", start, 7).await);
     r.check(
         "native asset daily chart by CoinGecko identity",
         native.as_ref().is_some_and(|s| s.points.len() >= 6),
@@ -1462,8 +1555,7 @@ async fn vertical_slice_live() {
         budget("livecoinwatch"),
         budget("defillama"),
     ];
-    let used_before: u32 = budgets.iter().map(|b| b.used()).sum();
-    let providers = Providers {
+    let mut providers = Providers {
         esplora: Some(Esplora::new(esplora::DEFAULT_BASE, budgets[0].clone()).unwrap()),
         zerion: selected("zerion").then(|| {
             Zerion::new(
@@ -1486,6 +1578,7 @@ async fn vertical_slice_live() {
         ..Providers::default()
     };
     // Small pages and a two-page cap keep the large Ethereum history bounded.
+    attach_live_mirrors(&mut providers);
     let engine = SyncEngine::new(
         store.clone(),
         providers,
@@ -1522,14 +1615,7 @@ async fn vertical_slice_live() {
 
     if let Some(eth) = &eth {
         let re = engine.sync_account(eth).await;
-        r.check(
-            "ethereum: holdings and first history pages persisted",
-            re.error.is_none() && re.balance_refreshed && re.new_transactions > 0,
-            format!(
-                "{} transactions in {} pages, coverage {:?} (backfill continues next sweep), error {:?}",
-                re.new_transactions, re.pages_fetched, re.coverage, re.error
-            ),
-        );
+        r.sync_holdings("ethereum: holdings persisted", &re);
     }
 
     if selected("livecoinwatch") || selected("defillama") {
@@ -1613,7 +1699,7 @@ async fn vertical_slice_live() {
             ),
         );
     }
-    r.finish(budgets.iter().map(|b| b.used()).sum::<u32>() - used_before);
+    r.finish_usage();
 }
 
 async fn check_reserve(provider: &'static str, var: Option<&str>) {
@@ -1623,7 +1709,15 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
     use portfolio_providers::mirrors::{EVM, Reserve};
     let mut report = Report::new(provider);
     let before = budget(provider).used();
-    let credential = var.map(key).unwrap_or_default();
+    let credential = var
+        .map(|v| {
+            if provider == "toncenter" {
+                std::env::var(v).unwrap_or_default()
+            } else {
+                key(v)
+            }
+        })
+        .unwrap_or_default();
     let api = Reserve::new(provider, &credential, budget(provider)).unwrap();
     let t = targets();
     let evm_address = s(&t["ethereum"]["address"]).to_ascii_lowercase();
@@ -1668,6 +1762,11 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
                     "integer raw quantities and independent provider attribution",
                 );
             }
+            Err(e @ ProviderError::RateLimited { .. }) => report.limitation(
+                &format!("{} reserve paused by quota", n.as_str()),
+                "RATE_LIMITED",
+                e.to_string(),
+            ),
             Err(e) => report.check(
                 &format!("{} reserve access", n.as_str()),
                 false,
@@ -1685,15 +1784,14 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
         .unwrap();
         // Free public RPC is not guaranteed to retain historical receipts. Sample a
         // current finalized block, then independently validate its receipt/hash.
-        let response: Value = http
+        let response: Value = read_provider!(report, http
             .post_json_cost(
                 "eth_getBlockByNumber",
                 url::Url::parse("https://ethereum-rpc.publicnode.com/").unwrap(),
                 &serde_json::json!({"jsonrpc":"2.0","id":1,"method":"eth_getBlockByNumber","params":["finalized",false]}),
                 0,
             )
-            .await
-            .unwrap()
+            .await)
             .json(provider, "eth_getBlockByNumber")
             .unwrap();
         let block = &response["result"];
@@ -1710,10 +1808,11 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
             16,
         )
         .unwrap();
-        let validation = api
-            .validate_finality(NetworkId::Ethereum, &[(hash.to_owned(), height)])
-            .await
-            .unwrap();
+        let validation = read_provider!(
+            report,
+            api.validate_finality(NetworkId::Ethereum, &[(hash.to_owned(), height)])
+                .await
+        );
         report.endpoint("eth_chainId/eth_getBlockByNumber/eth_getTransactionReceipt");
         report.check(
             "canonical finalized Ethereum receipt",
@@ -1765,21 +1864,22 @@ async fn live_mempool_reserve() {
     .unwrap();
     let t = targets();
     let address = s(&t["bitcoin"]["paging_address"]["address"]);
-    let tip = api.tip_height().await.unwrap();
+    let tip = read_provider!(report, api.tip_height().await);
     report.endpoint("blocks/tip/height");
     report.check("mainnet height", tip > 900000, "Bitcoin mainnet height");
-    let a = api.address(address).await.unwrap();
+    let a = read_provider!(report, api.address(address).await);
     report.endpoint("address");
     report.check(
         "exact confirmed balance",
         a.confirmed_balance().is_ok(),
         "integer funded minus spent",
     );
-    let first = api.chain_txs(address, None).await.unwrap();
-    let second = api
-        .chain_txs(address, Some(&first.last().unwrap().txid))
-        .await
-        .unwrap();
+    let first = read_provider!(report, api.chain_txs(address, None).await);
+    let second = read_provider!(
+        report,
+        api.chain_txs(address, Some(&first.last().unwrap().txid))
+            .await
+    );
     report.endpoint("txs/chain");
     report.check(
         "independent continuation",
@@ -1789,11 +1889,11 @@ async fn live_mempool_reserve() {
                 .any(|a| second.iter().any(|b| a.txid == b.txid)),
         "two non-overlapping Esplora-compatible pages",
     );
-    let tx = api
-        .tx(s(&t["bitcoin"]["known_transaction"]["txid"]))
-        .await
-        .unwrap()
-        .unwrap();
+    let tx = read_provider!(
+        report,
+        api.tx(s(&t["bitcoin"]["known_transaction"]["txid"])).await
+    )
+    .unwrap();
     report.endpoint("tx");
     report.check(
         "known fee",
@@ -1810,21 +1910,14 @@ async fn live_reserve_routing_after_primary_budget_exhaustion() {
     if !selected("publicnode") {
         return;
     }
-    use portfolio_providers::mirrors::Reserve;
+    use portfolio_providers::mirrors::{EVM, Reserve};
     let mut report = Report::new("mirror-routing");
     let t = targets();
-    let address = s(&t["ethereum"]["address"]);
-    let tmp = tempfile::tempdir().unwrap();
-    let store = Store::open(
-        &tmp.path().join("routing.sqlite"),
-        ProfileKind::Test,
-        Arc::new(SystemClock),
-    )
-    .await
-    .unwrap();
-    let wallet = store.create_wallet("Public reserve fixture").await.unwrap();
-    let account = store
-        .add_account(&wallet.id, NetworkId::Ethereum, address, None)
+    let store = Store::open_in_memory(ProfileKind::Test, Arc::new(SystemClock))
+        .await
+        .unwrap();
+    let wallet = store
+        .create_wallet("Independent reserve checks")
         .await
         .unwrap();
     let mut reserves = Vec::new();
@@ -1832,53 +1925,219 @@ async fn live_reserve_routing_after_primary_budget_exhaustion() {
         ("blockscout", Some("BLOCKSCOUT_API_KEY")),
         ("etherscan", Some("ETHERSCAN_API_KEY")),
         ("drpc", Some("DRPC_API_KEY")),
+        ("chainstack", Some("CHAINSTACK_API_KEY")),
+        ("toncenter", Some("TONCENTER_API_KEY")),
         ("publicnode", None),
     ] {
         if selected(p) {
-            reserves.push(Reserve::new(p, &var.map(key).unwrap_or_default(), budget(p)).unwrap());
+            reserves.push(
+                Reserve::new(
+                    p,
+                    &var.map(|v| {
+                        if p == "toncenter" {
+                            std::env::var(v).unwrap_or_default()
+                        } else {
+                            key(v)
+                        }
+                    })
+                    .unwrap_or_default(),
+                    budget(p),
+                )
+                .unwrap(),
+            );
         }
+    }
+    if selected("alchemy") {
+        reserves.insert(
+            0,
+            Reserve::alchemy_solana(&key("ALCHEMY_API_KEY"), budget("alchemy")).unwrap(),
+        );
     }
     let engine = SyncEngine::new(
         store.clone(),
         Providers {
-            alchemy: Some(
-                Alchemy::new("fixture-no-request-with-zero-budget", Budget::limited(0)).unwrap(),
+            // No real primary request: force production failover through a hard-zero budget.
+            zerion: Some(
+                Zerion::new(
+                    zerion::DEFAULT_BASE,
+                    "fixture-zero-budget",
+                    Budget::limited(0),
+                )
+                .unwrap(),
             ),
+            esplora: selected("mempool")
+                .then(|| Esplora::new(esplora::DEFAULT_BASE, Budget::limited(0)).unwrap()),
+            mempool: selected("mempool").then(|| {
+                Esplora::with_provider(
+                    "mempool",
+                    "https://mempool.space/api",
+                    budget("mempool"),
+                    Default::default(),
+                )
+                .unwrap()
+            }),
+            trongrid: selected("trongrid").then(|| {
+                TronGrid::new(
+                    trongrid::DEFAULT_BASE,
+                    "fixture-zero-budget",
+                    Budget::limited(0),
+                )
+                .unwrap()
+            }),
+            tonapi: selected("toncenter")
+                .then(|| TonApi::new(tonapi::DEFAULT_BASE, "", Budget::limited(0)).unwrap()),
             reserves,
+            ..Providers::default()
+        },
+        SyncOptions {
+            max_history_pages: 1,
+            max_pending_checks: 0,
+            max_price_history_requests: 0,
+            ..SyncOptions::default()
+        },
+    );
+    let networks = EVM
+        .into_iter()
+        .chain([NetworkId::Solana, NetworkId::Tron])
+        .chain(selected("toncenter").then_some(NetworkId::Ton))
+        .chain(selected("mempool").then_some(NetworkId::Bitcoin));
+    for n in networks {
+        let address = match n {
+            NetworkId::Solana => s(&t["solana"]["address"]),
+            NetworkId::Tron => s(&t["tron"]["address"]),
+            NetworkId::Ton => s(&t["ton"]["address"]),
+            NetworkId::Bitcoin => s(&t["bitcoin"]["sync_address"]["address"]),
+            _ => s(&t["ethereum"]["address"]),
+        };
+        let account = store
+            .add_account(&wallet.id, n, address, None)
+            .await
+            .unwrap();
+        let rep = engine.sync_account(&account).await;
+        report.endpoint("primary hard limit → independent reserve");
+        report.check(
+            &format!("{}: mirror balance persisted", n.as_str()),
+            rep.error.is_none() && rep.balance_refreshed,
+            format!(
+                "provider {:?}, balance-only {}, coverage {:?}, error {:?}",
+                rep.provider, rep.balance_only, rep.coverage, rep.error
+            ),
+        );
+        report.check(
+            &format!("{}: actual source persisted", n.as_str()),
+            store.sync_status().await.unwrap().iter().any(|x| {
+                x.account_id == account.id
+                    && x.provider == rep.provider
+                    && x.balance_only == rep.balance_only
+            }),
+            "actual responding provider, independent checkpoint",
+        );
+        if n != NetworkId::Bitcoin {
+            report.check(
+                &format!("{}: history remains partial", n.as_str()),
+                rep.balance_only && rep.coverage == Coverage::Partial,
+                "balance mirrors do not establish indexed history acceptance",
+            );
+        }
+    }
+    report.finish_usage();
+}
+
+#[tokio::test]
+async fn live_native_price_routing() {
+    if !(selected("livecoinwatch") || selected("defillama")) {
+        return;
+    }
+    let mut report = Report::new("price-routing");
+    let store = Store::open_in_memory(ProfileKind::Test, Arc::new(SystemClock))
+        .await
+        .unwrap();
+    let wallet = store.create_wallet("Price mirror check").await.unwrap();
+    let t = targets();
+    let account = store
+        .add_account(
+            &wallet.id,
+            NetworkId::Bitcoin,
+            s(&t["bitcoin"]["sync_address"]["address"]),
+            None,
+        )
+        .await
+        .unwrap();
+    // An isolated seeded integer balance gives the real pricing route a position.
+    // This is not provider-derived holdings/history or a native UI test.
+    store
+        .record_balance(
+            &account.id,
+            &portfolio_store::ingest::AssetSpec::native(NetworkId::Bitcoin, "fixture"),
+            &BigInt::from(100_000_000_u64),
+            None,
+            "fresh",
+        )
+        .await
+        .unwrap();
+    let engine = SyncEngine::new(
+        store.clone(),
+        Providers {
+            livecoinwatch: selected("livecoinwatch").then(|| {
+                LiveCoinWatch::new(
+                    livecoinwatch::DEFAULT_BASE,
+                    &key("LIVECOINWATCH_API_KEY"),
+                    budget("livecoinwatch"),
+                )
+                .unwrap()
+            }),
+            defillama: selected("defillama")
+                .then(|| DefiLlama::new(defillama::DEFAULT_BASE, budget("defillama")).unwrap()),
             ..Providers::default()
         },
         SyncOptions::default(),
     );
-    let r = engine.sync_account(&account).await;
-    report.endpoint("primary budget → reserve snapshot");
+    let result = engine.refresh_prices().await;
+    let holdings = store.list_holdings(&Scope::All).await.unwrap();
+    report.endpoint("native quote routing");
     report.check(
-        "primary limit does not prevent balances",
-        r.error.is_none() && r.balance_refreshed,
-        r.error
-            .clone()
-            .unwrap_or_else(|| "native balance refreshed by independent source".into()),
+        "Native USD valuation via available source",
+        result.priced == 1
+            && result.errors.is_empty()
+            && holdings[0]
+                .value_usd
+                .as_ref()
+                .is_some_and(|p| parse_dec(p).unwrap() > parse_dec("0").unwrap()),
+        format!(
+            "{} priced, {} unpriced; seeded balance, real quote",
+            result.priced,
+            result.unpriced.len()
+        ),
     );
-    report.check(
-        "history scope remains truthful",
-        r.balance_only && r.coverage == Coverage::Partial,
-        "ordinary reserves retain cached history and expose partial coverage",
-    );
-    report.check(
-        "fallback reason visible",
-        r.fallback_reasons
-            .iter()
-            .any(|s| s.contains("budget exhausted")),
-        "primary had a hard zero budget; no primary request sent",
-    );
-    let statuses = store.sync_status().await.unwrap();
-    report.check(
-        "selected source persists",
-        statuses.len() == 1 && statuses[0].provider == r.provider && statuses[0].balance_only,
-        "one current source per account",
-    );
-    let count = budget_usage()
-        .iter()
-        .map(|(p, v)| v.saturating_sub(report.usage_start.get(*p).copied().unwrap_or(0)))
-        .sum();
-    report.finish(count);
+    report.finish_usage();
+}
+
+#[tokio::test]
+async fn live_alchemy_solana_balance_reserve() {
+    if !selected("alchemy") {
+        return;
+    }
+    let mut report = Report::new("alchemy-solana");
+    let api = portfolio_providers::mirrors::Reserve::alchemy_solana(
+        &key("ALCHEMY_API_KEY"),
+        budget("alchemy"),
+    )
+    .unwrap();
+    let t = targets();
+    report.endpoint("getGenesisHash/getBalance/getTokenAccountsByOwner");
+    match api.snapshot(NetworkId::Solana, s(&t["solana"]["address"]), &[]).await {
+        Ok(h) => {
+            report.check("Solana native balance from shared Alchemy key", h.assets.iter().any(|(a, raw)| a.contract.is_none() && *raw >= BigInt::from(0)), "mainnet genesis validated, exact integer amounts; no history claim");
+            if h.warnings.is_empty() {
+                report.check("Both owner-token programs queried", true, "SPL and Token-2022 scopes read; zero-decimal unclassified assets may still be excluded");
+            } else {
+                report.limitation("Solana token discovery incomplete", "PARTIAL", h.warnings.join("; "));
+            }
+            report.check("Alchemy source provenance", h.assets.iter().all(|(a, _)| a.provider == "alchemy"), "same shared credential budget as EVM");
+        }
+        Err(e @ ProviderError::NetworkForbidden { .. }) => report.limitation("Solana network not available on this key", "PARTIAL", format!("{e}; enable Solana mainnet in the Alchemy app, standard RPC is available on Free; other mirrors remain active")),
+        Err(e @ ProviderError::RateLimited { .. }) => report.limitation("Shared Alchemy quota", "RATE_LIMITED", e.to_string()),
+        Err(e) => report.check("Solana balance reserve", false, e.to_string()),
+    }
+    report.finish_usage();
 }

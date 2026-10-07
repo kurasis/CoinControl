@@ -489,7 +489,7 @@ async fn solana_standard_rpc_checks_mainnet_and_aggregates_owned_token_accounts(
     )
     .await;
     rpc(&server, "getTokenAccountsByOwner", json!({"value":[]})).await;
-    for provider in ["chainstack", "publicnode"] {
+    for provider in ["chainstack", "publicnode", "alchemy"] {
         let api = reserve(
             &server,
             provider,
@@ -500,7 +500,17 @@ async fn solana_standard_rpc_checks_mainnet_and_aggregates_owned_token_accounts(
         let h = api.snapshot(NetworkId::Solana, address, &[]).await.unwrap();
         assert_eq!(h.assets[0].1.to_string(), "9007199254740993");
         assert_eq!(h.assets[0].0.provider, provider);
+        assert_eq!(h.warnings.is_empty(), provider != "chainstack");
     }
+    let requests = server.received_requests().await.unwrap();
+    assert_eq!(
+        requests
+            .iter()
+            .filter(|r| r.body_json::<Value>().unwrap()["method"] == "getTokenAccountsByOwner")
+            .count(),
+        4,
+        "only PublicNode/Alchemy scan SPL and Token-2022 owners; free Chainstack never calls a paid method"
+    );
     let e = Reserve::new(
         "chainstack",
         "cp_platform-management-key",
@@ -786,5 +796,331 @@ async fn recovered_primary_has_one_healthy_status_while_reserve_keeps_its_pause(
             .await
             .unwrap()
             .is_some()
+    );
+}
+
+#[tokio::test]
+async fn free_chainstack_uses_token_mirror_and_keeps_sol_when_that_mirror_is_limited() {
+    use portfolio_providers::helius::{TOKEN_2022, TOKEN_PROGRAM};
+    const ADDRESS: &str = "Vote111111111111111111111111111111111111111";
+    const MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+    for limited in [false, true] {
+        let primary = MockServer::start().await;
+        rpc(
+            &primary,
+            "getGenesisHash",
+            json!("5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"),
+        )
+        .await;
+        rpc(
+            &primary,
+            "getBalance",
+            json!({"context":{"slot":50},"value":9007199254740993_u64}),
+        )
+        .await;
+        let mirror = MockServer::start().await;
+        if limited {
+            Mock::given(method("POST"))
+                .respond_with(ResponseTemplate::new(429).insert_header("Retry-After", "120"))
+                .expect(1)
+                .mount(&mirror)
+                .await;
+        } else {
+            rpc(
+                &mirror,
+                "getGenesisHash",
+                json!("5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"),
+            )
+            .await;
+            rpc(
+                &mirror,
+                "getBalance",
+                json!({"context":{"slot":51},"value":9007199254740993_u64}),
+            )
+            .await;
+            for (program, value) in [
+                (
+                    TOKEN_PROGRAM,
+                    json!([{"account":{"data":{"parsed":{"info":{"owner":ADDRESS,"mint":MINT,"tokenAmount":{"amount":"7","decimals":6}}}}}}]),
+                ),
+                (TOKEN_2022, json!([])),
+            ] {
+                Mock::given(method("POST"))
+                    .and(body_partial_json(json!({"method":"getTokenAccountsByOwner","params":[ADDRESS,{"programId":program},{"encoding":"jsonParsed","commitment":"finalized","minContextSlot":51}]})))
+                    .respond_with(ResponseTemplate::new(200).set_body_json(json!({"jsonrpc":"2.0","id":1,"result":{"value":value}})))
+                    .expect(1).mount(&mirror).await;
+            }
+        }
+        let s = store().await;
+        let w = s.create_wallet("Free Solana reserves").await.unwrap();
+        let a = s
+            .add_account(&w.id, NetworkId::Solana, ADDRESS, None)
+            .await
+            .unwrap();
+        let token = AssetSpec {
+            network: NetworkId::Solana,
+            contract: Some(MINT.into()),
+            decimals: 6,
+            symbol: Some("USDC".into()),
+            name: None,
+            verification: Verification::Unverified,
+            provider: "helius",
+        };
+        s.record_balance(&a.id, &token, &BigInt::from(9), None, "fresh")
+            .await
+            .unwrap();
+        let r = SyncEngine::new(
+            s.clone(),
+            Providers {
+                reserves: vec![
+                    reserve(
+                        &primary,
+                        "chainstack",
+                        Kind::Rpc,
+                        NetworkId::Solana,
+                        Budget::limited(10),
+                    ),
+                    reserve(
+                        &mirror,
+                        "publicnode",
+                        Kind::Rpc,
+                        NetworkId::Solana,
+                        Budget::limited(10),
+                    ),
+                ],
+                ..Providers::default()
+            },
+            SyncOptions::default(),
+        )
+        .sync_account(&a)
+        .await;
+        assert!(r.error.is_none(), "{:?}", r.error);
+        assert!(r.balance_refreshed && r.balance_only);
+        assert_eq!(r.coverage, Coverage::Partial);
+        let provider = if limited { "chainstack" } else { "publicnode" };
+        assert_eq!(r.provider.as_deref(), Some(provider));
+        let status = s.sync_status().await.unwrap();
+        assert_eq!(status[0].provider.as_deref(), Some(provider));
+        assert!(status[0].last_error.is_none());
+        let holdings = s.list_holdings(&Scope::All).await.unwrap();
+        let usdc = holdings
+            .iter()
+            .find(|h| h.asset_id == format!("solana:token:{MINT}"))
+            .unwrap();
+        assert_eq!(usdc.quantity, if limited { "0.000009" } else { "0.000007" });
+        assert_eq!(
+            usdc.balance_status,
+            if limited {
+                BalanceStatus::Stale
+            } else {
+                BalanceStatus::Fresh
+            }
+        );
+        assert!(
+            r.fallback_reasons
+                .iter()
+                .any(|s| s.contains("free Solana plan"))
+        );
+        assert!(
+            primary
+                .received_requests()
+                .await
+                .unwrap()
+                .iter()
+                .all(|r| r.body_json::<Value>().unwrap()["method"] != "getTokenAccountsByOwner")
+        );
+        if limited {
+            assert!(
+                r.fallback_reasons
+                    .iter()
+                    .any(|s| s.contains("rate limited"))
+            );
+            assert_eq!(
+                s.provider_cooldown("publicnode", NetworkId::Solana)
+                    .await
+                    .unwrap(),
+                Some(NOW + 120)
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn usable_sol_does_not_hide_a_wrong_mainnet_token_mirror() {
+    const ADDRESS: &str = "Vote111111111111111111111111111111111111111";
+    let primary = MockServer::start().await;
+    rpc(
+        &primary,
+        "getGenesisHash",
+        json!("5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"),
+    )
+    .await;
+    rpc(
+        &primary,
+        "getBalance",
+        json!({"context":{"slot":5},"value":9}),
+    )
+    .await;
+    let wrong = MockServer::start().await;
+    rpc(&wrong, "getGenesisHash", json!("devnet-not-mainnet")).await;
+    let s = store().await;
+    let w = s.create_wallet("Wrong mainnet reserve").await.unwrap();
+    let a = s
+        .add_account(&w.id, NetworkId::Solana, ADDRESS, None)
+        .await
+        .unwrap();
+    let r = SyncEngine::new(
+        s,
+        Providers {
+            reserves: vec![
+                reserve(
+                    &primary,
+                    "chainstack",
+                    Kind::Rpc,
+                    NetworkId::Solana,
+                    Budget::limited(10),
+                ),
+                reserve(
+                    &wrong,
+                    "publicnode",
+                    Kind::Rpc,
+                    NetworkId::Solana,
+                    Budget::limited(10),
+                ),
+            ],
+            ..Providers::default()
+        },
+        SyncOptions::default(),
+    )
+    .sync_account(&a)
+    .await;
+    assert!(r.balance_refreshed);
+    assert!(
+        r.error
+            .as_deref()
+            .is_some_and(|s| s.contains("wrong Solana mainnet"))
+    );
+    assert_eq!(wrong.received_requests().await.unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn alchemy_solana_budget_is_shared_with_evm_and_denial_stays_network_scoped() {
+    const ADDRESS: &str = "Vote111111111111111111111111111111111111111";
+    let solana = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(ResponseTemplate::new(403))
+        .expect(1)
+        .mount(&solana)
+        .await;
+    let evm_server = MockServer::start().await;
+    rpc(&evm_server, "eth_chainId", json!("0x1")).await;
+    let budget = Budget::limited_with_credits(50, 1000);
+    let sol = reserve(
+        &solana,
+        "alchemy",
+        Kind::Rpc,
+        NetworkId::Solana,
+        budget.clone(),
+    );
+    assert!(matches!(
+        sol.snapshot(NetworkId::Solana, ADDRESS, &[])
+            .await
+            .err()
+            .unwrap(),
+        ProviderError::NetworkForbidden { .. }
+    ));
+    let eth = alchemy(&evm_server, budget.clone());
+    eth.check_chain(NetworkId::Ethereum).await.unwrap();
+    assert_eq!(
+        budget.used(),
+        2,
+        "one failed Solana and one successful EVM request"
+    );
+    assert_eq!(
+        budget.credits(),
+        100 + portfolio_providers::alchemy::estimated_cost("eth_chainId")
+    );
+    let before = budget.used();
+    assert!(!sol.validates_finality(NetworkId::Solana));
+    assert!(sol.validate_finality(NetworkId::Solana, &[]).await.is_err());
+    assert_eq!(
+        budget.used(),
+        before,
+        "balance-only reserve must not issue unbudgeted finality reads"
+    );
+}
+
+#[tokio::test]
+async fn all_throttled_sources_pause_without_erasing_cached_balances() {
+    let primary = MockServer::start().await;
+    let backup = MockServer::start().await;
+    for server in [&primary, &backup] {
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(429).insert_header("Retry-After", "120"))
+            .expect(1)
+            .mount(server)
+            .await;
+    }
+    let s = store().await;
+    let w = s.create_wallet("All sources paused").await.unwrap();
+    let a = s
+        .add_account(&w.id, NetworkId::Ethereum, ETH, None)
+        .await
+        .unwrap();
+    s.record_balance(
+        &a.id,
+        &AssetSpec::native(NetworkId::Ethereum, "alchemy"),
+        &BigInt::from(9007199254740993_u64),
+        None,
+        "fresh",
+    )
+    .await
+    .unwrap();
+    let engine = SyncEngine::new(
+        s.clone(),
+        Providers {
+            alchemy: Some(alchemy(&primary, Budget::limited(10))),
+            reserves: vec![reserve(
+                &backup,
+                "publicnode",
+                Kind::Rpc,
+                NetworkId::Ethereum,
+                Budget::limited(10),
+            )],
+            ..Providers::default()
+        },
+        SyncOptions::default(),
+    );
+    let r = engine.sync_account(&a).await;
+    assert!(r.error.is_none());
+    assert!(!r.balance_refreshed);
+    assert_eq!(r.coverage, Coverage::Paused);
+    let h = s.list_holdings(&Scope::All).await.unwrap();
+    assert_eq!(h[0].quantity, "0.009007199254740993");
+    assert_eq!(h[0].balance_status, BalanceStatus::Stale);
+    assert!(s.sync_status().await.unwrap()[0].last_error.is_none());
+    let later = SyncEngine::new(
+        s.clone(),
+        Providers {
+            alchemy: Some(alchemy(&primary, Budget::limited(10))),
+            reserves: vec![reserve(
+                &backup,
+                "publicnode",
+                Kind::Rpc,
+                NetworkId::Ethereum,
+                Budget::limited(10),
+            )],
+            ..Providers::default()
+        },
+        SyncOptions::default(),
+    )
+    .with_transient_retry(true)
+    .sync_account(&a)
+    .await;
+    assert!(later.error.is_none());
+    assert_eq!(later.coverage, Coverage::Paused);
+    assert!(
+        !later.balance_refreshed,
+        "new client/run must respect both stored pauses"
     );
 }

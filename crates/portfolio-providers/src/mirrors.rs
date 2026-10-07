@@ -54,6 +54,32 @@ pub struct Snapshot {
 }
 
 impl Reserve {
+    /// Reuses the Alchemy credential and shared request/CU budget for standard
+    /// Solana token reads, independently of the indexed EVM adapter.
+    pub fn alchemy_solana(key: &str, budget: Arc<Budget>) -> Result<Self, ProviderError> {
+        if key.trim().is_empty() {
+            return Err(ProviderError::MissingKey {
+                provider: "alchemy",
+            });
+        }
+        let mut url = Url::parse("https://solana-mainnet.g.alchemy.com/v2/").expect("static URL");
+        url.path_segments_mut()
+            .expect("HTTP path")
+            .pop_if_empty()
+            .push(key.trim());
+        Self::with_config(
+            "alchemy",
+            Kind::Rpc,
+            &[(NetworkId::Solana, url.to_string())],
+            budget,
+            HeaderMap::new(),
+            HttpConfig {
+                max_retries: 1,
+                min_interval: Duration::from_secs(1),
+                ..HttpConfig::default()
+            },
+        )
+    }
     pub fn new(
         provider: &'static str,
         key: &str,
@@ -215,6 +241,7 @@ impl Reserve {
     }
     pub fn validates_finality(&self, network: NetworkId) -> bool {
         self.supports(network)
+            && !(self.provider() == "alchemy" && network == NetworkId::Solana)
             && matches!(self.kind, Kind::Rpc)
             && (network.evm_chain_id().is_some() || network == NetworkId::Solana)
     }
@@ -223,6 +250,12 @@ impl Reserve {
         network: NetworkId,
         candidates: &[(String, i64)],
     ) -> Result<crate::finality::FinalityBatch, ProviderError> {
+        if self.provider() == "alchemy" && network == NetworkId::Solana {
+            return Err(ProviderError::CapabilityUnavailable {
+                provider: "alchemy",
+                endpoint: "finality",
+            });
+        }
         let url = self
             .endpoints
             .get(&network)

@@ -72,6 +72,54 @@ async fn opt_in_console_tracks_in_flight_retries_and_rpc_errors_without_payloads
 
 const ADDR: &str = "0x1db3439a222c519ab44bb1144fc28167b4fa6ee6";
 
+#[tokio::test]
+async fn mirror_mode_pauses_on_first_429_without_retry_or_wait() {
+    use portfolio_providers::{http::HttpClient, network_log::NetworkLog};
+    use std::sync::Arc;
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .respond_with(
+            ResponseTemplate::new(429)
+                .insert_header("Retry-After", "15")
+                .set_body_string(SENTINEL_KEY.repeat(8)),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    let budget = Budget::limited(10);
+    let http = HttpClient::new(
+        "zerion",
+        HttpConfig {
+            max_body_bytes: 16,
+            ..HttpConfig::default()
+        },
+        budget.clone(),
+        Default::default(),
+    )
+    .unwrap();
+    http.prefer_rate_limit_failover();
+    let log = Arc::new(NetworkLog::default());
+    log.set_enabled(true);
+    http.set_network_log(log.clone());
+    let url = url::Url::parse(&server.uri()).unwrap();
+    let e = tokio::time::timeout(Duration::from_secs(2), http.get("positions", url.clone()))
+        .await
+        .expect("must not sleep for Retry-After")
+        .unwrap_err();
+    assert!(matches!(
+        e,
+        ProviderError::RateLimited {
+            retry_after_secs: Some(15),
+            ..
+        }
+    ));
+    assert_eq!(http.get("positions", url).await.unwrap_err(), e);
+    assert_eq!(budget.used(), 1);
+    assert_no_secret(&e);
+    assert_eq!(log.entries()[0].status, "rate_limited");
+    assert_eq!(log.entries()[0].http_status, Some(429));
+}
+
 fn assert_no_secret(e: &ProviderError) {
     let text = format!("{e} {e:?}");
     assert!(!text.contains(SENTINEL_KEY), "credential leaked: {text}");
@@ -386,5 +434,45 @@ async fn reserve_http_errors_do_not_echo_short_credentials() {
         let text = format!("{error} {error:?}");
         assert!(!text.contains("tiny"), "{provider} echoed a credential");
         assert!(!text.contains("http://"));
+    }
+}
+
+#[tokio::test]
+async fn solana_rpc_quota_code_is_distinct_from_helius_node_health() {
+    use portfolio_providers::{helius::Helius, network_log::NetworkLog};
+    use std::sync::Arc;
+    for provider in ["chainstack", "helius"] {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({"jsonrpc":"2.0","id":1,"error":{"code":-32005,"message":"node busy"}})))
+            .expect(1).mount(&server).await;
+        let budget = Budget::limited(10);
+        let api = Helius::with_endpoint(
+            provider,
+            url::Url::parse(&server.uri()).unwrap(),
+            budget.clone(),
+            HttpConfig {
+                max_retries: 0,
+                ..fast()
+            },
+        )
+        .unwrap();
+        api.http().prefer_rate_limit_failover();
+        let log = Arc::new(NetworkLog::default());
+        log.set_enabled(true);
+        api.http().set_network_log(log.clone());
+        let e = api.slot().await.unwrap_err();
+        if provider == "chainstack" {
+            assert!(matches!(e, ProviderError::RateLimited { .. }));
+            assert_eq!(log.entries()[0].status, "rate_limited");
+            assert_eq!(api.slot().await.unwrap_err(), e);
+        } else {
+            assert!(matches!(
+                e,
+                ProviderError::RpcUnavailable { code: -32005, .. }
+            ));
+            assert_eq!(log.entries()[0].status, "rpc_error");
+        }
+        assert_eq!(budget.used(), 1);
     }
 }

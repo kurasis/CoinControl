@@ -4,6 +4,7 @@
 // Writes a sanitized report to target/live-report/LIVE_REPORT.md.
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { suiteResult, missingMirrorEvidence } from "./live-results.mjs";
 
 const KNOWN = {
   livecoinwatch: "LIVECOINWATCH_API_KEY",
@@ -16,7 +17,7 @@ const KNOWN = {
   blockscout: "BLOCKSCOUT_API_KEY",
   drpc: "DRPC_API_KEY",
   chainstack: "CHAINSTACK_API_KEY",
-  toncenter: "TONCENTER_API_KEY",
+  toncenter: null,
   etherscan: "ETHERSCAN_API_KEY",
   defillama: null,
   trongrid: "TRONGRID_API_KEY",
@@ -50,6 +51,17 @@ if (selected.length === 0) {
   console.error("LIVE_TEST_PROVIDERS is empty; select providers explicitly.");
   process.exit(2);
 }
+
+// Anonymous mirrors join read-only validation, with their existing hard budgets.
+if (
+  selected.some((p) => !["ankr", "livecoinwatch", "defillama"].includes(p)) &&
+  !selected.includes("publicnode")
+)
+  selected.push("publicnode");
+if (selected.includes("tonapi") && !selected.includes("toncenter")) selected.push("toncenter");
+if (selected.includes("esplora") && !selected.includes("mempool")) selected.push("mempool");
+if (selected.includes("livecoinwatch") && !selected.includes("defillama"))
+  selected.push("defillama");
 
 let missing = false;
 const blocked = [];
@@ -89,9 +101,12 @@ const cargo = spawnSync(
 );
 
 const rows = [];
+const reports = [];
 let failed = cargo.status !== 0;
 const expected = [
   ...runnable,
+  ...(runnable.includes("alchemy") ? ["alchemy-solana"] : []),
+  ...(runnable.some((p) => ["livecoinwatch", "defillama"].includes(p)) ? ["price-routing"] : []),
   ...(runnable.includes("publicnode") ? ["mirror-routing"] : []),
   ...(runnable.includes("esplora") ? ["vertical-slice"] : []),
   ...(["zerion", "trongrid", "tonapi"].every((p) => runnable.includes(p)) ? ["networks"] : []),
@@ -104,15 +119,21 @@ for (const name of expected) {
     continue;
   }
   const r = JSON.parse(readFileSync(file, "utf8"));
-  const ok = r.checks.every((c) => c.result === "PASS");
-  if (!ok) failed = true;
+  reports.push(r);
+  const result = suiteResult(r);
+  if (result === "FAIL") failed = true;
   rows.push(
-    `| ${r.provider} | ${ok ? "PASS" : "FAIL"} | ${r.requests} | ${r.duration_ms} | ${[...r.endpoints].join(", ")} |`,
+    `| ${r.provider} | ${result} | ${r.requests} | ${r.duration_ms} | ${[...r.endpoints].join(", ")} |`,
   );
   for (const c of r.checks) rows.push(`| | ${c.result} | | | ${c.name}: ${c.detail} |`);
 }
 for (const p of blocked)
   rows.push(`| ${p} | SKIPPED_NOT_IN_SCOPE | 0 | - | optional provider not used by this build |`);
+
+for (const reason of missingMirrorEvidence(reports)) {
+  failed = true;
+  rows.push(`| Required mirror evidence | FAIL | - | - | ${reason} |`);
+}
 
 const usageFile = `${REPORT_DIR}/usage.json`;
 if (existsSync(usageFile)) {
@@ -130,6 +151,7 @@ const report = [
   "",
   `Run at ${new Date().toISOString()}. Requests are counted locally, retries included.`,
   "Credentials, full URLs and response bodies are never recorded.",
+  "RATE_LIMITED is a source limitation, not a source PASS; PARTIAL is usable balance coverage without indexed-history acceptance. Missing independent mirror evidence remains a failure.",
   "",
   "| Provider | Result | Requests | Duration (ms) | Endpoints / check |",
   "| --- | --- | --- | --- | --- |",

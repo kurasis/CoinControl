@@ -79,7 +79,7 @@ fn cap(
         NetworkId::Optimism => &["blockscout", "drpc", "publicnode"],
         NetworkId::Base => &["drpc", "publicnode"],
         NetworkId::Bsc => &["drpc", "publicnode"],
-        NetworkId::Solana => &["chainstack", "publicnode"],
+        NetworkId::Solana => &["alchemy", "chainstack", "publicnode"],
         NetworkId::Tron => &["publicnode"],
         NetworkId::Ton => &["toncenter"],
     };

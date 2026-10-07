@@ -262,7 +262,7 @@
     "pausedHistory": "History download stopped: {{count}} transactions",
     "source": "Source: {{provider}}",
     "balanceReserve": "reserve updated balances; cached history retained, coverage partial",
-    "reserveUsed": "Reserve used (hover for reason)",
+    "reserveUsed": "Source routing (hover for limits)",
     "queueNow": "Sync now (queue)"
   },
   "accounting": {
@@ -629,7 +629,7 @@
     "pause": "Pause display",
     "resume": "Resume display",
     "clear": "Clear log",
-    "errorsOnly": "Errors and retries only",
+    "errorsOnly": "Errors, retries and limits",
     "empty": "No requests yet. Start a sync or test a data source connection.",
     "disabled": "The console is off. Enable it before starting a sync to see requests.",
     "table": "Network requests",
@@ -653,7 +653,8 @@
       "retrying": "Retry scheduled",
       "timeout": "Timed out",
       "connection_error": "Connection failed",
-      "rpc_error": "RPC rejected the request"
+      "rpc_error": "RPC rejected the request",
+      "rate_limited": "Rate limited — source paused"
     }
   },
   "manage": {

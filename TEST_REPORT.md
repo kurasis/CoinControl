@@ -1,5 +1,17 @@
 # Verification report — 2026-10-07
 
+## Free-plan throttling follow-up (development 0.1.9)
+
+Chainstack Developer owner scans are officially paid-only, not a bad credential.
+The adapter now uses native SOL/finality only and tries an independent token
+mirror without requiring an upgrade. The existing Alchemy key adds a standard
+Solana balance/token reserve with a shared EVM budget, conditional on Solana
+mainnet access. First 429 advances immediately to reserves;
+source quotas and partial history are distinct from source acceptance.
+[Current routing and evidence policy](docs/PROVIDER_MIRRORS.md).
+Final CI/release evidence for this change is recorded after execution.
+Historical 0.1.8 quota/plan failures below remain unchanged.
+
 ## Published token logos and startup correction (0.1.8)
 
 [Download Windows x64 ZIP](https://github.com/kurasis/CoinControl/releases/download/v0.1.8/CoinControl-0.1.8-windows-x64.zip) · [Implementation and exact evidence](docs/reports/token-icons-2026-10-07/README.md).
