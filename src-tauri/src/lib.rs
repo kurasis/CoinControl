@@ -12,7 +12,9 @@ use tokio::sync::RwLock;
 
 mod commands;
 mod error;
+mod jobs;
 mod providers;
+mod schedule;
 mod secrets;
 mod sync;
 mod window_geometry;
@@ -200,6 +202,21 @@ pub fn run() {
             commands::commit_basis_import,
             commands::discard_basis_import,
             commands::replay_accounting,
+            commands::preview_account_removal,
+            commands::remove_account,
+            commands::clear_caches,
+            commands::rescan_accounts,
+            commands::start_rescan,
+            commands::start_sync,
+            commands::get_sync_job,
+            commands::cancel_sync_job,
+            commands::get_provider_quota,
+            commands::set_provider_quota,
+            commands::account_explorer,
+            commands::export_diagnostics,
+            commands::set_sync_scope,
+            commands::account_coverage,
+            commands::remove_empty_wallet,
             commands::list_providers,
             commands::save_provider_key,
             commands::remove_provider_key,

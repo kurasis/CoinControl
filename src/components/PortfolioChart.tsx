@@ -32,15 +32,17 @@ export function toSeries(points: ChartPoint[]) {
 export function RangePicker({
   range,
   onRangeChange,
+  custom = false,
 }: {
   range: ChartRange;
   onRangeChange: (r: ChartRange) => void;
+  custom?: boolean;
 }) {
   const { t } = useTranslation();
   return (
     <div className="segmented" role="group" aria-label={t("chart.range")}>
       {RANGES.map((r) => (
-        <button key={r} aria-pressed={r === range} onClick={() => onRangeChange(r)}>
+        <button key={r} aria-pressed={!custom && r === range} onClick={() => onRangeChange(r)}>
           {t(`chart.ranges.${r}`)}
         </button>
       ))}
@@ -72,7 +74,7 @@ export function PortfolioChart({
   return (
     <section className="card chart-card" aria-label={t("chart.label")}>
       <div className="chart-toolbar">
-        <RangePicker range={range} onRangeChange={onRangeChange} />
+        <RangePicker range={range} custom={!!window} onRangeChange={onRangeChange} />
         <div className="toolbar-spacer" />
         {chart.data?.history_available_since != null && (
           <span className="meta">

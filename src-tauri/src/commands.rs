@@ -70,6 +70,10 @@ pub async fn switch_profile(
         .sync
         .network_log
         .set_enabled(guard.get_settings().await?.network_console_enabled);
+    state
+        .sync
+        .profile_generation
+        .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     previous.close().await;
     Ok(profile)
 }
@@ -349,11 +353,27 @@ pub async fn get_asset_chart(
     scope: Scope,
     asset_id: String,
     range: ChartRange,
+    start: Option<i64>,
+    end: Option<i64>,
 ) -> CommandResult<AssetChart> {
     Ok(state
         .store()
         .await
-        .asset_chart(&scope, &asset_id, range)
+        .asset_chart_window(
+            &scope,
+            &asset_id,
+            range,
+            match (start, end) {
+                (Some(start), Some(end)) => Some((start, end)),
+                (None, None) => None,
+                _ => {
+                    return Err(CommandError::new(
+                        "invalid_input",
+                        "Both chart dates are required.",
+                    ));
+                }
+            },
+        )
         .await?)
 }
 
@@ -596,6 +616,10 @@ pub async fn restore_backup(
         std::process::id()
     ));
     store.restore_backup(&content, &path).await?;
+    state
+        .sync
+        .profile_generation
+        .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     state.sync.network_log.clear();
     state
         .sync
@@ -618,4 +642,172 @@ pub async fn export_csv(
     store.replay_if_dirty().await?;
     let text = store.export_csv(&kind).await?;
     save_text(app, &format!("CoinControl-{kind}.csv"), text).await
+}
+
+#[tauri::command]
+pub async fn preview_account_removal(
+    state: State<'_, AppState>,
+    id: String,
+) -> CommandResult<portfolio_store::RemovalPreview> {
+    Ok(state.store().await.preview_account_removal(&id).await?)
+}
+#[tauri::command]
+pub async fn remove_account(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    id: String,
+    revision: String,
+) -> CommandResult<()> {
+    let _guard = state.sync.run_lock.lock().await;
+    let store = state.store().await;
+    store.remove_account(&id, &revision).await?;
+    store.replay_accounting().await?;
+    use tauri::Emitter;
+    app.emit(sync::DATA_CHANGED_EVENT, ())
+        .map_err(|_| CommandError::new("event", "Could not refresh views."))?;
+    Ok(())
+}
+#[tauri::command]
+pub async fn clear_caches(state: State<'_, AppState>) -> CommandResult<()> {
+    let _guard = state.sync.run_lock.lock().await;
+    state.store().await.clear_caches().await?;
+    Ok(())
+}
+#[tauri::command]
+pub async fn rescan_accounts(
+    app: tauri::AppHandle,
+    ids: Vec<String>,
+) -> CommandResult<SyncSummary> {
+    sync::run_rescan(&app, ids).await
+}
+#[tauri::command]
+pub async fn get_provider_quota(
+    state: State<'_, AppState>,
+    provider: String,
+) -> CommandResult<portfolio_store::ProviderQuota> {
+    providers::find(&provider)
+        .ok_or_else(|| CommandError::new("not_found", "Unknown data source."))?;
+    Ok(state.store().await.provider_quota(&provider).await?)
+}
+#[tauri::command]
+pub async fn set_provider_quota(
+    state: State<'_, AppState>,
+    provider: String,
+    quota: portfolio_store::ProviderQuota,
+) -> CommandResult<()> {
+    providers::find(&provider)
+        .ok_or_else(|| CommandError::new("not_found", "Unknown data source."))?;
+    let _guard = state.sync.run_lock.lock().await;
+    state
+        .store()
+        .await
+        .set_provider_quota(&provider, &quota)
+        .await?;
+    Ok(())
+}
+#[tauri::command]
+pub async fn account_explorer(
+    state: State<'_, AppState>,
+    id: String,
+) -> CommandResult<Option<String>> {
+    let a = state.store().await.account(&id).await?;
+    Ok(a.network.explorer_address_url(&a.display_address))
+}
+#[tauri::command]
+pub async fn export_diagnostics(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> CommandResult<bool> {
+    let store = state.store().await;
+    let usage = store.provider_usage(&utc_day(SystemClock.now())).await?;
+    // Deliberately exclude addresses, transaction IDs, error text, URLs and credentials.
+    let usage: Vec<_> = usage.iter().map(|u|serde_json::json!({"provider":u.provider,"requests":u.requests,"estimated_credits":u.credits,"has_error":u.last_error.is_some()})).collect();
+    let text = serde_json::json!({"format":"coincontrol-diagnostics-v1","version":app.package_info().version.to_string(),"os":std::env::consts::OS,"created_at":SystemClock.now(),"profile":store.profile(),"schema_version":store.schema_version().await?,"accounts":store.list_accounts(None).await?.len(),"wallets":store.list_wallets().await?.len(),"settings":store.get_settings().await?,"provider_usage":usage,"network_requests":state.sync.network_log.entries()}).to_string();
+    save_text(app, "CoinControl-diagnostics.json", text).await
+}
+#[tauri::command]
+pub async fn set_sync_scope(state: State<'_, AppState>, scope: Scope) -> CommandResult<()> {
+    let ids = state.store().await.resolve_scope(&scope).await?;
+    state.sync.set_active_accounts(ids.into_iter().collect());
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn account_coverage(
+    state: State<'_, AppState>,
+    id: String,
+) -> CommandResult<Vec<portfolio_store::AccountCoverage>> {
+    Ok(state.store().await.account_coverage(&id).await?)
+}
+#[tauri::command]
+pub async fn remove_empty_wallet(state: State<'_, AppState>, id: String) -> CommandResult<()> {
+    Ok(state.store().await.remove_empty_wallet(&id).await?)
+}
+
+#[tauri::command]
+pub async fn start_rescan(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    ids: Vec<String>,
+) -> CommandResult<crate::jobs::SyncJob> {
+    let generation = state
+        .sync
+        .profile_generation
+        .load(std::sync::atomic::Ordering::Relaxed);
+    let store = state.store().await;
+    if ids.is_empty() || ids.len() > 50 {
+        return Err(CommandError::new("invalid_input", "Select 1-50 accounts."));
+    }
+    if store.profile() != ProfileKind::Real {
+        return Err(CommandError::new(
+            "demo_profile",
+            "The demo profile cannot rescan.",
+        ));
+    }
+    for id in &ids {
+        store.account(id).await?;
+    }
+    sync::start_rescan(app, ids, generation)
+}
+#[tauri::command]
+pub async fn start_sync(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    account_id: Option<String>,
+) -> CommandResult<crate::jobs::SyncJob> {
+    let generation = state
+        .sync
+        .profile_generation
+        .load(std::sync::atomic::Ordering::Relaxed);
+    let store = state.store().await;
+    if store.profile() != ProfileKind::Real {
+        return Err(CommandError::new(
+            "demo_profile",
+            "The demo profile cannot synchronize.",
+        ));
+    }
+    if let Some(id) = &account_id {
+        store.account(id).await?;
+    }
+    sync::start_sync(app, account_id, generation)
+}
+#[tauri::command]
+pub fn get_sync_job(state: State<'_, AppState>, id: String) -> CommandResult<crate::jobs::SyncJob> {
+    state
+        .sync
+        .jobs
+        .get(&id)
+        .ok_or_else(|| CommandError::new("not_found", "Job no longer available."))
+}
+
+#[tauri::command]
+pub fn cancel_sync_job(state: State<'_, AppState>, id: String) -> CommandResult<()> {
+    if !state
+        .sync
+        .jobs
+        .cancel(&id, &state.sync.cancelled, SystemClock.now())
+    {
+        return Err(CommandError::new("not_found", "Job no longer available."));
+    }
+    Ok(())
 }

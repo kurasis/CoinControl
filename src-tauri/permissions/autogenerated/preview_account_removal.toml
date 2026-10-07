@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-preview-account-removal"
+description = "Enables the preview_account_removal command without any pre-configured scope."
+commands.allow = ["preview_account_removal"]
+
+[[permission]]
+identifier = "deny-preview-account-removal"
+description = "Denies the preview_account_removal command without any pre-configured scope."
+commands.deny = ["preview_account_removal"]

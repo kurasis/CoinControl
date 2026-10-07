@@ -87,3 +87,25 @@ with the contract's original case (Solana and TRON are case-sensitive).
 A token that no price source knows is remembered for 24 hours
 (`quote_misses` table) and not requested again in that window, so accounts with
 many spam tokens do not spend the request budget on every refresh.
+
+## Confirmation and rollback (0.1.7)
+
+Confirmation checks are bounded optional enrichment over confirmed imported records,
+with a persisted `finality` checkpoint/boundary. EVM uses each network's native
+`finalized` tag after chain ID validation, matching receipt block hash/height against
+canonical RPC. Solana checks finalized signature/slot evidence; a missing status
+needs complete finalized block signature membership before proving disappearance.
+TON validates the mainnet masterchain head, current shard anchor and canonical block
+membership of an event root. Split/merged shard ambiguity, incomplete membership,
+missing transactions or unreachable APIs are **unavailable**, never a rollback.
+These are trusted provider observations, not cryptographic proofs or complete trace
+validation. Only a bounded batch is checked each sync; partial coverage remains visible.
+
+A positively detected rollback invalidates confirmation-derived accounting and
+reconstructed snapshots, marks balance observations stale, retains user decisions,
+and sets an independent durable flag to rewind history cursors on the next sync.
+FIFO replay removes invalid lots and refreshes summaries. Confirmed-only TronGrid
+and finalized Helius history can mark imported records final; this does not turn
+partial indexed history into complete chain coverage. Bitcoin retains its existing
+six-block revalidation tail. Provider errors and quota exhaustion preserve cached
+records. The finality stage uses the same provider budget, pacing and cancellation.

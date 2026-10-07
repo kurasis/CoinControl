@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { api, type ChartRange } from "../ipc/client";
+import { useViewState } from "../app/useViewState";
 import { useApp } from "../app/AppContext";
 import { useAccountLabels, useNetworkNames } from "../app/hooks";
 import { Page } from "../components/Layout";
@@ -26,7 +27,11 @@ export function AssetPage() {
   const { scope, locale, timeZone, privacy } = useApp();
   const networkNames = useNetworkNames();
   const accountLabels = useAccountLabels(privacy);
-  const [range, setRange] = useState<ChartRange>("3m");
+  const [range, setRange] = useViewState<ChartRange>("chart:range", "1m");
+  const [window, setWindow] = useViewState<{ start: number; end: number } | undefined>(
+    "chart:window",
+    undefined,
+  );
   const [tab, setTab] = useState<Tab>("price");
   const [openLeg, setOpenLeg] = useState<string | null>(null);
 
@@ -35,8 +40,8 @@ export function AssetPage() {
     queryFn: () => api.assetDetail(scope, assetId),
   });
   const chart = useQuery({
-    queryKey: ["asset-chart", scope, assetId, range],
-    queryFn: () => api.assetChart(scope, assetId, range),
+    queryKey: ["asset-chart", scope, assetId, range, window],
+    queryFn: () => api.assetChart(scope, assetId, range, window),
   });
   const activity = useQuery({
     queryKey: ["activity", scope, "asset", assetId],
@@ -138,7 +143,20 @@ export function AssetPage() {
             ))}
           </div>
           <div className="toolbar-spacer" />
-          <RangePicker range={range} onRangeChange={setRange} />
+          {window && (
+            <span className="meta">
+              {formatDate(window.start, locale, timeZone)} —{" "}
+              {formatDate(window.end, locale, timeZone)}
+            </span>
+          )}
+          <RangePicker
+            custom={!!window}
+            range={range}
+            onRangeChange={(r) => {
+              setRange(r);
+              setWindow(undefined);
+            }}
+          />
         </div>
         {chart.isLoading ? (
           <div className="chart skeleton" />

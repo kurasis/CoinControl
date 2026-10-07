@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { api, type ChartRange, type Scope } from "../ipc/client";
+import { useViewState } from "../app/useViewState";
 import { useApp } from "../app/AppContext";
 import { useAccountLabels, useNetworkNames } from "../app/hooks";
 import { useFirstUsefulPaint } from "../app/useFirstUsefulPaint";
@@ -46,9 +47,12 @@ export function PortfolioPage() {
 export function PortfolioView({ scope }: { scope: Scope }) {
   const { t } = useTranslation();
   const { locale, timeZone, privacy, settings, profile } = useApp();
-  const [range, setRange] = useState<ChartRange>("1m");
-  const [dates, setDates] = useState({ start: "", end: "" });
-  const [window, setWindow] = useState<{ start: number; end: number }>();
+  const [range, setRange] = useViewState<ChartRange>("chart:range", "1m");
+  const [dates, setDates] = useViewState("chart:dates", { start: "", end: "" });
+  const [window, setWindow] = useViewState<{ start: number; end: number } | undefined>(
+    "chart:window",
+    undefined,
+  );
   const [today] = useState(() => new Date().toISOString().slice(0, 10));
   const validDates = Boolean(
     dates.start &&
@@ -64,7 +68,7 @@ export function PortfolioView({ scope }: { scope: Scope }) {
     queryFn: () => api.portfolioSummary(scope),
   });
   const policies = useQuery({ queryKey: ["asset-policies"], queryFn: api.listAssetPolicies });
-  const [showHidden, setShowHidden] = useState(false);
+  const [showHidden, setShowHidden] = useViewState("assets:hidden", false);
   const holdings = useQuery({
     queryKey: ["holdings", scope],
     queryFn: () => api.listHoldings(scope),

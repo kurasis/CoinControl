@@ -81,7 +81,9 @@ mempool.space has 5000/day. Chainstack and dRPC also share a conservative
 30000-request/month local ceiling. Blockscout reserves 20 actual credits per
 shipped REST call under an 80000-credit/day ceiling. Provider-reported quotas and
 other applications using a key can still impose stricter limits. dRPC compute
-units are not claimed to equal locally counted requests. All public reads pace
+units are not claimed to equal locally counted requests; RPC calls conservatively reserve
+100 estimated units each with an 80000-unit local daily ceiling. Editable local ceilings
+can only be lowered, without resetting consumed usage. All public reads pace
 at no more than one request per second. Native acceptance retains the separate
 50-request ceiling per provider across restarts; live suites share 50/provider.
 

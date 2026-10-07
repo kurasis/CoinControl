@@ -10,6 +10,8 @@ import { useApp } from "../app/AppContext";
 import { useNetworkNames } from "../app/hooks";
 import { Page } from "../components/Layout";
 import { AssetPolicyControls } from "../components/AssetPolicyControls";
+import { MaintenanceControls } from "../components/MaintenanceControls";
+import { ProviderQuotaControls } from "../components/ProviderQuotaControls";
 import { RecoveryControls } from "../components/RecoveryControls";
 import { NetworkConsole, NetworkConsoleToggle } from "../components/NetworkConsole";
 import { openExternal } from "../lib/external";
@@ -108,6 +110,40 @@ function GeneralSettings() {
           <input id="privacy" type="checkbox" checked={privacy} onChange={togglePrivacy} />
           <span className="meta">{t("settings.privacyHint")}</span>
         </div>
+      </div>
+      <div className="settings-row">
+        <label htmlFor="price-refresh">{t("maintenance.priceInterval")}</label>
+        <select
+          id="price-refresh"
+          className="select"
+          value={settings.price_refresh_seconds}
+          onChange={(e) => updateSettings({ price_refresh_seconds: Number(e.target.value) })}
+        >
+          {[...new Set([15, 30, 60, 120, 300, 600, 1800, 3600, settings.price_refresh_seconds])]
+            .sort((a, b) => a - b)
+            .map((n) => (
+              <option key={n} value={n}>
+                {n} {t("maintenance.seconds")}
+              </option>
+            ))}
+        </select>
+      </div>
+      <div className="settings-row">
+        <label htmlFor="sweep-interval">{t("maintenance.sweepInterval")}</label>
+        <select
+          id="sweep-interval"
+          className="select"
+          value={settings.sweep_interval_minutes}
+          onChange={(e) => updateSettings({ sweep_interval_minutes: Number(e.target.value) })}
+        >
+          {[...new Set([5, 15, 30, 60, 120, 360, 1440, settings.sweep_interval_minutes])]
+            .sort((a, b) => a - b)
+            .map((n) => (
+              <option key={n} value={n}>
+                {n} {t("maintenance.minutes")}
+              </option>
+            ))}
+        </select>
       </div>
       <div className="settings-row">
         <span>{t("settings.currency")}</span>
@@ -279,6 +315,7 @@ function SourceCard({ provider: p }: { provider: ProviderStatus }) {
           {isCommandError(error) ? error.message : t("errors.generic")}
         </span>
       )}
+      <ProviderQuotaControls provider={p} />
       <div className="row meta">
         <span>{t("sources.requestsToday", { count: p.requests_today })}</span>
         {p.estimated_credits_today > 0 && (
@@ -453,6 +490,7 @@ function DataSettings() {
       <div className="settings-row">
         <span>{t("settings.backupExport")}</span>
         <RecoveryControls />
+        <MaintenanceControls />
       </div>
       <div className="card-pad">
         <AssetPolicyControls />

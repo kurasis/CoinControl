@@ -24,6 +24,7 @@ pub mod dto;
 mod error;
 pub mod import;
 pub mod ingest;
+mod maintenance;
 mod portfolio;
 pub mod prices;
 mod recovery;
@@ -39,6 +40,7 @@ pub use dto::*;
 pub use error::StoreError;
 pub use import::{ImportPreview, ImportResult, ImportRowPreview, ImportRowStatus};
 pub use ingest::{AccountSyncStatus, Coverage};
+pub use maintenance::{AccountCoverage, ProviderQuota, RemovalPreview};
 
 pub type Result<T> = std::result::Result<T, StoreError>;
 

@@ -18,6 +18,17 @@ pub async fn call(
     params: Value,
     cost: u32,
 ) -> Result<Value, ProviderError> {
+    // Conservative local estimates for providers whose read methods have a credit cost.
+    let cost = if cost == 0 {
+        match http.provider() {
+            "drpc" => 100,
+            "helius" if method == "getBlock" => 100,
+            "helius" => 1,
+            _ => 0,
+        }
+    } else {
+        cost
+    };
     let (retries, backoff) = http.rpc_retry_policy();
     for attempt in 0..=retries {
         let result = call_once(http, url.clone(), method, params.clone(), cost).await;

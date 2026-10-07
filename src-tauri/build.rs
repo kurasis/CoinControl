@@ -50,6 +50,21 @@ const COMMANDS: &[&str] = &[
     "inspect_backup",
     "restore_backup",
     "export_csv",
+    "preview_account_removal",
+    "remove_account",
+    "clear_caches",
+    "rescan_accounts",
+    "start_rescan",
+    "start_sync",
+    "get_sync_job",
+    "cancel_sync_job",
+    "get_provider_quota",
+    "set_provider_quota",
+    "account_explorer",
+    "export_diagnostics",
+    "set_sync_scope",
+    "account_coverage",
+    "remove_empty_wallet",
 ];
 
 fn main() {

@@ -6,7 +6,7 @@
 //! provider, so demo data cannot be mistaken for, or mixed with, real data.
 
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI64, AtomicU64, AtomicUsize, Ordering};
 use std::time::Duration;
 
 use portfolio_core::clock::{Clock, SystemClock, utc_day};
@@ -58,6 +58,24 @@ pub struct SyncState {
     details: Arc<std::sync::Mutex<SyncDetails>>,
     last_sweep_at: AtomicI64,
     last_prices_at: AtomicI64,
+    last_active_at: AtomicI64,
+    pending_user: AtomicUsize,
+    active_accounts: std::sync::Mutex<Vec<String>>,
+    was_minimized: AtomicBool,
+    pub(crate) jobs: crate::jobs::Jobs,
+    pub(crate) profile_generation: AtomicU64,
+}
+
+impl SyncState {
+    pub fn set_active_accounts(&self, ids: Vec<String>) {
+        *self.active_accounts.lock().expect("active scope") = ids;
+    }
+}
+struct UserRequest<'a>(&'a AtomicUsize);
+impl Drop for UserRequest<'_> {
+    fn drop(&mut self) {
+        self.0.fetch_sub(1, Ordering::Relaxed);
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -96,13 +114,26 @@ pub fn network_capabilities(
 }
 
 async fn remaining_today(store: &Store, provider: &str, limit: u32) -> u32 {
-    let used = store
-        .provider_usage(&utc_day(SystemClock.now()))
-        .await
-        .ok()
-        .and_then(|u| u.into_iter().find(|p| p.provider == provider))
-        .map_or(0, |p| p.requests);
-    limit.saturating_sub(used)
+    let quota = match store.provider_quota(provider).await {
+        Ok(q) => q,
+        Err(_) => return 0,
+    };
+    let day = utc_day(SystemClock.now());
+    let used = match store.provider_usage(&day).await {
+        Ok(u) => u
+            .into_iter()
+            .find(|p| p.provider == provider)
+            .map_or(0, |p| p.requests),
+        Err(_) => return 0,
+    };
+    let monthly = match store.provider_usage_month(&day[..7], provider).await {
+        Ok((r, _)) => r,
+        Err(_) => return 0,
+    };
+    limit
+        .min(quota.daily_requests)
+        .saturating_sub(used)
+        .min(quota.monthly_requests.saturating_sub(monthly))
 }
 
 async fn build_providers(
@@ -122,7 +153,7 @@ async fn build_providers(
             }
             #[cfg(not(feature = "native-e2e"))]
             {
-                Budget::unlimited()
+                Budget::limited(remaining_today(store, esplora::PROVIDER, 5000).await)
             }
         })
         .ok(),
@@ -133,7 +164,7 @@ async fn build_providers(
             }
             #[cfg(not(feature = "native-e2e"))]
             {
-                Budget::unlimited()
+                Budget::limited(remaining_today(store, defillama::PROVIDER, 10000).await)
             }
         })
         .ok(),
@@ -189,7 +220,7 @@ async fn build_providers(
         } else {
             daily
         };
-        let budget = if id == "blockscout" {
+        let budget = if matches!(id, "blockscout" | "drpc") {
             let used = match store.provider_usage(&day).await {
                 Ok(rows) => rows
                     .into_iter()
@@ -197,7 +228,14 @@ async fn build_providers(
                     .map_or(0, |u| u.credits),
                 Err(_) => u32::MAX,
             };
-            Budget::limited_with_credits(request_limit, 80_000u32.saturating_sub(used))
+            Budget::limited_with_credits(
+                request_limit,
+                store
+                    .provider_quota(id)
+                    .await
+                    .map_or(0, |q| q.daily_credits.min(80_000))
+                    .saturating_sub(used),
+            )
         } else {
             Budget::limited(request_limit)
         };
@@ -231,7 +269,11 @@ async fn build_providers(
                 .map_or(0, |u| u.credits);
             let budget = Budget::limited_with_credits(
                 remaining_today(store, id, 5_000).await,
-                limit.saturating_sub(used),
+                store
+                    .provider_quota(id)
+                    .await
+                    .map_or(0, |q| q.daily_credits.min(limit))
+                    .saturating_sub(used),
             );
             if id == helius::PROVIDER {
                 providers.helius = Helius::new(&key, budget).ok();
@@ -271,19 +313,60 @@ fn notify(app: &AppHandle) {
 
 /// Runs one synchronization (all accounts, or one) followed by a price refresh.
 pub async fn run(app: &AppHandle, account_id: Option<&str>) -> CommandResult<SyncSummary> {
-    run_kind(app, account_id, true).await
+    run_kind(app, account_id.map(|id| vec![id.to_owned()]), true).await
+}
+pub async fn run_rescan(app: &AppHandle, ids: Vec<String>) -> CommandResult<SyncSummary> {
+    run_job(app, Some(ids), true, None, true).await
 }
 async fn run_kind(
     app: &AppHandle,
-    account_id: Option<&str>,
+    account_ids: Option<Vec<String>>,
     retry_transient: bool,
 ) -> CommandResult<SyncSummary> {
+    run_job(app, account_ids, retry_transient, None, false).await
+}
+async fn run_job(
+    app: &AppHandle,
+    account_ids: Option<Vec<String>>,
+    retry_transient: bool,
+    job_id: Option<(&str, u64)>,
+    rescan: bool,
+) -> CommandResult<SyncSummary> {
     let state = app.state::<AppState>();
-    let _guard = state
-        .sync
-        .run_lock
-        .try_lock()
-        .map_err(|_| CommandError::new("sync_busy", "Synchronization is already running."))?;
+    let generation = state.sync.profile_generation.load(Ordering::Relaxed);
+    let _request = if retry_transient {
+        let previous = state.sync.pending_user.fetch_add(1, Ordering::Relaxed);
+        if previous == 0 && progress(&state.sync).running {
+            state.sync.cancelled.store(true, Ordering::Relaxed);
+        }
+        Some(UserRequest(&state.sync.pending_user))
+    } else {
+        None
+    };
+    let _guard =
+        if retry_transient {
+            state.sync.run_lock.lock().await
+        } else {
+            state.sync.run_lock.try_lock().map_err(|_| {
+                CommandError::new("sync_busy", "Synchronization is already running.")
+            })?
+        };
+    if generation != state.sync.profile_generation.load(Ordering::Relaxed) {
+        return Err(CommandError::new(
+            "cancelled",
+            "Profile changed while the request was queued.",
+        ));
+    }
+    state.sync.cancelled.store(false, Ordering::Relaxed);
+    if let Some((id, generation)) = job_id
+        && (generation != state.sync.profile_generation.load(Ordering::Relaxed)
+            || !state.sync.jobs.start(id))
+    {
+        return Err(CommandError::new(
+            "cancelled",
+            "Queued job cancelled or profile changed.",
+        ));
+    }
     let store = state.store().await;
     if store.profile() != ProfileKind::Real {
         return Err(CommandError::new(
@@ -291,10 +374,14 @@ async fn run_kind(
             "The demo portfolio never synchronizes with data providers.",
         ));
     }
-    state.sync.cancelled.store(false, Ordering::Relaxed);
     let mut run_status = RunStatus::begin(&state.sync, "preparing");
-    let total = if account_id.is_some() {
-        1
+    if rescan {
+        store
+            .prepare_rescan(account_ids.as_deref().unwrap_or_default())
+            .await?;
+    }
+    let total = if let Some(ids) = &account_ids {
+        ids.len() as u32
     } else {
         store
             .list_accounts(None)
@@ -331,13 +418,25 @@ async fn run_kind(
         }
     }));
     state.sync.details.lock().expect("sync details").phase = "accounts".into();
-    let accounts = match account_id {
-        Some(id) => {
-            let account = store.account(id).await?;
-            vec![engine.sync_account(&account).await]
+    let accounts = match account_ids {
+        Some(ids) => {
+            let mut reports = Vec::new();
+            for id in ids {
+                if state.sync.cancelled.load(Ordering::Relaxed) {
+                    break;
+                }
+                reports.push(engine.sync_account(&store.account(&id).await?).await);
+            }
+            reports
         }
         None => {
-            let reports = engine.sync_all().await;
+            let priority = state
+                .sync
+                .active_accounts
+                .lock()
+                .expect("active scope")
+                .clone();
+            let reports = engine.sync_all_prioritized(&priority).await;
             state
                 .sync
                 .last_sweep_at
@@ -345,6 +444,10 @@ async fn run_kind(
             reports
         }
     };
+    state
+        .sync
+        .last_active_at
+        .store(SystemClock.now(), Ordering::Relaxed);
     notify(app);
     state.sync.details.lock().expect("sync details").phase = "prices".into();
     let prices = engine.refresh_prices().await;
@@ -387,6 +490,14 @@ async fn run_kind(
             + summary.price_history.errors.len()
             + usize::from(summary.accounting_error.is_some()),
     );
+    if let Some((id, _)) = job_id {
+        state.sync.jobs.update(
+            id,
+            summary_outcome(&summary, state.sync.cancelled.load(Ordering::Relaxed)),
+            None,
+            SystemClock.now(),
+        );
+    }
     Ok(summary)
 }
 
@@ -463,23 +574,58 @@ async fn tick(app: &AppHandle) {
         return;
     }
     let now = SystemClock.now();
-    let sweep_due = now - state.sync.last_sweep_at.load(Ordering::Relaxed)
-        >= i64::from(settings.sweep_interval_minutes.max(5)) * 60;
-    let prices_due = now - state.sync.last_prices_at.load(Ordering::Relaxed)
-        >= i64::from(settings.price_refresh_seconds.max(30));
-    if sweep_due {
-        if let Err(e) = run_kind(app, None, false).await {
-            tracing::warn!(error = %e.message, "scheduled sweep skipped");
+    if state.sync.pending_user.load(Ordering::Relaxed) > 0 {
+        return;
+    }
+    let minimized = app
+        .get_webview_window("main")
+        .and_then(|w| w.is_minimized().ok())
+        .unwrap_or(false);
+    let resumed = state.sync.was_minimized.swap(minimized, Ordering::Relaxed) && !minimized;
+    let active = state
+        .sync
+        .active_accounts
+        .lock()
+        .expect("active scope")
+        .clone();
+    let active: Vec<_> = active
+        .into_iter()
+        .filter(|id| accounts.iter().any(|a| a.id == *id && !a.archived))
+        .collect();
+    let mut action = crate::schedule::Polling {
+        sweep_at: state.sync.last_sweep_at.load(Ordering::Relaxed),
+        active_at: state.sync.last_active_at.load(Ordering::Relaxed),
+        prices_at: state.sync.last_prices_at.load(Ordering::Relaxed),
+        sweep_minutes: settings.sweep_interval_minutes,
+        price_seconds: settings.price_refresh_seconds,
+        accounts: accounts.iter().filter(|a| !a.archived).count(),
+        active: active.len(),
+        minimized,
+    }
+    .due(now);
+    if resumed && !active.is_empty() && action != crate::schedule::Due::Sweep {
+        action = crate::schedule::Due::Active;
+    }
+    match action {
+        crate::schedule::Due::Sweep => {
+            if let Err(e) = run_kind(app, None, false).await {
+                tracing::warn!(error=%e.message,"scheduled sweep skipped");
+            }
         }
-    } else if prices_due {
-        refresh_prices(app).await;
+        crate::schedule::Due::Active => {
+            if run_kind(app, Some(active), false).await.is_ok() {
+                state.sync.last_active_at.store(now, Ordering::Relaxed);
+            }
+        }
+        crate::schedule::Due::Prices => refresh_prices(app).await,
+        crate::schedule::Due::Idle => {}
     }
 }
 
 /// Synchronizes a newly added account in the background.
 pub fn spawn_account_sync(app: AppHandle, account_id: String) {
     tauri::async_runtime::spawn(async move {
-        if let Err(e) = run_kind(&app, Some(&account_id), false).await {
+        if let Err(e) = run_kind(&app, Some(vec![account_id.clone()]), false).await {
             tracing::warn!(error = %e.message, "initial account sync skipped");
         }
     });
@@ -701,6 +847,53 @@ pub async fn test_provider(
     let engine = SyncEngine::new(store.clone(), p, SyncOptions::default());
     engine.flush_usage().await?;
     outcome.map_err(|e| CommandError::new("provider", e.to_string()))
+}
+
+pub fn start_rescan(
+    app: AppHandle,
+    ids: Vec<String>,
+    generation: u64,
+) -> CommandResult<crate::jobs::SyncJob> {
+    start_job(app, Some(ids), true, generation)
+}
+pub fn start_sync(
+    app: AppHandle,
+    account_id: Option<String>,
+    generation: u64,
+) -> CommandResult<crate::jobs::SyncJob> {
+    start_job(app, account_id.map(|id| vec![id]), false, generation)
+}
+fn start_job(
+    app: AppHandle,
+    ids: Option<Vec<String>>,
+    rescan: bool,
+    generation: u64,
+) -> CommandResult<crate::jobs::SyncJob> {
+    let state = app.state::<AppState>();
+    let job = state
+        .sync
+        .jobs
+        .create(SystemClock.now())
+        .ok_or_else(|| CommandError::new("sync_busy", "Too many queued jobs."))?;
+    let id = job.id.clone();
+    tauri::async_runtime::spawn(async move {
+        let result = run_job(&app, ids, true, Some((&id, generation)), rescan).await;
+        let state = app.state::<AppState>();
+        match result {
+            Ok(_) => {}
+            Err(e) => state.sync.jobs.update(
+                &id,
+                if e.code == "cancelled" {
+                    "cancelled"
+                } else {
+                    "failed"
+                },
+                Some(e.code),
+                SystemClock.now(),
+            ),
+        }
+    });
+    Ok(job)
 }
 
 #[cfg(test)]

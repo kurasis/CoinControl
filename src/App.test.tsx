@@ -332,6 +332,34 @@ describe("localization", () => {
 });
 
 describe("synchronization", () => {
+  it("retains a queued manual job across navigation and cancels that job by ID", async () => {
+    const user = userEvent.setup();
+    const job = {
+      id: "queued-manual",
+      status: "queued",
+      error_code: null,
+      created_at: 1,
+      finished_at: null as number | null,
+    };
+    vi.spyOn(api, "startSync").mockResolvedValue(job);
+    vi.spyOn(api, "syncJob").mockImplementation(async () => ({ ...job }));
+    const cancel = vi.spyOn(api, "cancelSyncJob").mockImplementation(async () => {
+      job.status = "cancelled";
+      job.finished_at = 2;
+    });
+    window.location.hash = "#/wallets";
+    renderApp();
+    await user.click(await screen.findByRole("button", { name: "Sync now" }));
+    await screen.findByRole("button", { name: "Syncing…" });
+    await user.click(screen.getByRole("link", { name: "Settings" }));
+    await screen.findByRole("heading", { level: 1, name: "Settings" });
+    await user.click(screen.getByRole("link", { name: "Wallets" }));
+    expect(await screen.findByRole("button", { name: "Syncing…" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Cancel synchronization" }));
+    expect(cancel).toHaveBeenCalledWith("queued-manual");
+    await screen.findByText("Cancelled");
+    expect(screen.getByRole("button", { name: "Sync now" })).toBeEnabled();
+  });
   it("shows sync state for a new address and runs a manual sync", async () => {
     const user = userEvent.setup();
     const wallet = await api.createWallet("Savings");
@@ -528,5 +556,63 @@ describe("address batches and history filters", () => {
     await waitFor(() =>
       expect(screen.queryByText("No activity in this scope yet.")).not.toBeInTheDocument(),
     );
+  });
+});
+
+describe("wallet maintenance and navigation", () => {
+  it("renames a wallet through the existing backend interface", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    window.location.hash = "#/wallets";
+    renderApp();
+    const wallet = await screen.findByRole("region", { name: "Cold storage" });
+    await user.click(within(wallet).getByRole("button", { name: "Rename" }));
+    const input = within(wallet).getByLabelText("Wallet name");
+    await user.clear(input);
+    await user.type(input, "Savings");
+    await user.click(within(wallet).getByRole("button", { name: "Save" }));
+    expect(await screen.findByRole("region", { name: "Savings" })).toBeInTheDocument();
+    expect((await api.listWallets()).find((w) => w.id === "w-cold")?.label).toBe("Savings");
+  });
+  it("requires an explicit move and confirmed removal preview", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    window.location.hash = "#/accounts/a-eth";
+    renderApp();
+    const move = vi.spyOn(api, "moveAccount");
+    const remove = vi.spyOn(api, "removeAccount");
+    await user.selectOptions(await screen.findByLabelText("Destination wallet"), "w-daily");
+    expect(move).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Move account" }));
+    await waitFor(() => expect(move).toHaveBeenCalledWith("a-eth", "w-daily"));
+    await user.click(screen.getByRole("button", { name: "Remove locally" }));
+    const preview = await screen.findByRole("region", { name: "Review permanent removal" });
+    const confirm = within(preview).getByRole("button", { name: "Delete permanently" });
+    expect(confirm).toBeDisabled();
+    expect(remove).not.toHaveBeenCalled();
+    await user.click(within(preview).getByRole("checkbox"));
+    await user.click(confirm);
+    await waitFor(() => expect(remove).toHaveBeenCalledWith("a-eth", "browser-preview"));
+    await screen.findByRole("heading", { name: "Wallets" });
+  });
+  it("retains chart range and asset search after visiting an asset and returning", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    renderApp();
+    const search = await screen.findByRole("searchbox", { name: "Search assets" });
+    await user.type(search, "Ether");
+    await user.click(screen.getByRole("button", { name: "7D" }));
+    await user.click(screen.getByRole("link", { name: "Ether" }));
+    expect(await screen.findByRole("button", { name: "7D" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await user.click(
+      within(screen.getByRole("navigation", { name: "Main" })).getByRole("link", {
+        name: "Portfolio",
+      }),
+    );
+    expect(await screen.findByRole("searchbox", { name: "Search assets" })).toHaveValue("Ether");
+    expect(screen.getByRole("button", { name: "7D" })).toHaveAttribute("aria-pressed", "true");
   });
 });

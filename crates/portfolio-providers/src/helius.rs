@@ -86,6 +86,13 @@ impl Helius {
         }
         Ok(())
     }
+    pub async fn validate_finality(
+        &self,
+        candidates: &[(String, i64)],
+    ) -> Result<crate::finality::FinalityBatch, ProviderError> {
+        self.check_mainnet().await?;
+        crate::finality::solana(&self.http, self.url.clone(), candidates).await
+    }
     pub fn http(&self) -> &HttpClient {
         &self.http
     }

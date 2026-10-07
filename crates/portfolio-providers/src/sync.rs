@@ -350,6 +350,9 @@ impl SyncEngine {
 
     /// Synchronizes every active account; archived accounts are skipped.
     pub async fn sync_all(&self) -> Vec<AccountSyncReport> {
+        self.sync_all_prioritized(&[]).await
+    }
+    pub async fn sync_all_prioritized(&self, priority: &[String]) -> Vec<AccountSyncReport> {
         let accounts = match self.store.list_accounts(None).await {
             Ok(a) => a,
             Err(e) => {
@@ -357,6 +360,23 @@ impl SyncEngine {
                 return Vec::new();
             }
         };
+        let attempts: BTreeMap<_, _> = self
+            .store
+            .sync_status()
+            .await
+            .unwrap_or_default()
+            .into_iter()
+            .map(|s| (s.account_id, s.last_attempt_at.unwrap_or(0)))
+            .collect();
+        let mut accounts = accounts;
+        // Oldest attempted accounts first prevents a large profile's tail from starving on quotas.
+        accounts.sort_by_key(|a| {
+            (
+                !priority.contains(&a.id),
+                attempts.get(&a.id).copied().unwrap_or(0),
+                a.id.clone(),
+            )
+        });
         let mut reports = Vec::new();
         for account in accounts.into_iter().filter(|a| !a.archived) {
             if self.is_cancelled() {
@@ -369,9 +389,144 @@ impl SyncEngine {
 
     pub async fn sync_account(&self, account: &Account) -> AccountSyncReport {
         self.report_progress(&account.id, 0, false);
-        let report = self.sync_account_inner(account).await;
+        if let Err(e) = self.store.resume_after_rollback(&account.id).await {
+            tracing::warn!(error=%e,"rollback checkpoint reset failed");
+        }
+        let mut report = self.sync_account_inner(account).await;
+        let candidates = self
+            .store
+            .finality_candidates(&account.id, self.options.max_pending_checks)
+            .await
+            .unwrap_or_default();
+        if account.network != NetworkId::Bitcoin
+            && !self.is_cancelled()
+            && !candidates.is_empty()
+            && report.balance_refreshed
+            && let Err(e) = self.validate_finality(account, &candidates).await
+        {
+            report.fallback_reasons.push(format!("finality: {e}"));
+        }
         self.report_progress(&account.id, 0, true);
         report
+    }
+    async fn validate_finality(
+        &self,
+        account: &Account,
+        candidates: &[(String, i64)],
+    ) -> Result<(), SyncError> {
+        let mut batch = None;
+        let mut errors = Vec::new();
+        let mut provider = self
+            .selected_provider(account.network)
+            .unwrap_or("unavailable");
+        if account.network == NetworkId::Ton
+            && let Some(api) = &self.providers.tonapi
+        {
+            provider = tonapi::PROVIDER;
+            match api.validate_finality(candidates).await {
+                Ok(b) => batch = Some(b),
+                Err(e) => errors.push(e),
+            }
+        }
+        if account.network == NetworkId::Solana
+            && let Some(api) = &self.providers.helius
+        {
+            provider = helius::PROVIDER;
+            match api.validate_finality(candidates).await {
+                Ok(b) => batch = Some(b),
+                Err(e) => errors.push(e),
+            }
+        }
+        if batch.is_none() {
+            // The public RPC reserve avoids consuming indexed-history service quotas for receipts.
+            let mut validators: Vec<_> = self
+                .providers
+                .reserves
+                .iter()
+                .filter(|p| p.validates_finality(account.network))
+                .collect();
+            validators.sort_by_key(|p| p.provider() != "publicnode");
+            for api in validators {
+                if self.check_stopped(api.provider()).is_err() {
+                    continue;
+                }
+                provider = api.provider();
+                match api.validate_finality(account.network, candidates).await {
+                    Ok(b) => {
+                        batch = Some(b);
+                        break;
+                    }
+                    Err(e) => {
+                        if e.stops_provider() {
+                            self.stopped
+                                .lock()
+                                .expect("stopped lock")
+                                .insert(api.provider(), e.clone());
+                        }
+                        errors.push(e);
+                    }
+                }
+            }
+        }
+        let mut cp = Checkpoint::default();
+        cp.state.last_attempt_at = Some(self.store_now());
+        let Some(batch) = batch else {
+            cp.coverage = Coverage::Partial;
+            cp.state.last_error = errors.last().map(ToString::to_string);
+            self.store
+                .save_checkpoint(&account.id, provider, "finality", &cp)
+                .await?;
+            return Ok(());
+        };
+        cp.boundary = Some(batch.boundary);
+        cp.coverage = if batch
+            .results
+            .iter()
+            .any(|(_, v)| *v == crate::finality::Validation::Unavailable)
+        {
+            Coverage::Partial
+        } else {
+            Coverage::Complete
+        };
+        cp.state.last_success_at = Some(self.store_now());
+        for (hash, result) in batch.results {
+            use crate::finality::Validation;
+            match result {
+                Validation::Reorged => {
+                    self.store
+                        .invalidate_confirmation(account.network, &hash, false)
+                        .await?
+                }
+                Validation::Pending => {
+                    self.store
+                        .invalidate_confirmation(account.network, &hash, true)
+                        .await?
+                }
+                Validation::Final => {
+                    self.store
+                        .apply_final_status(account.network, &hash, "final")
+                        .await?
+                }
+                Validation::Failed => {
+                    self.store
+                        .apply_final_status(account.network, &hash, "failed")
+                        .await?
+                }
+                _ => {}
+            }
+        }
+        if !self
+            .store
+            .finality_candidates(&account.id, 1)
+            .await?
+            .is_empty()
+        {
+            cp.coverage = Coverage::Partial;
+        }
+        self.store
+            .save_checkpoint(&account.id, provider, "finality", &cp)
+            .await?;
+        Ok(())
     }
     fn candidates(&self, network: NetworkId) -> Vec<&'static str> {
         let mut c = Vec::new();
@@ -833,6 +988,15 @@ impl SyncEngine {
             }
             if self.store.ingest_transaction(&account.id, tx).await? {
                 outcome.new_transactions += 1;
+            }
+            // These endpoints only return consensus-finalized/solidified observations.
+            if tx.status == TxStatus::Confirmed
+                && ((tx.network == NetworkId::Solana && tx.provider == helius::PROVIDER)
+                    || (tx.network == NetworkId::Tron && tx.provider == trongrid::PROVIDER))
+            {
+                self.store
+                    .apply_final_status(tx.network, &tx.hash, "final")
+                    .await?;
             }
             if tx.status != TxStatus::Pending {
                 outcome.confirmed_seen.insert(tx.hash.clone());

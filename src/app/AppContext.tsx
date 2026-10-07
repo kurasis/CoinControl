@@ -29,6 +29,8 @@ interface AppContextValue {
   setScope: (scope: Scope) => void;
   profile: ProfileKind | undefined;
   switchProfile: (profile: ProfileKind) => Promise<void>;
+  viewState: Record<string, unknown>;
+  updateViewState: (key: string, update: (previous: unknown) => unknown) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -48,11 +50,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { i18n } = useTranslation();
   const [scope, setScope] = useState<Scope>({ kind: "all" });
+  const [viewState, setViewState] = useState<Record<string, unknown>>({});
+  const updateViewState = useCallback(
+    (key: string, update: (previous: unknown) => unknown) =>
+      setViewState((previous) => ({ ...previous, [key]: update(previous[key]) })),
+    [],
+  );
   const settingsSaves = useRef(new Set<Promise<Settings>>());
 
   const settingsQuery = useQuery({ queryKey: ["settings"], queryFn: api.getSettings });
   const infoQuery = useQuery({ queryKey: ["app-info"], queryFn: api.appInfo });
   const settings = settingsQuery.data;
+  useEffect(() => {
+    if (infoQuery.data?.profile === "real") void api.setSyncScope(scope).catch(() => {});
+  }, [scope, infoQuery.data?.profile]);
   const syncQuery = useQuery({
     queryKey: ["sync-progress"],
     queryFn: api.syncProgress,
@@ -131,6 +142,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       while (settingsSaves.current.size) await Promise.allSettled([...settingsSaves.current]);
       await api.switchProfile(profile);
       setScope({ kind: "all" });
+      setViewState({});
       // Invalidation retains old values while fetching. Profile data must be
       // cleared, including inactive queries and pending reads of the old store.
       await queryClient.resetQueries();
@@ -152,6 +164,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setScope,
       profile: infoQuery.data?.profile,
       switchProfile,
+      viewState,
+      updateViewState,
     }),
     [
       settings,
@@ -161,6 +175,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       scope,
       infoQuery.data?.profile,
       switchProfile,
+      viewState,
+      updateViewState,
     ],
   );
 
