@@ -20,7 +20,7 @@ Baseline was clean main `927122dc1034596f8cb50fc23dd799b38cffc942`.
 | Chain finality/reorg (§10.2)                                 | EVM canonical receipt/block and chain-specific finalized tag; Solana finalized signature/slot and canonical block membership; TON event-root/shard membership with masterchain anchors. Missing/incomplete/error responses retain evidence; unsafe unavailable checks expose partial finality. Bitcoin retains its existing authoritative confirmation overlap; TronGrid confirmed/solidified evidence remains partial. |
 | Safe accounting rollback                                     | Independent durable rollback flag, cursor rewind, stale observed balances, invalidated derived snapshots and deterministic FIFO replay. User decisions survive disappeared events for review.                                                                                                                                                                                                                           |
 | Bounded asset custom windows                                 | Existing command accepts additive optional endpoints; exact boundaries on both series, at most 1001 samples and invalid-date rejection.                                                                                                                                                                                                                                                                                 |
-| Windows delivery                                             | Version 0.1.7; separate native automation adds real-IPC management/settings checks. Source, native, installer and publication evidence will be recorded after CI.                                                                                                                                                                                                                                                       |
+| Windows delivery                                             | Version 0.1.7; all six application/build CI jobs pass on final source. Native management/settings, production startup and upgrade evidence are recorded below; full acceptance still has external gates.                                                                                                                                                                                                                |
 
 The initial browser regression found a Russian wallet row overflowing at 672×440;
 its [failure report](INITIAL_BROWSER_LAYOUT_REPORT.json) is retained. Rows now wrap
@@ -68,11 +68,11 @@ isolation to conceal them. Each changed source receives one bounded main verific
    endpoint or node RPC authentication token**. A platform management API key is
    not a node credential. Update `CHAINSTACK_API_KEY` in Actions and the installed
    app's source setting. Do not enable a paid plan or overage for this task.
-3. **dRPC BNB:** passed on intermediate sources `052e423` and `76004e0`, but
-   the final `7b9435f` run again hit the provider rate limit (429). Check the free
-   BNB service availability/key allowance in dRPC and wait for its reset. Local
-   counts are distinct from the provider's global allowance; other reserves and
-   cached data continue to work. No paid overage or isolated retry is required.
+3. **dRPC BNB:** passed on final source `a3512b0`, after intermittent 429 on
+   `7b9435f`. It is not a current failed gate, but its earlier limit is preserved.
+   If it recurs, check the free BNB service/key allowance in dRPC and wait for its
+   reset. Local counts are distinct from global provider usage; reserves/cached
+   data continue to work. No paid overage or isolated retry is required.
 4. **Windows 11 x64:** hosted Windows Server automation does not establish the
    original Windows 11 installation/UI acceptance. A Windows 11 machine is needed
    for that gate. The unsigned ZIP remains a prerelease while external gates remain.
@@ -187,8 +187,9 @@ Alchemy's four mainnets return 403, Chainstack Solana returns 401 and dRPC BNB i
 rate limited. Its two preceding successes remain historical, not a replacement
 for this last failure. Ethereum/Solana/TON finality, other reserves and the
 budget-to-reserve route pass ([final live report](ci/observer-before-native-label-fix/live/LIVE_REPORT.md)).
-All providers use at most 50 requests **in this run** (retries included, largest
-44); earlier changed-source and cancelled branch usage is additional and preserved.
+The `npm run test:live` API suite uses at most 50 requests/provider (retries
+included, largest 44). Native and earlier changed-source/cancelled branch usage is
+additional and preserved, not included in that suite ceiling.
 
 Linux static/offline/build/bindings/browser checks pass. The final offline set is
 195 deterministic Rust and 59 frontend cases; the browser matrix uses mock IPC.
@@ -223,3 +224,72 @@ were unchanged. The exact [installed load report](ci/observer-before-native-labe
 is preserved. Installer/upgrade passed 11 checks and production inspection passed 75. The only application/build job failure was the native background-button text
 expectation described above. The next source changes tests/evidence only and must
 repeat the native checks before ZIP publication.
+
+## Final delivery verification
+
+Final source **`a3512b0121e7ce19fc93b70bcd5bd969902b599d`**, merged through
+[PR #31](https://github.com/kurasis/CoinControl/pull/31), changes only the native
+expectations, a frontend regression and evidence after `7b9435f`; product code is
+identical. [Main push CI 37601276788](https://github.com/kurasis/CoinControl/actions/runs/37601276788)
+verifies that exact source. Prior failed/cancelled sources above remain separate.
+Final source API suite: **16 PASS / 2 FAIL**; Alchemy's four mainnets (403) and
+Chainstack Solana (401) remain unavailable by owner confirmation. dRPC BNB passes.
+
+`npm run test:live` shares 50 requests/provider across all its suites, retries included;
+actual final [usage](ci/final/live/usage.json) peaks at 44. Native public BTC is a
+separate opt-in run with its own persisted usage/assertion; its usage is additional,
+not included in that API-suite ceiling. Earlier main/branch calls are also additional.
+The cancelled startup branch 37598436210 and native-label branch 37601222206 made
+partial reads ([startup usage](ci/CANCELLED_STARTUP_PR_LIVE_USAGE.json),
+[native-label usage](ci/CANCELLED_NATIVE_LABEL_PR_LIVE_USAGE.json)); the cancelled
+observer branch 37599426696 produced no live artifact. No task-wide claim of 50
+requests/provider is made. Cancelled checks are never claimed as passes.
+
+### Final Windows results
+
+All **six application/build jobs PASS**; the overall CI result is **failure** solely
+because the live API job retains the two credential/access failures. There is no
+claim that the whole workflow is green or that external release gates passed.
+
+| Scope                                    | Exact final result                                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Linux checks/build/offline/bindings      | PASS; 195 deterministic Rust / 60 frontend tests                                                  |
+| Browser mock IPC                         | PASS; 24 combinations and bounded 10000-row table                                                 |
+| Native Windows actual IPC                | **30 PASS**, plus one installer check explicitly outside this job's scope                         |
+| Native new operations                    | Wallet rename, cache evidence retention, quota IPC and interval persistence PASS                  |
+| Native cancellation/recovery             | **19 ms** acknowledgement; restart/resume, OS-enforced offline and no duplicated BTC history PASS |
+| Native usage                             | Esplora 12 / mempool 3 / DeFiLlama 14; separate from API-suite counts                             |
+| Production upgrade/uninstall             | **11 PASS**, real previous 0.1.0 upgrade                                                          |
+| Production EXE/NSIS inspection           | **75 PASS**; production excludes automation/mock/keys                                             |
+| Installed 100000-movement startup/UI/CSV | **12 PASS**; first normal fresh-cache screen **1844.60 ms**, target 2000 ms unchanged             |
+| Three later offline launches             | **801.90 / 770.20 / 765.00 ms**; distinct from the first normal gate                              |
+| Release Store load Linux/Windows         | PASS; 50 accounts / 500 assets / 100000 movements                                                 |
+| Live API suite                           | **16 PASS / 2 FAIL**; Alchemy 403 and Chainstack 401                                              |
+
+[Exact CI job metadata](ci/final/CI_RUN.json), [native report](ci/final/NATIVE_REPORT.json),
+[installer](ci/final/INSTALLER_REPORT.json), [production inspection](ci/final/RELEASE_REPORT.json)
+and [installed load](ci/final/NATIVE_LOAD_REPORT.json) record those scopes. The single
+native installer scope exclusion is covered by the independent passing installer
+job; it is not counted as a native PASS. Inspected [reconnected BTC UI](ci/final/NATIVE_RECONNECTED_BTC.png)
+and [real network console](ci/final/NATIVE_NETWORK_CONSOLE.png) use the public test
+address, not user data. Hosted Windows Server remains distinct from Windows 11.
+
+### Published ZIP
+
+[Download Windows x64 ZIP — 0.1.7](https://github.com/kurasis/CoinControl/releases/download/v0.1.7/CoinControl-0.1.7-windows-x64.zip)
+was published by [workflow 37602970378](https://github.com/kurasis/CoinControl/actions/runs/37602970378).
+It reused the inspected installer from main CI 37601276788 after all six required
+application/build jobs passed; the known failed live job is explicitly excluded
+from this existing prerelease packaging gate, not relabelled as passed.
+Application source is exactly `a3512b0121e7ce19fc93b70bcd5bd969902b599d`.
+Later evidence commits change only documentation and do not change that payload.
+
+The ZIP was downloaded again: CRC, exact four files, all internal checksums,
+external SHA-256, inspected installer hash, installed application hash, CI source
+and startup report matches **PASS**. [Build manifest](BUILD_INFO.json) and
+[published download verification](PUBLISHED_ZIP_VERIFICATION.json) retain evidence.
+ZIP SHA-256: `fd96d2b8bb0b910a74efeb499e38cd8b1025e1bfeeefcb53e51c7006f595480b` (8335521 bytes).
+Contents: unsigned setup EXE, README, build manifest and checksums. No user profiles
+or keys are embedded; enter your own keys in Settings → Data sources.
+The prerelease label and Alchemy/Chainstack/physical Windows 11 acceptance limitations
+remain explicit. Prior release assets and all earlier failed evidence are preserved.

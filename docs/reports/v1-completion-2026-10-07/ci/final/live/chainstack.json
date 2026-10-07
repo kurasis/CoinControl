@@ -1,0 +1,14 @@
+{
+  "provider": "chainstack",
+  "started_at": 1791365614,
+  "duration_ms": 594,
+  "requests": 1,
+  "endpoints": ["balance reserve"],
+  "checks": [
+    {
+      "name": "solana reserve access",
+      "result": "FAIL",
+      "detail": "chainstack getGenesisHash: credential rejected (HTTP 401)"
+    }
+  ]
+}
