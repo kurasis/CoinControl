@@ -4,9 +4,15 @@
   "version": "0.1.10",
   "packagingScript": "scripts/package-windows-release.py (unchanged)",
   "packagingResult": "PASS",
-  "releaseStatus": "BLOCKED",
-  "blocker": "Publisher workflow dispatch HTTP 500; initial release creation HTTP 500. Minimal REST draft creation succeeded, but CLI and explicitly authenticated uploads return HTTP 401. No assets, not published.",
+  "releaseStatus": "PUBLISHED",
   "fullReleaseAcceptance": false,
-  "draftReleaseId": 405978713,
-  "draftAssets": []
+  "historicalBlocker": "Publisher workflow dispatch HTTP 500; initial release creation HTTP 500. Minimal REST draft creation succeeded, but CLI and explicitly authenticated uploads return HTTP 401. No assets, not published.",
+  "releaseId": 405978713,
+  "publisherRunId": 37656795461,
+  "publisherSourceSha": "865ebf252ebee7f7d2a84421925951e2a7145515",
+  "publicationMethod": "Actions token, temporary delivery branch with existing packager and unchanged required gates; not merged into main",
+  "releaseUrl": "https://github.com/kurasis/CoinControl/releases/tag/v0.1.10",
+  "assets": ["CoinControl-0.1.10-windows-x64.zip", "CoinControl-0.1.10-windows-x64.zip.sha256"],
+  "redownloadVerification": "PASS",
+  "publishedZipSha256": "d107898a0a89b685bb8f6e26cd309e89f5c6a0bcc62c2e3f5d24f536518f6a2d"
 }

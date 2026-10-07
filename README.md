@@ -4,7 +4,7 @@ A personal, read-only cryptocurrency portfolio tracker for Windows, built with
 Tauri 2, React, TypeScript, Rust, and SQLite. The working product name inside
 the application is **Portfolio Desk**.
 
-[Download Windows x64 ZIP — 0.1.9 prerelease](https://github.com/kurasis/CoinControl/releases/download/v0.1.9/CoinControl-0.1.9-windows-x64.zip) · [Release notes](https://github.com/kurasis/CoinControl/releases/tag/v0.1.9). Extract the ZIP and run the setup EXE. This unsigned test build includes no keys or user data; full release acceptance remains subject to the gates in [TEST_REPORT.md](TEST_REPORT.md).
+[Download Windows x64 ZIP — 0.1.10 prerelease](https://github.com/kurasis/CoinControl/releases/download/v0.1.10/CoinControl-0.1.10-windows-x64.zip) · [Release notes](https://github.com/kurasis/CoinControl/releases/tag/v0.1.10). Extract the ZIP and run the setup EXE. This unsigned test build includes no keys or user data; full release acceptance remains subject to the gates in [TEST_REPORT.md](TEST_REPORT.md).
 
 The authoritative product specification lives in [`docs/spec`](docs/spec/README.md).
 Start with its README, which lists the reading order.
@@ -36,7 +36,7 @@ returns. The separate
 **demo profile** uses synthetic data, is labeled as such, and never contacts a
 provider.
 
-## Ankr reserve (0.1.10 source)
+## Ankr reserve (0.1.10)
 
 Settings → Data sources → Ankr accepts an optional key for Node RPC and exact
 Advanced token balances. Node and Advanced calls use separate shared pacing
@@ -49,8 +49,8 @@ Actual reads pass on five EVM Node networks and all six Advanced EVM networks.
 This key's Optimism/Solana Node scopes return 403, with working independent
 mirrors. Ethereum Advanced returns more assets than requested, so discovery is
 bounded to 200 accepted tokens and clearly marked partial. Indexed BNB history
-and full Windows 11 acceptance remain open. The verified 0.1.10 ZIP is local;
-GitHub publication is blocked by dispatch HTTP 500 and asset-upload HTTP 401.
+and full Windows 11 acceptance remain open. The 0.1.10 ZIP is published and its
+redownloaded checksums and exact CI-installer provenance pass verification.
 [Exact results and limits](docs/reports/ankr-2026-10-07/README.md).
 
 ## Free-plan reserves and throttling (0.1.9)
