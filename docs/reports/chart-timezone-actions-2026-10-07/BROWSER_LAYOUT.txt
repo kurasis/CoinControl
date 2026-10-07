@@ -1,0 +1,33 @@
+
+> coincontrol@0.1.6 test:layout:browser
+> node scripts/test-browser-layout.mjs
+
+PASS browser-1440x900-en-dark
+PASS browser-1440x900-en-light
+PASS browser-1440x900-ru-dark
+PASS browser-1440x900-ru-light
+PASS browser-1280x800-en-dark
+PASS browser-1280x800-en-light
+PASS browser-1280x800-ru-dark
+PASS browser-1280x800-ru-light
+PASS browser-1024x720-en-dark
+PASS browser-1024x720-en-light
+PASS browser-1024x720-ru-dark
+PASS browser-1024x720-ru-light
+PASS browser-800x480-en-dark
+PASS browser-800x480-en-light
+PASS browser-800x480-ru-dark
+PASS browser-800x480-ru-light
+PASS browser-672x440-en-dark
+PASS browser-672x440-en-light
+PASS browser-672x440-ru-dark
+PASS browser-672x440-ru-light
+PASS browser-504x340-en-dark
+PASS browser-504x340-en-light
+PASS browser-504x340-ru-dark
+PASS browser-504x340-ru-light
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

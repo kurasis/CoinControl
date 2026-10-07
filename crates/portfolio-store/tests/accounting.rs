@@ -836,11 +836,20 @@ async fn historical_chart_uses_historical_quantity_not_todays() {
         assert_eq!(p.value_usd.as_deref(), expected, "at {}", p.t);
     }
     assert_eq!(chart.history_available_since, Some(T0));
+    // The receipt is inside a UTC day, so the daily grid alone misses it.
+    assert_ne!(T0.rem_euclid(DAY), 0);
+    let first = chart.points.iter().find(|p| p.t == T0).unwrap();
+    assert_eq!(first.value_usd.as_deref(), Some("2000"));
+    assert!(first.estimated, "a daily quote stays an estimate");
+    let perf = chart.performance.as_ref().unwrap();
+    assert_eq!(perf.start, T0);
+    assert_eq!(perf.beginning_value_usd, "2000");
     // Asset chart: the market price series covers dates before the holding started.
     let asset = store
         .asset_chart(&Scope::All, &eth().id(), ChartRange::Year)
         .await
         .unwrap();
+    assert!(asset.holdings.points.iter().any(|p| p.t == T0));
     let before = asset
         .price
         .iter()
@@ -855,6 +864,109 @@ async fn historical_chart_uses_historical_quantity_not_todays() {
         .find(|p| p.t == before.t)
         .unwrap();
     assert_eq!(held_before.value_usd, None);
+}
+
+#[tokio::test]
+async fn first_event_respects_chart_boundaries_and_missing_prices() {
+    // Cover an aligned receipt, an intraday receipt and the current endpoint.
+    for first in [T0 - T0.rem_euclid(DAY), T0, NOW] {
+        let store = Store::open_in_memory(ProfileKind::Test, Arc::new(FixedClock(NOW)))
+            .await
+            .unwrap();
+        let wallet = store.create_wallet("W").await.unwrap();
+        let account = store
+            .add_account(&wallet.id, NetworkId::Ethereum, ADDR_A, None)
+            .await
+            .unwrap();
+        store
+            .ingest_transaction(
+                &account.id,
+                &tx(
+                    "0x10",
+                    first,
+                    "receive",
+                    vec![leg(eth(), "1", "receive")],
+                    None,
+                ),
+            )
+            .await
+            .unwrap();
+        balance(&store, &account.id, &eth(), "1").await;
+        let end = (first + DAY).min(NOW);
+        for window in [None, Some((first - 123, end)), Some((first, end))] {
+            if window.is_some_and(|(start, end)| start == end) {
+                continue;
+            }
+            let chart = store
+                .get_chart_window(&Scope::All, ChartRange::All, window)
+                .await
+                .unwrap();
+            assert_eq!(chart.points.iter().filter(|p| p.t == first).count(), 1);
+            let receipt = chart.points.iter().find(|p| p.t == first).unwrap();
+            assert_eq!(receipt.value_usd, None, "missing quote must remain a gap");
+            assert!(receipt.partial);
+            assert!(chart.points.windows(2).all(|w| w[0].t < w[1].t));
+            assert_eq!(
+                chart.points.last().unwrap().t,
+                window.map_or(NOW, |(_, end)| end)
+            );
+            if let Some((start, end)) = window {
+                assert_eq!(chart.points.first().unwrap().t, start);
+                assert!(chart.points.iter().all(|p| p.t >= start && p.t <= end));
+            }
+        }
+        if first < NOW - DAY {
+            let recent = store.get_chart(&Scope::All, ChartRange::Day).await.unwrap();
+            assert!(recent.points.iter().all(|p| p.t >= NOW - DAY));
+            let before = store
+                .get_chart_window(&Scope::All, ChartRange::All, Some((first - DAY, first - 1)))
+                .await
+                .unwrap();
+            assert!(
+                before
+                    .points
+                    .iter()
+                    .all(|p| p.value_usd.is_none() && p.t < first)
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn first_event_keeps_long_and_custom_charts_bounded() {
+    let first = NOW - 999 * DAY;
+    let store = Store::open_in_memory(ProfileKind::Test, Arc::new(FixedClock(NOW)))
+        .await
+        .unwrap();
+    let wallet = store.create_wallet("W").await.unwrap();
+    let account = store
+        .add_account(&wallet.id, NetworkId::Ethereum, ADDR_A, None)
+        .await
+        .unwrap();
+    store
+        .ingest_transaction(
+            &account.id,
+            &tx(
+                "0x10",
+                first,
+                "receive",
+                vec![leg(eth(), "1", "receive")],
+                None,
+            ),
+        )
+        .await
+        .unwrap();
+    balance(&store, &account.id, &eth(), "1").await;
+    for window in [None, Some((first - DAY, NOW))] {
+        let chart = store
+            .get_chart_window(&Scope::All, ChartRange::All, window)
+            .await
+            .unwrap();
+        assert!(chart.points.len() <= 1_001);
+        assert!(chart.points.windows(2).all(|w| w[0].t < w[1].t));
+        assert!(chart.points.iter().any(|p| p.t == first));
+        assert_eq!(chart.points.last().unwrap().t, NOW);
+    }
 }
 
 #[tokio::test]

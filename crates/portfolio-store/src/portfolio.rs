@@ -856,7 +856,8 @@ impl Store {
             .min();
         let (interval, start, end) = match window {
             Some((start, end)) => (
-                ((end - start) / (MAX_CHART_POINTS - 1) + 1).max(HOUR),
+                // Reserve room for the window boundaries and first event.
+                ((end - start) / (MAX_CHART_POINTS - 2) + 1).max(HOUR),
                 start,
                 end,
             ),
@@ -877,6 +878,14 @@ impl Store {
             if times.last() != Some(&end) {
                 times.push(end);
             }
+        }
+        // A daily UTC grid can skip the first receipt inside that day. Include
+        // its actual time without extending the selected range or inventing
+        // holdings before evidence. Aligned events/endpoints stay unique.
+        if let Some(first) = earliest.filter(|t| *t >= start && *t <= end)
+            && let Err(index) = times.binary_search(&first)
+        {
+            times.insert(index, first);
         }
         let points = times
             .into_iter()
@@ -1017,7 +1026,8 @@ fn grid_params(range: ChartRange, now: i64, earliest: Option<i64>) -> (i64, i64)
             let first = earliest.unwrap_or(now);
             let span = (now - first).max(DAY);
             let mut interval = DAY;
-            while span / interval > MAX_CHART_POINTS {
+            // Budget includes the current endpoint and exact first event.
+            while span / interval > MAX_CHART_POINTS - 2 {
                 interval *= 2;
             }
             // One step earlier so the first data point is inside the grid.

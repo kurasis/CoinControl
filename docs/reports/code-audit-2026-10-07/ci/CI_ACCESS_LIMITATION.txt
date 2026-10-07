@@ -1,6 +1,7 @@
-Application source merged: 153c2463f8f2f032e260c916ee25b6d21d1018b5 (PR #24)
+Historical access interruption: GitHub HTTP 401 during the previous task.
+Access restored and completed artifacts retrieved during the follow-up task.
+Source: 153c2463f8f2f032e260c916ee25b6d21d1018b5 (PR #24).
 Run: https://github.com/kurasis/CoinControl/actions/runs/37575008756
-Authenticated API: HTTP 401 Bad credentials
-Native Git read: could not read Username for https://github.com
-Two native Windows job outcomes unconfirmed after access loss.
-CI evidence addition is local until authentication is restored.
+Windows native recovery/BTC/DPI: PASS.
+Production normal-network startup: FAIL (3499.30 ms > 2000 ms); other 11 checks PASS.
+See NATIVE_REPORT.json and NATIVE_LOAD_REPORT.json.

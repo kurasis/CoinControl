@@ -67,7 +67,7 @@ imports, lazy imports, CLI/build-time dependencies и исторические �
 сборке закончилось место. Первый промежуточный прогон также выявил нарушение
 React render purity в новом test probe; probe исправлен через effect.
 
-## Оставшиеся вопросы
+## Вопросы, отложенные при первоначальном аудите
 
 | Приоритет | Файл                                                                | Причина и решение                                                                                                                                                                                                                                                       |
 | --------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -75,6 +75,10 @@ React render purity в новом test probe; probe исправлен чере�
 | P2        | `Cargo.toml`                                                        | `rust-version = "1.90"` ниже MSRV закреплённого `sqlx 0.9.0` (`1.94.0` в его manifest). Pin/CI используют проверенный Rust 1.97. Объявленный публичный MSRV не повышен без согласования; сборка на 1.90 не заявляется поддерживаемой.                                   |
 | P2        | `crates/portfolio-store/src/settings.rs`, `src/lib/format.ts`       | Сохраняемый timezone не проверяется как IANA; некорректное значение извне/backup может вызвать RangeError в Intl. UI предлагает допустимые зоны. Изменение валидации IPC или политики восстановления требует согласования; здесь контракт принятия настроек не менялся. |
 | P3        | `.github/workflows/ci.yml`, `.github/workflows/publish-windows.yml` | GitHub предупреждает об устаревшем Node 20 runtime в actions/checkout@v4, setup-node@v4 и upload-artifact@v4; runner принудительно использует Node 24. Проверки выполняются; major-обновления Actions в этом аудите не применены без согласования.                      |
+
+Все четыре изменения согласованы пользователем и выполнены в
+[следующей задаче](../chart-timezone-actions-2026-10-07/README.md). Таблица выше
+фиксирует решения первоначального аудита, до этого согласования.
 
 Схема SQLite, accounting engine, маршрутизация/лимиты провайдеров, публичные IPC
 команды и DTO сохранены. Release 0.1.6 не перепубликуется: аудит доставляет исходный
@@ -102,24 +106,24 @@ failure fixtures и реальная генерация DTO. Приложени�
 Live API не выполняются локально; отдельная CI job имеет свой bounded opt-in бюджет.
 Успешные browser/mock проверки не считаются native/реальными API проверками.
 
-## GitHub CI и ограничение доступа
+## GitHub CI и восстановленный доступ
 
 [CI 37575008756](https://github.com/kurasis/CoinControl/actions/runs/37575008756)
 проверяет точный commit приложения `153c2463f8f2f032e260c916ee25b6d21d1018b5`.
 Дублирующий PR run 37574997976 остановлен после merge, чтобы повторно не расходовать
-квоты API. Ниже — результаты, полученные **до потери доступа**; это не утверждение
-о текущем состоянии незавершённых jobs.
+квоты API. Доступ восстановлен при следующей задаче. Все jobs завершены; получены также
+итоговые Windows native artifacts.
 
-| CI job / проверка                                          | Полученный результат                                         | Доказательство                                                                         |
-| ---------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| Linux checks/offline/build/bindings/browser                | PASS                                                         | [CI](https://github.com/kurasis/CoinControl/actions/runs/37575008756/job/112641819902) |
-| Cached load, Linux: 50 accounts / 500 assets / 100000 legs | PASS                                                         | [JSON](ci/PERFORMANCE_LINUX.json)                                                      |
-| Cached load, Windows: тот же профиль                       | PASS                                                         | [JSON](ci/PERFORMANCE_WINDOWS.json)                                                    |
-| Windows NSIS build + upgrade/uninstall                     | PASS, 11 installer checks                                    | [JSON](ci/INSTALLER_REPORT.json)                                                       |
-| Production payload inspection                              | PASS, 64 checks                                              | [JSON](ci/RELEASE_REPORT.json)                                                         |
-| Live API                                                   | 15 suites PASS, 3 FAIL; все provider usage <= 50             | [Отчёт](ci/live/LIVE_REPORT.md), [usage](ci/live/usage.json)                           |
-| Windows native recovery, live BTC и DPI                    | Последний полученный статус in_progress; итог не подтверждён | —                                                                                      |
-| Production startup / 100000-leg UI/import                  | Последний полученный статус in_progress; итог не подтверждён | —                                                                                      |
+| CI job / проверка                                          | Полученный результат                                                              | Доказательство                                                                         |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Linux checks/offline/build/bindings/browser                | PASS                                                                              | [CI](https://github.com/kurasis/CoinControl/actions/runs/37575008756/job/112641819902) |
+| Cached load, Linux: 50 accounts / 500 assets / 100000 legs | PASS                                                                              | [JSON](ci/PERFORMANCE_LINUX.json)                                                      |
+| Cached load, Windows: тот же профиль                       | PASS                                                                              | [JSON](ci/PERFORMANCE_WINDOWS.json)                                                    |
+| Windows NSIS build + upgrade/uninstall                     | PASS, 11 installer checks                                                         | [JSON](ci/INSTALLER_REPORT.json)                                                       |
+| Production payload inspection                              | PASS, 64 checks                                                                   | [JSON](ci/RELEASE_REPORT.json)                                                         |
+| Live API                                                   | 15 suites PASS, 3 FAIL; все provider usage <= 50                                  | [Отчёт](ci/live/LIVE_REPORT.md), [usage](ci/live/usage.json)                           |
+| Windows native recovery, live BTC и DPI                    | PASS                                                                              | [JSON](ci/NATIVE_REPORT.json)                                                          |
+| Production startup / 100000-leg UI/import                  | FAIL: первый normal-network запуск 3499,30 ms > 2000 ms; остальные 11 checks PASS | [JSON](ci/NATIVE_LOAD_REPORT.json)                                                     |
 
 Live failure причины: Alchemy HTTP 403 на Base/Arbitrum/Optimism/Polygon,
 Chainstack HTTP 401, dRPC BNB HTTP 429. Zerion, Helius, публичные резервы,
@@ -127,10 +131,10 @@ Chainstack HTTP 401, dRPC BNB HTTP 429. Zerion, Helius, публичные ре�
 успешными и не ретраились без изменения доступа/квоты. Отключение проверок,
 ослабление assertions или платные планы не применялись.
 
-Во время ожидания GitHub API начал возвращать `401 Bad credentials`,
-`git ls-remote origin HEAD` также перестал авторизоваться. Повторная read-only
-проверка подтвердила отказ. Запрошено восстановление подключения этой среды;
-значения токенов не запрашивались и не печатались. Исправления приложения уже
-доставлены в main. Это дополнение и полученные CI artifacts пока сохранены
-локально на ветке `docs/audit-ci-evidence-2026-10-07`; их отправка и подтверждение
-двух оставшихся Windows jobs зависят от восстановления доступа.
+Во время предыдущей задачи GitHub API временно возвращал `401 Bad credentials`.
+Подключение восстановлено; два оставшихся Windows результата теперь подтверждены.
+Startup failure остаётся отдельным дефектом производительности: cached process
+launches 605,90–647,50 ms прошли, но они не заменяют неудачный первый запуск.
+Порог 2000 ms сохранён. Native WebView был готов через 2196 ms по launch log,
+полезный экран появился через 3499,30 ms; этот прогон не доказывает,
+что задержка вызвана API-провайдерами или новой логикой настроек.

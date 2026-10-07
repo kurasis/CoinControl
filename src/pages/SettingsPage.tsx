@@ -47,8 +47,14 @@ function GeneralSettings() {
   const { t } = useTranslation();
   const { settings, updateSettings, privacy, togglePrivacy } = useApp();
   if (!settings) return null;
-  const zones =
-    typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : [];
+  // supportedValuesOf omits UTC and some accepted aliases already stored.
+  const zones = [
+    ...new Set([
+      "UTC",
+      ...(settings.timezone ? [settings.timezone] : []),
+      ...(typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : []),
+    ]),
+  ].sort();
   return (
     <section className="card" aria-label={t("settings.general")}>
       <div className="settings-row">
