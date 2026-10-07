@@ -1,0 +1,54 @@
+{
+  "provider": "vertical-slice",
+  "started_at": 1791355753,
+  "duration_ms": 24225,
+  "requests": 25,
+  "endpoints": [],
+  "checks": [
+    {
+      "name": "bitcoin: holdings and complete history persisted",
+      "result": "PASS",
+      "detail": "22 transactions in 1 pages, coverage Complete, error None"
+    },
+    {
+      "name": "bitcoin: re-sync adds nothing",
+      "result": "PASS",
+      "detail": "0 new, 1 pages"
+    },
+    {
+      "name": "ethereum: holdings and first history pages persisted",
+      "result": "PASS",
+      "detail": "50 transactions in 2 pages, coverage Loading (backfill continues next sweep), error None"
+    },
+    {
+      "name": "prices: bitcoin holding valued",
+      "result": "PASS",
+      "detail": "28 priced, 444 unpriced, errors []; BTC 0.00585704 x Some(\"84333.35609477767\") = Some(\"493.9438399813566042968\")"
+    },
+    {
+      "name": "portfolio total available",
+      "result": "PASS",
+      "detail": "472 holdings, 444 unpriced, 603 spam excluded"
+    },
+    {
+      "name": "activity readable through the app's query",
+      "result": "PASS",
+      "detail": "72 rows on the first page"
+    },
+    {
+      "name": "price history: daily series downloaded within the request cap",
+      "result": "PASS",
+      "detail": "2 requests, 1000 points, 30 assets pending, 0 unavailable, errors []"
+    },
+    {
+      "name": "accounting replay over real history",
+      "result": "PASS",
+      "detail": "Ok(ReplayReport { events: 75, lots: 34, review_items: 68, reconciliation_items: 14, orphaned_overrides: 0 })"
+    },
+    {
+      "name": "bitcoin 1Y price and holdings charts use historical prices",
+      "result": "PASS",
+      "detail": "366 of 366 price points, 366 valued holdings points"
+    }
+  ]
+}

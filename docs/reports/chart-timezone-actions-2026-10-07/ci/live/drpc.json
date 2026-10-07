@@ -1,0 +1,64 @@
+{
+  "provider": "drpc",
+  "started_at": 1791355616,
+  "duration_ms": 16067,
+  "requests": 17,
+  "endpoints": ["balance reserve"],
+  "checks": [
+    {
+      "name": "ethereum native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "ethereum integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "base native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "base integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "arbitrum native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "arbitrum integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "optimism native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "optimism integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "polygon native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "polygon integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "bsc reserve access",
+      "result": "FAIL",
+      "detail": "drpc eth_chainId: rate limited"
+    }
+  ]
+}

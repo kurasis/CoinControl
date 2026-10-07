@@ -48,7 +48,15 @@ virtualized 10000-row table и chart privacy ([JSON](BROWSER_LAYOUT_REPORT.json)
 [лог](BROWSER_LAYOUT.txt)). Это Chromium/mock IPC, не native Windows. Report
 содержит исходный HEAD с `sourceDirty: true`: проверялось рабочее дерево задачи.
 
-Точный CI будет записан после завершения. Windows
+Изменения доставлены через [PR #25](https://github.com/kurasis/CoinControl/pull/25),
+точный код приложения `cc2215edb3ef13899dc2e6a230efceae96decfc5`.
+[CI 37583312836](https://github.com/kurasis/CoinControl/actions/runs/37583312836)
+запущен полным workflow_dispatch на main: squash унаследовал `[skip ci]` из
+прежнего evidence commit, поэтому push run не появился. Дублирующий PR CI
+37583215609 остановлен; до отмены он успел сделать Alchemy 12 и DefiLlama 4
+запроса (по partial usage artifact). Повторных полных live прогонов не запускали.
+Это не publishing-eligible push
+run; новый release этой задачей не публикуется. Итоги CI записаны ниже. Windows
 installer/native проверки выполняются в GitHub Actions, не в Linux workspace.
 Publish workflow обновлён, но публикация release в этой задаче не запускается.
 
@@ -76,3 +84,42 @@ rust-cache 2.9.2. Все используют `runs.using: node24`; требую
 recovery/BTC/DPI job прошёл. Live Alchemy 403 / Chainstack 401 / dRPC BNB 429
 остаются подтверждёнными внешними ограничениями старого прогона. Эти failures
 не объявлены успешными и не скрыты отключением assertions.
+
+## Итог CI на объединённом коде
+
+[CI 37583312836](https://github.com/kurasis/CoinControl/actions/runs/37583312836)
+проверил точный `cc2215edb3ef13899dc2e6a230efceae96decfc5`. Шесть jobs
+приложения/сборки прошли; live job завершилась failure на прежних внешних
+ограничениях. [Provenance/status](ci/CI_STATUS.json) фиксирует SHA, event и jobs.
+
+| Проверка                                                | Результат                                                                                    | Доказательство                                                                          |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Linux checks/offline/build/browser/bindings             | PASS                                                                                         | [Job](https://github.com/kurasis/CoinControl/actions/runs/37583312836/job/112667697581) |
+| Linux store load 50 accounts / 500 assets / 100000 legs | PASS; cached reopen/summary 191.40 ms; query p95 <300 ms                                     | [JSON](ci/PERFORMANCE_LINUX.json)                                                       |
+| Windows store load, тот же объём                        | PASS; cached reopen/summary 462.74 ms; query p95 <300 ms                                     | [JSON](ci/PERFORMANCE_WINDOWS.json)                                                     |
+| Windows NSIS build, upgrade/uninstall                   | PASS; 11 checks                                                                              | [JSON](ci/INSTALLER_REPORT.json)                                                        |
+| Production EXE/resource inspection                      | PASS; 64 checks                                                                              | [JSON](ci/RELEASE_REPORT.json)                                                          |
+| Windows native recovery, BTC, console, DPI              | PASS; 26 checks; installer test отдельной job                                                | [JSON](ci/NATIVE_REPORT.json)                                                           |
+| Installed production startup / large UI / CSV           | PASS; 12 checks; first normal 1456.70 ms, three offline launches 738.20 / 747.20 / 745.70 ms | [JSON](ci/NATIVE_LOAD_REPORT.json)                                                      |
+| Live API                                                | 15 suites PASS, 3 FAIL                                                                       | [Отчёт](ci/live/LIVE_REPORT.md), [usage](ci/live/usage.json)                            |
+
+Порог первого полезного native экрана остался 2000 ms. Production application
+hash совпадает с извлечённым NSIS payload; native-e2e feature в installer не
+включён. Старый normal-network startup failure 3499.30 ms сохранён в отчёте
+первого аудита; успешный новый прогон не доказывает отсутствия вариативности
+Windows/WebView startup. Данные cached store harness не подменяют process/render
+startup measurements.
+
+Live failures: Alchemy Base/Arbitrum/Optimism/Polygon возвращают 403, Chainstack
+Solana возвращает 401, dRPC BNB — 429. Alchemy Ethereum, Zerion, Helius, публичные
+резервы, источники цен, vertical slice и network suite прошли. В полном live
+прогоне каждый provider usage <=50. Отменённый PR успел потратить дополнительно
+Alchemy 12 и DefiLlama 4 ([partial usage](ci/CANCELLED_PR_LIVE_USAGE.json)); native
+public reads учитываются отдельными native reports. Неуспешные live suites не
+перезапускались без изменений доступа/квоты; assertions и бюджеты не ослаблялись.
+
+Actions checkout/setup-node/rust-cache/upload/download исполнены в CI успешно,
+включая cross-run download старого installer baseline и новый ZIP digest gate.
+Publish-only github-script 9 проверен по official release/API compatibility,
+но publishing workflow не запускался. Физический Windows 11 и macOS/iOS здесь
+не проверялись; native automation использует hosted Windows Server.

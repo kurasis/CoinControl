@@ -1,0 +1,34 @@
+{
+  "provider": "livecoinwatch",
+  "started_at": 1791355668,
+  "duration_ms": 3035,
+  "requests": 3,
+  "endpoints": ["coins/map", "coins/single/history", "credits"],
+  "checks": [
+    {
+      "name": "authenticated credits",
+      "result": "PASS",
+      "detail": "provider-reported 9996 of 10000 daily credits remaining"
+    },
+    {
+      "name": "USD quote batch for mapped assets",
+      "result": "PASS",
+      "detail": "BTC=84356.09670981906, ETH=2623.854767230355, USDC=1.002305085109993"
+    },
+    {
+      "name": "24h ratio normalized to percent",
+      "result": "PASS",
+      "detail": "BTC -1.16%, ETH -2.72%, USDC 0.02%"
+    },
+    {
+      "name": "missing code is absent, not zero",
+      "result": "PASS",
+      "detail": "3 returned codes"
+    },
+    {
+      "name": "historical series with ascending timestamps",
+      "result": "PASS",
+      "detail": "97 points, first Some(1788220800), last Some(1788480000)"
+    }
+  ]
+}
