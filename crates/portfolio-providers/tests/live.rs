@@ -1776,6 +1776,12 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
                 "RATE_LIMITED",
                 e.to_string(),
             ),
+            Err(e @ ProviderError::NetworkForbidden { .. }) if provider == "ankr" => report
+                .limitation(
+                    &format!("{} Node access unavailable", n.as_str()),
+                    "PARTIAL",
+                    format!("{e}; independent balance mirror required, this source is not passed"),
+                ),
             Err(e) => report.check(
                 &format!("{} reserve access", n.as_str()),
                 false,

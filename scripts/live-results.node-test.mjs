@@ -67,3 +67,14 @@ test("Node success cannot stand in for throttled Advanced API or missing BNB mir
   assert.equal(missingMirrorEvidence(reports).length, 5);
   assert.ok(missingMirrorEvidence(reports).some((s) => s.includes("bsc")));
 });
+test("partial Ankr Node network access requires an actual independent mirror", () => {
+  const partial = report("ankr", [check("solana Node access unavailable", "PARTIAL")]);
+  assert.equal(missingMirrorEvidence([partial]).length, 1);
+  assert.deepEqual(
+    missingMirrorEvidence([
+      partial,
+      report("mirror-routing", [check("solana: mirror balance persisted", "PASS")]),
+    ]),
+    [],
+  );
+});

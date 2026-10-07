@@ -119,11 +119,20 @@ fn parse_page(
 ) -> Result<BalancePage, ProviderError> {
     let invalid = || rpc::invalid(PROVIDER, METHOD, "invalid token balance evidence");
     let assets = value["assets"].as_array().ok_or_else(invalid)?;
-    if assets.len() > PAGE_SIZE {
+    // Some responses include the separately sorted native coin in addition to
+    // pageSize token entries. It is not used for the indexed token snapshot.
+    let native_count = assets
+        .iter()
+        .filter(|a| a["tokenType"].as_str() == Some("NATIVE"))
+        .count();
+    if native_count > 1 || assets.len().saturating_sub(native_count) > PAGE_SIZE {
         return Err(rpc::invalid(
             PROVIDER,
             METHOD,
-            "page exceeded requested asset limit",
+            &format!(
+                "page exceeded requested token limit: {} assets, {native_count} native entries",
+                assets.len()
+            ),
         ));
     }
     let mut tokens = Vec::new();
@@ -312,6 +321,30 @@ mod tests {
                 .tokens
                 .is_empty()
         );
+    }
+    #[test]
+    fn a_separately_included_native_coin_does_not_reduce_the_token_page_limit() {
+        let mut assets: Vec<_> = (0..PAGE_SIZE)
+            .map(|i| {
+                let mut a = asset();
+                a["contractAddress"] = json!(format!("0x{:040x}", i + 1));
+                a
+            })
+            .collect();
+        let mut native = asset();
+        native["tokenType"] = json!("NATIVE");
+        assets.insert(0, native);
+        assert_eq!(
+            parse_page(NetworkId::Bsc, WALLET, &json!({"assets":assets}))
+                .unwrap()
+                .tokens
+                .len(),
+            PAGE_SIZE
+        );
+        let mut extra = asset();
+        extra["contractAddress"] = json!(format!("0x{:040x}", PAGE_SIZE + 1));
+        assets.push(extra);
+        assert!(parse_page(NetworkId::Bsc, WALLET, &json!({"assets":assets})).is_err());
     }
     #[test]
     fn shipped_intervals_bound_rolling_windows_without_bursts() {

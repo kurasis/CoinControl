@@ -30,6 +30,20 @@ export function missingMirrorEvidence(reports) {
   const routing = reports.find((r) => r.provider === "mirror-routing");
   const missing = [];
   for (const report of reports) {
+    if (report.provider === "ankr") {
+      for (const c of report.checks.filter(
+        (c) => c.result === "PARTIAL" && c.name.endsWith(" Node access unavailable"),
+      )) {
+        const network = c.name.split(" ")[0];
+        if (
+          !routing?.checks.some(
+            (c) => c.result === "PASS" && c.name === `${network}: mirror balance persisted`,
+          )
+        ) {
+          missing.push(`ankr: no successful independent ${network} balance evidence`);
+        }
+      }
+    }
     if (!report.checks.some((c) => c.result === "RATE_LIMITED")) continue;
     if (scopes[report.provider]) {
       for (const network of scopes[report.provider]) {

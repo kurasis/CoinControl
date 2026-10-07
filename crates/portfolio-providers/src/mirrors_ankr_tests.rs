@@ -316,3 +316,27 @@ async fn forbidden_node_network_does_not_poison_other_chains_or_advanced_api() {
         .unwrap();
     assert_eq!(budget.used(), 3);
 }
+
+#[tokio::test]
+async fn forbidden_invalid_credential_remains_an_authentication_failure() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(
+            ResponseTemplate::new(403)
+                .set_body_json(json!({"message":"Invalid API key short-key"})),
+        )
+        .mount(&server)
+        .await;
+    let api = Ankr::with_config(
+        Url::parse(&format!("{}/invalid-auth-key", server.uri())).unwrap(),
+        Budget::limited(1),
+        config(),
+    )
+    .unwrap();
+    let error = match api.balances_page(NetworkId::Bsc, ADDRESS, None).await {
+        Err(error) => error,
+        Ok(_) => panic!("Invalid key accepted"),
+    };
+    assert!(matches!(error, ProviderError::Auth { status: 403, .. }));
+    assert!(!error.to_string().contains("short-key"));
+}
