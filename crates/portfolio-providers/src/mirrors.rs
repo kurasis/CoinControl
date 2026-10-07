@@ -385,14 +385,24 @@ impl Reserve {
                 height: Some(h.slot),
             });
         }
+        let node_url = base.clone();
         let mut snapshot = match self.kind {
             Kind::Blockscout => self.blockscout(base, n, address).await,
             Kind::Etherscan => self.etherscan(base, n, address, known).await,
             Kind::TonCenter => self.toncenter(base, address, known).await,
             Kind::Rpc if n == NetworkId::Tron => self.tron(base, address, known).await,
-            Kind::Rpc => self.evm(base, n, address, known).await,
+            Kind::Rpc => {
+                self.evm(
+                    base.clone(),
+                    n,
+                    address,
+                    if self.ankr.is_some() { &[] } else { known },
+                )
+                .await
+            }
         }?;
         if let Some(advanced) = &self.ankr {
+            let rpc_height = snapshot.height.expect("EVM RPC snapshot height");
             let mut cursor: Option<String> = None;
             let mut seen_cursors = std::collections::BTreeSet::new();
             let mut seen_tokens = std::collections::BTreeSet::new();
@@ -405,7 +415,7 @@ impl Reserve {
                     }
                     Err(error) => return Err(error), // Quota immediately advances to an independent mirror.
                 };
-                for (asset, raw) in page.tokens {
+                for (mut asset, raw) in page.tokens {
                     if !seen_tokens.insert(asset.contract.clone()) {
                         return Err(rpc::invalid(
                             p,
@@ -413,7 +423,18 @@ impl Reserve {
                             "repeated token across pages",
                         ));
                     }
-                    // Keep the block-pinned RPC balances of already known tokens.
+                    if let Some(prior) = known.iter().find(|a| a.contract == asset.contract) {
+                        if prior.decimals != asset.decimals {
+                            return Err(rpc::invalid(
+                                p,
+                                "ankr_getAccountBalance",
+                                "token decimals changed",
+                            ));
+                        }
+                        // Keep trusted names/verification; do not silently change metadata.
+                        asset = prior.clone();
+                        asset.provider = p;
+                    }
                     if !snapshot
                         .assets
                         .iter()
@@ -447,6 +468,24 @@ impl Reserve {
                         .into(),
                 );
             }
+            // Advanced already supplies the known tokens it returns. Read only
+            // missing known identities over Node RPC, rather than spending up to
+            // twenty duplicate calls on every re-sync. Unseen tokens beyond this
+            // bound remain stale, never implicitly zero.
+            let missing: Vec<_> = known
+                .iter()
+                .filter(|a| {
+                    !snapshot
+                        .assets
+                        .iter()
+                        .any(|(seen, _)| seen.contract == a.contract)
+                })
+                .cloned()
+                .collect();
+            snapshot.assets.extend(
+                self.evm_tokens(node_url, n, address, &missing, &format!("0x{rpc_height:x}"))
+                    .await?,
+            );
         }
         Ok(snapshot)
     }
@@ -483,7 +522,24 @@ impl Reserve {
             AssetSpec::native(n, p),
             rpc::raw_hex(v.as_str().unwrap_or(""), p, "eth_getBalance")?,
         )];
+        assets.extend(self.evm_tokens(u, n, address, known, block).await?);
+        Ok(Snapshot {
+            warnings: Vec::new(),
+            assets,
+            height: Some(h),
+        })
+    }
+    async fn evm_tokens(
+        &self,
+        u: Url,
+        n: NetworkId,
+        address: &str,
+        known: &[AssetSpec],
+        block: &str,
+    ) -> Result<Vec<(AssetSpec, BigInt)>, ProviderError> {
+        let p = self.provider();
         let addr = evm_address(address, p)?;
+        let mut assets = Vec::new();
         for a in known.iter().filter(|a| a.contract.is_some()).take(20) {
             let contract = evm_address(a.contract.as_deref().unwrap(), p)?;
             if n == NetworkId::Polygon && contract == "0x0000000000000000000000000000000000001010" {
@@ -501,11 +557,7 @@ impl Reserve {
             a.provider = p;
             assets.push((a, rpc::raw_hex(v.as_str().unwrap_or(""), p, "eth_call")?));
         }
-        Ok(Snapshot {
-            warnings: Vec::new(),
-            assets,
-            height: Some(h),
-        })
+        Ok(assets)
     }
     async fn etherscan(
         &self,

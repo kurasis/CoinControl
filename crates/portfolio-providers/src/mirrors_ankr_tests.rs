@@ -386,3 +386,94 @@ async fn advanced_response_bytes_are_bounded_even_when_pagination_is_ignored() {
         Err(ProviderError::TooLarge { .. })
     ));
 }
+
+#[tokio::test]
+async fn known_indexed_balances_are_not_requeried_and_trusted_metadata_survives() {
+    let server = MockServer::start().await;
+    node(&server).await;
+    rpc_result(&server, "ankr_getAccountBalance", token_page("", TOKEN)).await;
+    let budget = Budget::limited(8);
+    let api = reserve(&server, budget.clone(), true);
+    let known = AssetSpec {
+        network: NetworkId::Bsc,
+        contract: Some(TOKEN.into()),
+        decimals: 18,
+        symbol: Some("Trusted USDT".into()),
+        name: None,
+        verification: Verification::Verified,
+        provider: "zerion",
+    };
+    for _ in 0..2 {
+        let h = api
+            .snapshot(NetworkId::Bsc, ADDRESS, std::slice::from_ref(&known))
+            .await
+            .unwrap();
+        let (asset, raw) = h.assets.iter().find(|(a, _)| a.contract.is_some()).unwrap();
+        assert_eq!(asset.verification, Verification::Verified);
+        assert_eq!(asset.symbol, known.symbol);
+        assert_eq!(raw.to_string(), "9007199254740993123456789");
+    }
+    assert_eq!(budget.used(), 8); // 3 Node + 1 Advanced on each synchronization.
+    assert!(
+        server
+            .received_requests()
+            .await
+            .unwrap()
+            .iter()
+            .all(|r| r.body_json::<Value>().unwrap()["method"] != "eth_call")
+    );
+}
+
+#[tokio::test]
+async fn missing_known_tokens_still_use_block_pinned_rpc_without_invented_zeroes() {
+    let server = MockServer::start().await;
+    node(&server).await;
+    rpc_result(&server, "ankr_getAccountBalance", json!({"assets":[]})).await;
+    rpc_result(&server, "eth_call", json!("0x20000000000001")).await;
+    let budget = Budget::limited(5);
+    let api = reserve(&server, budget.clone(), true);
+    let known = AssetSpec {
+        network: NetworkId::Bsc,
+        contract: Some(TOKEN.into()),
+        decimals: 18,
+        symbol: Some("USDT".into()),
+        name: None,
+        verification: Verification::Verified,
+        provider: "zerion",
+    };
+    let h = api
+        .snapshot(NetworkId::Bsc, ADDRESS, &[known])
+        .await
+        .unwrap();
+    assert_eq!(h.assets.len(), 2);
+    assert_eq!(h.assets[1].1.to_string(), "9007199254740993");
+    let requests = server.received_requests().await.unwrap();
+    let call = requests
+        .iter()
+        .map(|r| r.body_json::<Value>().unwrap())
+        .find(|v| v["method"] == "eth_call")
+        .unwrap();
+    assert_eq!(call["params"][1], "0xabc");
+    assert_eq!(budget.used(), 5);
+}
+
+#[tokio::test]
+async fn conflicting_known_decimals_remain_a_real_evidence_failure() {
+    let server = MockServer::start().await;
+    node(&server).await;
+    rpc_result(&server, "ankr_getAccountBalance", token_page("", TOKEN)).await;
+    let api = reserve(&server, Budget::limited(10), true);
+    let known = AssetSpec {
+        network: NetworkId::Bsc,
+        contract: Some(TOKEN.into()),
+        decimals: 6,
+        symbol: Some("USDT".into()),
+        name: None,
+        verification: Verification::Verified,
+        provider: "zerion",
+    };
+    assert!(matches!(
+        api.snapshot(NetworkId::Bsc, ADDRESS, &[known]).await,
+        Err(ProviderError::InvalidResponse { .. })
+    ));
+}

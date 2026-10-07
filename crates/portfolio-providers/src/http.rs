@@ -262,8 +262,10 @@ impl HttpClient {
     /// Records the final error of a request (a retried, then successful,
     /// request is not an error).
     fn note_failure(&self, error: &ProviderError) {
-        if matches!(error, ProviderError::RateLimited { .. })
-            && self.rate_limit_failover.load(Ordering::Relaxed)
+        if matches!(
+            error,
+            ProviderError::RateLimited { .. } | ProviderError::BudgetExhausted { .. }
+        ) && self.rate_limit_failover.load(Ordering::Relaxed)
         {
             // Quota remains visible in the neutral network log and persisted
             // pause; it is not a fatal source error in Settings.
