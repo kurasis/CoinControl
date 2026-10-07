@@ -332,6 +332,23 @@ describe("localization", () => {
 });
 
 describe("synchronization", () => {
+  it("keeps the selected portfolio scope when leaving an account detail for review", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    const accounts = await api.listAccounts();
+    const reviews = vi.spyOn(api, "listReviewItems");
+    window.location.hash = `#/accounts/${accounts[0]!.id}`;
+    renderApp();
+    await screen.findByText(accounts[0]!.display_address);
+    await user.click(screen.getByRole("link", { name: "Review" }));
+    await screen.findByRole("heading", { level: 1, name: "Review missing data" });
+    await waitFor(() => expect(reviews).toHaveBeenLastCalledWith({ kind: "all" }, 500));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Filter by reason" }),
+      "unknown_basis",
+    );
+    expect((await screen.findAllByRole("button", { name: "Resolve" })).length).toBeGreaterThan(0);
+  });
   it("retains a queued manual job across navigation and cancels that job by ID", async () => {
     const user = userEvent.setup();
     const job = {

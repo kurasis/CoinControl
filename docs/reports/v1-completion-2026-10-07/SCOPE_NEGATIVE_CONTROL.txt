@@ -1,0 +1,654 @@
+
+ RUN  v5.0.3 /workspace/CoinControl
+
+ ❯ src/App.test.tsx (27 tests | 1 failed | 26 skipped) 1811ms
+   ❯ synchronization (4)
+     × keeps the selected portfolio scope when leaving an account detail for review 1808ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/App.test.tsx > synchronization > keeps the selected portfolio scope when leaving an account detail for review
+AssertionError: expected last "listReviewItems" call to have been called with [ { kind: 'all' }, 500 ]
+
+Ignored nodes: comments, script, style
+[36m<html[39m
+  [33mdata-theme[39m=[32m"dark"[39m
+  [33mlang[39m=[32m"en"[39m
+[36m>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"shell"[39m
+      [36m>[39m
+        [36m<aside[39m
+          [33maria-label[39m=[32m"Sidebar"[39m
+          [33mclass[39m=[32m"sidebar"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"brand"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m""[39m
+              [33msrc[39m=[32m"/app-icon.svg"[39m
+            [36m/>[39m
+            [36m<span>[39m
+              [0mPortfolio Desk[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<nav[39m
+            [33maria-label[39m=[32m"Main"[39m
+            [33mclass[39m=[32m"nav"[39m
+          [36m>[39m
+            [36m<a[39m
+              [33maria-label[39m=[32m"Portfolio"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"#/"[39m
+              [33mtitle[39m=[32m"Portfolio"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mfocusable[39m=[32m"false"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"1.8"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M21 12a9 9 0 1 1-9-9v9z"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 3.5A9 9 0 0 1 20.5 9H15z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mPortfolio[0m
+            [36m</a>[39m
+            [36m<a[39m
+              [33maria-label[39m=[32m"Wallets"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"#/wallets"[39m
+              [33mtitle[39m=[32m"Wallets"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mfocusable[39m=[32m"false"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"1.8"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [36m>[39m
+                [36m<rect[39m
+                  [33mheight[39m=[32m"14"[39m
+                  [33mrx[39m=[32m"2"[39m
+                  [33mwidth[39m=[32m"18"[39m
+                  [33mx[39m=[32m"3"[39m
+                  [33my[39m=[32m"6"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10h18M16 15h2"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mWallets[0m
+            [36m</a>[39m
+            [36m<a[39m
+              [33maria-label[39m=[32m"Activity"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"#/activity"[39m
+              [33mtitle[39m=[32m"Activity"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mfocusable[39m=[32m"false"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"1.8"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mActivity[0m
+            [36m</a>[39m
+            [36m<a[39m
+              [33maria-current[39m=[32m"page"[39m
+              [33maria-label[39m=[32m"Review"[39m
+              [33mclass[39m=[32m"active"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"#/review"[39m
+              [33mtitle[39m=[32m"Review"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mfocusable[39m=[32m"false"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"1.8"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M9 11l2 2 4-4"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M5 4h14v16H5z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mReview[0m
+            [36m</a>[39m
+          [36m</nav>[39m
+          [36m<nav[39m
+            [33maria-label[39m=[32m"Groups"[39m
+            [33mclass[39m=[32m"nav"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"nav-heading"[39m
+            [36m>[39m
+              [36m<span>[39m
+                [0mGroups[0m
+              [36m</span>[39m
+              [36m<a[39m
+                [33maria-label[39m=[32m"Manage groups"[39m
+                [33mclass[39m=[32m"meta"[39m
+                [33mdata-discover[39m=[32m"true"[39m
+                [33mhref[39m=[32m"#/wallets"[39m
+              [36m>[39m
+                [0mManage[0m
+              [36m</a>[39m
+            [36m</div>[39m
+            [36m<a[39m
+              [33maria-label[39m=[32m"Long-term"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"#/groups/g-long"[39m
+              [33mtitle[39m=[32m"Long-term"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mfocusable[39m=[32m"false"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"1.8"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"truncate"[39m
+              [36m>[39m
+                [0mLong-term[0m
+              [36m</span>[39m
+            [36m</a>[39m
+          [36m</nav>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"sidebar-bottom nav"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"profile-badge"[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0mDemo data. Not your portfolio.[0m
+              [0m [0m
+              [36m<button[39m
+                [33mclass[39m=[32m"link-button"[39m
+              [36m>[39m
+                [0mLeave demo[0m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<a[39m
+              [33maria-label[39m=[32m"Settings"[39m
+              [33mclass[39m=[32m""[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"#/settings"[39m
+              [33mtitle[39m=[32m"Settings"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mfocusable[39m=[32m"false"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"1.8"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [36m>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"12"[39m
+                  [33mcy[39m=[32m"12"[39m
+                  [33mr[39m=[32m"3"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mSettings[0m
+            [36m</a>[39m
+          [36m</div>[39m
+        [36m</aside>[39m
+        [36m<main[39m
+          [33mclass[39m=[32m"main"[39m
+        [36m>[39m
+          [36m<header[39m
+            [33mclass[39m=[32m"toolbar"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"compact-demo-notice"[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0mDemo data. Not your portfolio.[0m
+              [0m [0m
+              [36m<button[39m
+                [33mclass[39m=[32m"link-button"[39m
+              [36m>[39m
+                [0mLeave demo[0m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<h1>[39m
+              [0mReview missing data[0m
+            [36m</h1>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"row"[39m
+              [33mtitle[39m=[32m"Charts use the accounts currently in this scope over the whole interval. Changing group membership changes the view, not your history."[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"visually-hidden"[39m
+              [36m>[39m
+                [0mView scope[0m
+              [36m</span>[39m
+              [36m<select[39m
+                [33mclass[39m=[32m"select"[39m
+              [36m>[39m
+                [36m<option[39m
+                  [33mvalue[39m=[32m"all"[39m
+                [36m>[39m
+                  [0mAll wallets[0m
+                [36m</option>[39m
+                [36m<optgroup[39m
+                  [33mlabel[39m=[32m"Wallets"[39m
+                [36m>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"wallet:w-cold"[39m
+                  [36m>[39m
+                    [0mCold storage[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"wallet:w-daily"[39m
+                  [36m>[39m
+                    [0mDaily[0m
+                  [36m</option>[39m
+                [36m</optgroup>[39m
+                [36m<optgroup[39m
+                  [33mlabel[39m=[32m"Groups"[39m
+                [36m>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"group:g-long"[39m
+                  [36m>[39m
+                    [0mLong-term[0m
+                  [36m</option>[39m
+                [36m</optgroup>[39m
+              [36m</select>[39m
+            [36m</label>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"toolbar-spacer"[39m
+            [36m/>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn"[39m
+            [36m>[39m
+              [0mImport cost basis CSV[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Hide balances and addresses"[39m
+              [33maria-pressed[39m=[32m"false"[39m
+              [33mclass[39m=[32m"btn btn-icon"[39m
+              [33mtitle[39m=[32m"Hide balances and addresses"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mfocusable[39m=[32m"false"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"1.8"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"[39m
+                [36m/>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"12"[39m
+                  [33mcy[39m=[32m"12"[39m
+                  [33mr[39m=[32m"3"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</header>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"content"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"meta"[39m
+            [36m>[39m
+              [0mDecisions here are saved as versioned overrides. The original blockchain data is never changed, and every figure is recalculated from history.[0m
+            [36m</p>[39m
+            [36m<section[39m
+              [33maria-labelledby[39m=[32m"review-heading"[39m
+              [33mclass[39m=[32m"card"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"section-header card-pad card-pad-head"[39m
+              [36m>[39m
+                [36m<h2[39m
+                  [33mid[39m=[32m"review-heading"[39m
+                [36m>[39m
+                  [0mNeeds your input[0m
+                  [0m · 2[0m
+                [36m</h2>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"toolbar-spacer"[39m
+                [36m/>[39m
+                [36m<select[39m
+                  [33maria-label[39m=[32m"Filter by reason"[39m
+                  [33mclass[39m=[32m"select"[39m
+                [36m>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m""[39m
+                  [36m>[39m
+                    [0mAll reasons[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"unknown_basis"[39m
+                  [36m>[39m
+                    [0mUnknown cost basis[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"unclassified_outgoing"[39m
+                  [36m>[39m
+                    [0mUnclassified outgoing[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"missing_proceeds"[39m
+                  [36m>[39m
+                    [0mMissing proceeds[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"missing_price"[39m
+                  [36m>[39m
+                    [0mMissing price[0m
+                  [36m</option>[39m
+                  [36m<option[39m
+                    [33mvalue[39m=[32m"missing_trade_value"[39m
+                  [36m>[39m
+                    [0mMissing trade value[0m
+                  [36m</option>[39m
+                [36m</select>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"table-scroll"[39m
+                [33mtabindex[39m=[32m"-1"[39m
+              [36m>[39m
+                [36m<table[39m
+                  [33maria-rowcount[39m=[32m"3"[39m
+                  [33mclass[39m=[32m"table"[39m
+                [36m>[39m
+                  [36m<thead>[39m
+                    [36m<tr>[39m
+                      [36m<th>[39m
+                        [0mTime[0m
+                      [36m</th>[39m
+                      [36m<th>[39m
+                        [0mReason[0m
+                      [36m</th>[39m
+                      [36m<th[39m
+                        [33mclass[39m=[32m"right"[39m
+                      [36m>[39m
+                        [0mMovement[0m
+                      [36m</th>[39m
+                      [36m<th[39m
+                        [33mclass[39m=[32m"right"[39m
+                      [36m>[39m
+                        [0mValue (USD)[0m
+                      [36m</th>[39m
+                      [36m<th>[39m
+                        [0mAccount[0m
+                      [36m</th>[39m
+                      [36m<th>[39m
+                        [0mNetwork[0m
+                      [36m</th>[39m
+                      [36m<th>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"visually-hidden"[39m
+                        [36m>[39m
+                          [0mAction[0m
+                        [36m</span>[39m
+                      [36m</th>[39m
+                    [36m</tr>[39m
+                  [36m</thead>[39m
+                  [36m<tbody[39m
+                    [33mdata-row-count[39m=[32m"2"[39m
+                    [33mdata-windowed[39m=[32m"false"[39m
+                  [36m>[39m
+                    [36m<tr[39m
+                      [33maria-rowindex[39m=[32m"2"[39m
+                      [33mdata-index[39m=[32m"0"[39m
+                    [36m>[39m
+                      [36m<td[39m
+                        [33mclass[39m=[32m"num"[39m
+                      [36m>[39m
+                        [0mOct 2, 2026, 8:31 AM[0m
+                      [36m</td>[39m
+                      [36m<td>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"chip chip-warning"[39m
+                        [36m>[39m
+                          [0mUnclassified outgoing[0m
+                        [36m</span>[39m
+                      [36m</td>[39m
+                      [36m<td[39m
+                        [33mclass[39m=[32m"right"[39m
+                      [36m>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"negative"[39m
+                        [36m>[39m
+                          [36m<span[39m
+                            [33mclass[39m=[32m"num"[39m
+                          [36m>[39m
+                            [0m-0.01[0m
+                            [0m ETH[0m
+                          [36m</span>[39m
+                        [36m</span>[39m
+                      [36m</td>[39m
+                      [36m<td[39m
+                        [33mclass[39m=[32m"right"[39m
+                      [36m>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"num"[39m
+                        [36m>[39m
+                          [0m$31.40[0m
+                        [36m</span>[39m
+                      [36m</td>[39m
+                      [36m<td>[39m
+                        [0mCold storage · 0x5aAeb6…1BeAed[0m
+                      [36m</td>[39m
+                      [36m<td>[39m
+                        [0mEthereum[0m
+                      [36m</td>[39m
+                      [36m<td[39m
+                        [33mclass[39m=[32m"right"[39m
+                      [36m>[39m
+                        [36m<button[39m
+                          [33mclass[39m=[32m"btn"[39m
+                        [36m>[39m
+                          [0mResolve[0m
+                        [36m</button>[39m
+                      [36m</td>[39m
+                    [36m</tr>[39m
+                    [36m<tr[39m
+                      [33maria-rowindex[39m=[32m"3"[39m
+                      [33mdata-index[39m=[32m"1"[39m
+                    [36m>[39m
+                      [36m<td[39m
+                        [33mclass[39m=[32m"num"[39m
+                      [36m>[39m
+                        [0mMar 21, 2026, 8:31 AM[0m
+                      [36m</td>[39m
+                      [36m<td>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"chip chip-warning"[39m
+                        [36m>[39m
+                          [0mUnknown cost basis[0m
+                        [36m</span>[39m
+                      [36m</td>[39m
+                      [36m<td[39m
+                        [33mclass[39m=[32m"right"[39m
+                      [36m>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"positive"[39m
+                        [36m>[39m
+                          [0m+[0m
+                          [36m<span[39m
+                            [33mclass[39m=[32m"num"[39m
+                          [36m>[39m
+                            [0m1.2[0m
+                            [0m ETH[0m
+                          [36m</span>[39m
+                        [36m</span>[39m
+                      [36m</td>[39m
+                      [36m<td[39m
+                        [33mclass[39m=[32m"right"[39m
+                      [36m>[39m
+                        [36m<span[39m
+                          [33mclass[39m=[32m"num"[39m
+                        [36m>[39m
+                          [0m$2,890.80[0m
+                        [36m</span>[39m
+                      [36m</td>[39m
+                      [36m<td>[39m
+                        [0mCold storage · 0x5aAeb6…1BeAed[0m
+                      [36m</td>[39m
+                      [36m<td>[39m
+                        [0mEthereum[0m
+                      [36m</td>[39m
+                      [36m<td[39m
+                        [33mclass[39m=[32m"right"[39m
+                      [36m>[39m
+                        [36m<button[39m
+                          [33mclass[39m=[32m"btn"[39m
+                        [36m>[39m
+                          [0mResolve[0m
+                        [36m</button>[39m
+                      [36m</td>[39m
+                    [36m</tr>[39m
+                  [36m</tbody>[39m
+                [36m</table>[39m
+              [36m</div>[39m
+            [36m</section>[39m
+            [36m<section[39m
+              [33maria-labelledby[39m=[32m"recon-heading"[39m
+              [33mclass[39m=[32m"card"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"section-header card-pad card-pad-head"[39m
+              [36m>[39m
+                [36m<h2[39m
+                  [33mid[39m=[32m"recon-heading"[39m
+                [36m>[39m
+                  [0mReconciliation[0m
+                [36m</h2>[39m
+              [36m</div>[39m
+              [36m<ul[39m
+                [33mclass[39m=[32m"list"[39m
+              [36m>[39m
+                [36m<li[39m
+                  [33mclass[39m=[32m"list-row"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"stack"[39m
+                  [36m>[39m
+                    [36m<span>[39m
+                      [0mBalance differs from history[0m
+                    [36m</span>[39m
+                    [36m<span[39m
+                      [33mclass[39m=[32m"meta"[39m
+                    [36m>[39m
+                      [0mDaily · 0:000000…000001[0m
+                      [0m · [0m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"num"[39m
+                      [36m>[39m
+                        [0m20[0m
+                        [0m TON[0m
+                      [36m</span>[39m
+                      [0m · [0m
+                      [0mThe reported balance differs from the synchronized history.[0m
+                    [36m</span>[39m
+                  [36m</div>[39m
+                  [36m<a[39m
+                    [33mclass[39m=[32m"meta"[39m
+                    [33mdata-discover[39m=[32m"true"[39m
+                    [33mhref[39m=[32m"#/assets/ton%3Anative"[39m
+                  [36m>[39m
+                    [0mView asset[0m
+                  [36m</a>[39m
+                [36m</li>[39m
+              [36m</ul>[39m
+            [36m</section>[39m
+          [36m</div>[39m
+        [36m</main>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+
+- Expected
++ Received
+
+  [
+    {
+-     "kind": "all",
++     "ids": [
++       "a-btc",
++     ],
++     "kind": "accounts",
+    },
+    500,
+  ]
+
+ ❯ src/App.test.tsx:345:41
+    343|     await user.click(screen.getByRole("link", { name: "Review" }));
+    344|     await screen.findByRole("heading", { level: 1, name: "Review missi…
+    345|     await waitFor(() => expect(reviews).toHaveBeenLastCalledWith({ kin…
+       |                                         ^
+    346|     await user.selectOptions(
+    347|       screen.getByRole("combobox", { name: "Filter by reason" }),
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 26 skipped (27)
+   Start at  08:31:34
+   Duration  3.07s (tests 61%, environment 18%, transform 14%, import 5%, setup 2%)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

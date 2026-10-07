@@ -26,7 +26,16 @@ function StopApplication {
   }
 }
 function LaunchSnapshot($label) {
-  $script:application = Start-Process $binary.FullName -PassThru
+  $script:application = Start-Process $binary.FullName -WorkingDirectory $installDir -PassThru
+  # Wait for the old fixture's profile initialization separately from the
+  # current application's unchanged 2000 ms native startup acceptance gate.
+  $profileDeadline = (Get-Date).AddSeconds(30)
+  while (-not (Test-Path $profile)) {
+    $script:application.Refresh()
+    if ($script:application.HasExited) { throw "Installed production app exited before profile initialization (exit $($script:application.ExitCode))" }
+    if ((Get-Date) -ge $profileDeadline) { throw 'Installed production app did not initialize its profile within 30 seconds' }
+    Start-Sleep -Milliseconds 200
+  }
   Start-Sleep -Seconds 8
   $script:application.Refresh()
   if ($script:application.HasExited -or -not (Test-Path $profile)) { throw 'Installed production app failed to open its profile' }

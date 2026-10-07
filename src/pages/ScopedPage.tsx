@@ -29,10 +29,16 @@ export function GroupPage() {
 export function WalletPage() {
   const { id = "" } = useParams();
   const { t } = useTranslation();
-  const { setScope } = useApp();
+  const { scope, profile } = useApp();
   const wallets = useQuery({ queryKey: ["wallets"], queryFn: api.listWallets });
   const wallet = wallets.data?.find((w) => w.id === id);
-  useEffect(() => setScope({ kind: "wallet", id }), [id, setScope]);
+  useEffect(() => {
+    if (profile !== "real") return;
+    void api.setSyncScope({ kind: "wallet", id }).catch(() => {});
+    return () => {
+      void api.setSyncScope(scope).catch(() => {});
+    };
+  }, [id, scope, profile]);
   return (
     <Page title={wallet?.label ?? t("nav.wallets")} showScope={false}>
       <Link to="/wallets">{t("nav.wallets")}</Link>

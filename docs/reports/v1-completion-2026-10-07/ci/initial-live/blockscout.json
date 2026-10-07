@@ -1,0 +1,39 @@
+{
+  "provider": "blockscout",
+  "started_at": 1791361164,
+  "duration_ms": 10124,
+  "requests": 9,
+  "endpoints": ["balance reserve"],
+  "checks": [
+    {
+      "name": "ethereum native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "ethereum integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "arbitrum native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "arbitrum integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    },
+    {
+      "name": "optimism native balance",
+      "result": "PASS",
+      "detail": "documented mainnet balance response; history not claimed"
+    },
+    {
+      "name": "optimism integer precision and provenance",
+      "result": "PASS",
+      "detail": "integer raw quantities and independent provider attribution"
+    }
+  ]
+}

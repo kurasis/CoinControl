@@ -1683,21 +1683,33 @@ async fn check_reserve(provider: &'static str, var: Option<&str>) {
             Default::default(),
         )
         .unwrap();
-        let hash = s(&t["ethereum"]["known_transactions"][0]["hash"]);
+        // Free public RPC is not guaranteed to retain historical receipts. Sample a
+        // current finalized block, then independently validate its receipt/hash.
         let response: Value = http
             .post_json_cost(
-                "eth_getTransactionReceipt",
+                "eth_getBlockByNumber",
                 url::Url::parse("https://ethereum-rpc.publicnode.com/").unwrap(),
-                &serde_json::json!({"jsonrpc":"2.0","id":1,"method":"eth_getTransactionReceipt","params":[hash]}),
+                &serde_json::json!({"jsonrpc":"2.0","id":1,"method":"eth_getBlockByNumber","params":["finalized",false]}),
                 0,
             )
             .await
             .unwrap()
-            .json(provider, "eth_getTransactionReceipt")
+            .json(provider, "eth_getBlockByNumber")
             .unwrap();
-        let receipt = &response["result"];
-        let height =
-            i64::from_str_radix(s(&receipt["blockNumber"]).trim_start_matches("0x"), 16).unwrap();
+        let block = &response["result"];
+        let hash = block["transactions"]
+            .as_array()
+            .and_then(|txs| txs.first())
+            .and_then(Value::as_str)
+            .expect("finalized block has a sampled transaction");
+        let height = i64::from_str_radix(
+            block["number"]
+                .as_str()
+                .expect("finalized block height")
+                .trim_start_matches("0x"),
+            16,
+        )
+        .unwrap();
         let validation = api
             .validate_finality(NetworkId::Ethereum, &[(hash.to_owned(), height)])
             .await
