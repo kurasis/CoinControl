@@ -1,0 +1,58 @@
+{
+  "provider": "alchemy",
+  "started_at": 1791381753,
+  "duration_ms": 19123,
+  "requests": 20,
+  "endpoints": [
+    "alchemy_getTokenBalances/alchemy_getTokenMetadata",
+    "eth_chainId/eth_getBalance/alchemy_getAssetTransfers",
+    "eth_getTransactionReceipt/eth_getTransactionByHash"
+  ],
+  "checks": [
+    {
+      "name": "known native payment and exact fee",
+      "result": "PASS",
+      "detail": "independent known 79 ETH principal; exact sender receipt fee"
+    },
+    {
+      "name": "exact contract USDC balance",
+      "result": "PASS",
+      "detail": "ERC-20 raw hexadecimal balance; official USDC contract and six decimals"
+    },
+    {
+      "name": "ethereum mainnet balance/history",
+      "result": "PASS",
+      "detail": "correct chain ID; 5 bounded transfer-index rows"
+    },
+    {
+      "name": "Ethereum index pagination",
+      "result": "PASS",
+      "detail": "5 second-page rows"
+    },
+    {
+      "name": "base mainnet balance/history",
+      "result": "PASS",
+      "detail": "correct chain ID; 5 bounded transfer-index rows"
+    },
+    {
+      "name": "arbitrum mainnet balance/history",
+      "result": "PASS",
+      "detail": "correct chain ID; 5 bounded transfer-index rows"
+    },
+    {
+      "name": "optimism mainnet balance/history",
+      "result": "PASS",
+      "detail": "correct chain ID; 5 bounded transfer-index rows"
+    },
+    {
+      "name": "polygon mainnet balance/history",
+      "result": "PASS",
+      "detail": "correct chain ID; 5 bounded transfer-index rows"
+    },
+    {
+      "name": "bounded CU",
+      "result": "PASS",
+      "detail": "6750 conservative estimated CU; ceiling 10000"
+    }
+  ]
+}

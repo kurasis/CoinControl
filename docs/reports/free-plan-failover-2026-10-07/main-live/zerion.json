@@ -1,0 +1,14 @@
+{
+  "provider": "zerion",
+  "started_at": 1791383229,
+  "duration_ms": 0,
+  "requests": 0,
+  "endpoints": ["positions"],
+  "checks": [
+    {
+      "name": "Source throttled; remaining direct checks not run",
+      "result": "RATE_LIMITED",
+      "detail": "zerion positions: rate limited"
+    }
+  ]
+}

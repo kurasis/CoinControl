@@ -1,0 +1,737 @@
+[
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Command Module",
+    "id": "FolderBandModuleInner",
+    "type": "ControlType.ToolBar"
+  },
+  {
+    "name": "\u0026Help",
+    "id": "HelpButton",
+    "type": "ControlType.Button"
+  },
+  {
+    "name": "Views",
+    "id": "ViewControl",
+    "type": "ControlType.SplitButton"
+  },
+  {
+    "name": "View Slider",
+    "id": "SplitMenuButton",
+    "type": "ControlType.Button"
+  },
+  {
+    "name": "Organize",
+    "id": "{7DDC1264-7E4D-4F74-BBC0-D191987C8D0F}",
+    "type": "ControlType.Button"
+  },
+  {
+    "name": "New folder",
+    "id": "{E44616AD-6DF1-4B94-85A4-E465AE8A19DB}",
+    "type": "ControlType.Button"
+  },
+  {
+    "name": "Control Host",
+    "id": "ProperTreeHost",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Navigation Pane",
+    "id": "100",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Shell Folder View",
+    "id": "listview",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Items View",
+    "id": "",
+    "type": "ControlType.List"
+  },
+  {
+    "name": "Horizontal",
+    "id": "HorizontalScrollBar",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Vertical",
+    "id": "VerticalScrollBar",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Header",
+    "id": "",
+    "type": "ControlType.Header"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.SplitButton"
+  },
+  {
+    "name": "Filter dropdown",
+    "id": "DropDown",
+    "type": "ControlType.Button"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.SplitButton"
+  },
+  {
+    "name": "Filter dropdown",
+    "id": "DropDown",
+    "type": "ControlType.Button"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.SplitButton"
+  },
+  {
+    "name": "Filter dropdown",
+    "id": "DropDown",
+    "type": "ControlType.Button"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.SplitButton"
+  },
+  {
+    "name": "Filter dropdown",
+    "id": "DropDown",
+    "type": "ControlType.Button"
+  },
+  {
+    "name": ".cargo",
+    "id": "0",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": ".github",
+    "id": "1",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "assets",
+    "id": "2",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "crates",
+    "id": "3",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "dist",
+    "id": "4",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "docs",
+    "id": "5",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "node_modules",
+    "id": "6",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "public",
+    "id": "7",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "scripts",
+    "id": "8",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "src",
+    "id": "9",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "src-tauri",
+    "id": "10",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "target",
+    "id": "11",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "tests",
+    "id": "12",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": ".gitignore",
+    "id": "13",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": ".nvmrc",
+    "id": "14",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": ".prettierignore",
+    "id": "15",
+    "type": "ControlType.ListItem"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Image"
+  },
+  {
+    "name": "Name",
+    "id": "System.ItemNameDisplay",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Date modified",
+    "id": "System.DateModified",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Type",
+    "id": "System.ItemTypeText",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Size",
+    "id": "System.Size",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "File name:",
+    "id": "SaveDialogLabel",
+    "type": "ControlType.Text"
+  },
+  {
+    "name": "File name:",
+    "id": "FileNameControlHost",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "CoinControl-decisions",
+    "id": "1001",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Save as type:",
+    "id": "SaveDialogLabel",
+    "type": "ControlType.Text"
+  },
+  {
+    "name": "Save as type:",
+    "id": "FileTypeControlHost",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Save Fields",
+    "id": "SaveDialogPreviewMetadataInner",
+    "type": "ControlType.Tree"
+  },
+  {
+    "name": "Application Controls",
+    "id": "AppControlsModuleInner",
+    "type": "ControlType.Tree"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Save",
+    "id": "1",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Cancel",
+    "id": "2",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "40965",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Navigation buttons",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Up band",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "41477",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Address: D:\\a\\CoinControl\\CoinControl",
+    "id": "1001",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Address band toolbar",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  },
+  {
+    "name": "Search Box",
+    "id": "SearchEditBox",
+    "type": "ControlType.Edit"
+  },
+  {
+    "name": "Search",
+    "id": "SearchBoxSearchButton",
+    "type": "ControlType.Button"
+  },
+  {
+    "name": "",
+    "id": "",
+    "type": "ControlType.Pane"
+  }
+]

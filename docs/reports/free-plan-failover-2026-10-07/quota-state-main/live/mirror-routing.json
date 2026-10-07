@@ -1,0 +1,154 @@
+{
+  "provider": "mirror-routing",
+  "started_at": 1791381851,
+  "duration_ms": 22278,
+  "requests": 27,
+  "endpoints": ["primary hard limit → independent reserve"],
+  "checks": [
+    {
+      "name": "ethereum: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"blockscout\"), balance-only true, coverage Partial, error None"
+    },
+    {
+      "name": "ethereum: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    },
+    {
+      "name": "ethereum: history remains partial",
+      "result": "PASS",
+      "detail": "balance mirrors do not establish indexed history acceptance"
+    },
+    {
+      "name": "base: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"publicnode\"), balance-only true, coverage Partial, error None"
+    },
+    {
+      "name": "base: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    },
+    {
+      "name": "base: history remains partial",
+      "result": "PASS",
+      "detail": "balance mirrors do not establish indexed history acceptance"
+    },
+    {
+      "name": "arbitrum: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"blockscout\"), balance-only true, coverage Partial, error None"
+    },
+    {
+      "name": "arbitrum: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    },
+    {
+      "name": "arbitrum: history remains partial",
+      "result": "PASS",
+      "detail": "balance mirrors do not establish indexed history acceptance"
+    },
+    {
+      "name": "optimism: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"blockscout\"), balance-only true, coverage Partial, error None"
+    },
+    {
+      "name": "optimism: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    },
+    {
+      "name": "optimism: history remains partial",
+      "result": "PASS",
+      "detail": "balance mirrors do not establish indexed history acceptance"
+    },
+    {
+      "name": "polygon: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"etherscan\"), balance-only true, coverage Partial, error None"
+    },
+    {
+      "name": "polygon: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    },
+    {
+      "name": "polygon: history remains partial",
+      "result": "PASS",
+      "detail": "balance mirrors do not establish indexed history acceptance"
+    },
+    {
+      "name": "bsc: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"publicnode\"), balance-only true, coverage Partial, error None"
+    },
+    {
+      "name": "bsc: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    },
+    {
+      "name": "bsc: history remains partial",
+      "result": "PASS",
+      "detail": "balance mirrors do not establish indexed history acceptance"
+    },
+    {
+      "name": "solana: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"alchemy\"), balance-only true, coverage Partial, error None"
+    },
+    {
+      "name": "solana: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    },
+    {
+      "name": "solana: history remains partial",
+      "result": "PASS",
+      "detail": "balance mirrors do not establish indexed history acceptance"
+    },
+    {
+      "name": "tron: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"publicnode\"), balance-only true, coverage Partial, error None"
+    },
+    {
+      "name": "tron: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    },
+    {
+      "name": "tron: history remains partial",
+      "result": "PASS",
+      "detail": "balance mirrors do not establish indexed history acceptance"
+    },
+    {
+      "name": "ton: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"toncenter\"), balance-only true, coverage Partial, error None"
+    },
+    {
+      "name": "ton: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    },
+    {
+      "name": "ton: history remains partial",
+      "result": "PASS",
+      "detail": "balance mirrors do not establish indexed history acceptance"
+    },
+    {
+      "name": "bitcoin: mirror balance persisted",
+      "result": "PASS",
+      "detail": "provider Some(\"mempool\"), balance-only false, coverage Complete, error None"
+    },
+    {
+      "name": "bitcoin: actual source persisted",
+      "result": "PASS",
+      "detail": "actual responding provider, independent checkpoint"
+    }
+  ]
+}
