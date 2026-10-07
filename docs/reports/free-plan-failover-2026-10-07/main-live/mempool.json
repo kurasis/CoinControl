@@ -1,0 +1,29 @@
+{
+  "provider": "mempool",
+  "started_at": 1791383021,
+  "duration_ms": 4251,
+  "requests": 5,
+  "endpoints": ["address", "blocks/tip/height", "tx", "txs/chain"],
+  "checks": [
+    {
+      "name": "mainnet height",
+      "result": "PASS",
+      "detail": "Bitcoin mainnet height"
+    },
+    {
+      "name": "exact confirmed balance",
+      "result": "PASS",
+      "detail": "integer funded minus spent"
+    },
+    {
+      "name": "independent continuation",
+      "result": "PASS",
+      "detail": "two non-overlapping Esplora-compatible pages"
+    },
+    {
+      "name": "known fee",
+      "result": "PASS",
+      "detail": "known pizza transaction fee in satoshis"
+    }
+  ]
+}

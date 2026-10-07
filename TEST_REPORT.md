@@ -1,6 +1,6 @@
 # Verification report — 2026-10-07
 
-## Free-plan throttling follow-up (development 0.1.9)
+## Free-plan throttling follow-up (0.1.9)
 
 Chainstack Developer owner scans are officially paid-only, not a bad credential.
 The adapter now uses native SOL/finality only and tries an independent token
@@ -8,8 +8,29 @@ mirror without requiring an upgrade. The existing Alchemy key adds a standard
 Solana balance/token reserve with a shared EVM budget, conditional on Solana
 mainnet access. First 429 advances immediately to reserves;
 source quotas and partial history are distinct from source acceptance.
-[Current routing and evidence policy](docs/PROVIDER_MIRRORS.md).
-Final CI/release evidence for this change is recorded after execution.
+[Current routing and evidence policy](docs/PROVIDER_MIRRORS.md) ·
+[Exact source, official restrictions and preserved attempts](docs/reports/free-plan-failover-2026-10-07/README.md).
+Sync quotas no longer populate fatal source diagnostics in Settings.
+Type/lint/format, all-feature Clippy, build, unchanged bindings and
+209 deterministic Rust / 67 frontend / 6 report-policy tests PASS;
+20 opt-out live entrypoints are not live evidence.
+
+Source `99123fce346d09a31e037d84306bdef205351359`,
+[main CI 37636073946](https://github.com/kurasis/CoinControl/actions/runs/37636073946):
+actual live gate PASS, 17 PASS / 1 RATE_LIMITED / 2 PARTIAL suites.
+Alchemy's existing key passed SOL and both owner-token programs; all ten
+independent balance routes passed. Zerion remains limited; native mirrors do
+not establish indexed BNB history. Installer inspection / upgrade: 78 / 12 PASS.
+Final installed production: Windows Server 12 PASS, first normal useful screen
+1894.80 ms; native IPC 32 PASS plus one independently covered installer skip.
+Additional Windows 11 ARM64 x64 emulation: 11 PASS / 1 FAIL, first normal useful
+screen 2992.70 ms against the unchanged 2000 ms gate. Its three offline starts
+PASS. All six required application/build jobs and the actual live job PASS;
+overall CI FAIL due to the extra ARM64 gate. Windows 11 Intel/AMD remains unrun.
+
+The preceding source's Server first launch (2308 ms) and Windows 11 ARM64
+x64 emulation (2915.5 ms) both exceeded the unchanged 2000 ms gate. That
+candidate was not published; failures and cancelled-run API usage are preserved.
 Historical 0.1.8 quota/plan failures below remain unchanged.
 
 ## Published token logos and startup correction (0.1.8)

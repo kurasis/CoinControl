@@ -1,0 +1,38 @@
+{
+  "provider": "helius",
+  "started_at": 1791381703,
+  "duration_ms": 1490,
+  "requests": 8,
+  "endpoints": [
+    "getBalance/getTokenAccountsByOwner",
+    "getSlot/getSignatureStatuses",
+    "getTransactionsForAddress"
+  ],
+  "checks": [
+    {
+      "name": "SOL and SPL holdings",
+      "result": "PASS",
+      "detail": "814 distinct identities; finalized slot 454243800"
+    },
+    {
+      "name": "full related-account history",
+      "result": "PASS",
+      "detail": "20 normalized transactions"
+    },
+    {
+      "name": "keyset pagination",
+      "result": "PASS",
+      "detail": "20 second-page transactions; no duplicate signatures"
+    },
+    {
+      "name": "bounded credits",
+      "result": "PASS",
+      "detail": "23 estimated credits; ceiling 5000"
+    },
+    {
+      "name": "canonical finalized Solana signature",
+      "result": "PASS",
+      "detail": "finalized mainnet signature agrees with the stored slot"
+    }
+  ]
+}

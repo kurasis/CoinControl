@@ -22,7 +22,8 @@
     "historical price 429 stays pending and survives a new engine",
     "429 classification ignores oversized untrusted response body",
     "UI paused source does not claim successful reserve routing",
-    "quota observed on first account pauses a second account without requests or false checkpoint error"
+    "quota observed on first account pauses a second account without requests or false checkpoint error",
+    "sync HTTP/RPC quota leaves fatal source usage diagnostic empty; Helius node-health error remains real"
   ],
-  "testHarnessCorrection": "Node report tests use a separate node-test filename so Vitest does not discover a Node-only suite."
+  "testHarnessCorrection": "Node report tests use a separate node-test filename so Vitest does not discover a Node-only suite. Imported sanitized evidence was formatted before final style validation."
 }

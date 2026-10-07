@@ -1,0 +1,14 @@
+{
+  "provider": "price-routing",
+  "started_at": 1791381442,
+  "duration_ms": 2199,
+  "requests": 1,
+  "endpoints": ["native quote routing"],
+  "checks": [
+    {
+      "name": "Native USD valuation via available source",
+      "result": "PASS",
+      "detail": "1 priced, 0 unpriced; seeded balance, real quote"
+    }
+  ]
+}

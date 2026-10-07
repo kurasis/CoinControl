@@ -1,0 +1,694 @@
+{
+  "conclusion": "failure",
+  "event": "push",
+  "headSha": "99123fce346d09a31e037d84306bdef205351359",
+  "jobs": [
+    {
+      "completedAt": "2026-10-07T14:25:11Z",
+      "conclusion": "success",
+      "databaseId": 112842528156,
+      "name": "Cached load measurements (windows-latest)",
+      "startedAt": "2026-10-07T14:22:03Z",
+      "status": "completed",
+      "steps": [
+        { "conclusion": "success", "name": "Set up job", "number": 1, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Rust toolchain",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Measure 50 accounts, 500 assets and 100000 legs (no network)",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 13,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Complete job", "number": 15, "status": "completed" }
+      ],
+      "url": "https://github.com/kurasis/CoinControl/actions/runs/37636073946/job/112842528156"
+    },
+    {
+      "completedAt": "2026-10-07T14:30:41Z",
+      "conclusion": "success",
+      "databaseId": 112842528559,
+      "name": "Windows NSIS installer (unsigned)",
+      "startedAt": "2026-10-07T14:22:01Z",
+      "status": "completed",
+      "steps": [
+        { "conclusion": "success", "name": "Set up job", "number": 1, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Rust toolchain from rust-toolchain.toml",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 5,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Run npm ci", "number": 6, "status": "completed" },
+        { "conclusion": "success", "name": "Build frontend", "number": 7, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Rust tests on Windows",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "npm run build:windows",
+          "number": 9,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Download pinned previous production installer",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Upgrade populated production 0.1.0 to current release and uninstall",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Inspect production release and installer",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 13,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 14,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 26,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 27,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 28,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Complete job", "number": 29, "status": "completed" }
+      ],
+      "url": "https://github.com/kurasis/CoinControl/actions/runs/37636073946/job/112842528559"
+    },
+    {
+      "completedAt": "2026-10-07T14:31:55Z",
+      "conclusion": "success",
+      "databaseId": 112842528566,
+      "name": "Windows native recovery and public BTC scenarios",
+      "startedAt": "2026-10-07T14:22:01Z",
+      "status": "completed",
+      "steps": [
+        { "conclusion": "success", "name": "Set up job", "number": 1, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Rust toolchain",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 5,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Run npm ci", "number": 6, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Run npm run build",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Build isolated native automation binary",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install pinned Tauri WebDriver",
+          "number": 9,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install matching WebView2 Edge WebDriver",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Native scenarios through real IPC and SQLite",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Native evidence and acceptance gaps",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 22,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 23,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 24,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Complete job", "number": 25, "status": "completed" }
+      ],
+      "url": "https://github.com/kurasis/CoinControl/actions/runs/37636073946/job/112842528566"
+    },
+    {
+      "completedAt": "2026-10-07T14:23:23Z",
+      "conclusion": "success",
+      "databaseId": 112842528584,
+      "name": "Cached load measurements (ubuntu-24.04)",
+      "startedAt": "2026-10-07T14:22:01Z",
+      "status": "completed",
+      "steps": [
+        { "conclusion": "success", "name": "Set up job", "number": 1, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Rust toolchain",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Measure 50 accounts, 500 assets and 100000 legs (no network)",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 13,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 14,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Complete job", "number": 15, "status": "completed" }
+      ],
+      "url": "https://github.com/kurasis/CoinControl/actions/runs/37636073946/job/112842528584"
+    },
+    {
+      "completedAt": "2026-10-07T14:28:59Z",
+      "conclusion": "success",
+      "databaseId": 112842528669,
+      "name": "Checks and offline tests (Linux)",
+      "startedAt": "2026-10-07T14:22:02Z",
+      "status": "completed",
+      "steps": [
+        { "conclusion": "success", "name": "Set up job", "number": 1, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Tauri system dependencies",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Rust toolchain from rust-toolchain.toml",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 6,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Run npm ci", "number": 7, "status": "completed" },
+        { "conclusion": "success", "name": "Build frontend", "number": 8, "status": "completed" },
+        { "conclusion": "success", "name": "npm run check", "number": 9, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "npm run test:offline",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Chromium for browser layout checks",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Browser pages, panels and 10000-row table (mock IPC, separate from native)",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 13,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "TypeScript bindings are up to date",
+          "number": 14,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 26,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 27,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 28,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Complete job", "number": 29, "status": "completed" }
+      ],
+      "url": "https://github.com/kurasis/CoinControl/actions/runs/37636073946/job/112842528669"
+    },
+    {
+      "completedAt": "2026-10-07T14:27:13Z",
+      "conclusion": "success",
+      "databaseId": 112842528841,
+      "name": "Live provider tests (read-only)",
+      "startedAt": "2026-10-07T14:22:02Z",
+      "status": "completed",
+      "steps": [
+        { "conclusion": "success", "name": "Set up job", "number": 1, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Rust toolchain from rust-toolchain.toml",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Select live providers",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "npm run test:live",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Sanitized live report",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 14,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 15,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 16,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Complete job", "number": 17, "status": "completed" }
+      ],
+      "url": "https://github.com/kurasis/CoinControl/actions/runs/37636073946/job/112842528841"
+    },
+    {
+      "completedAt": "2026-10-07T14:35:54Z",
+      "conclusion": "success",
+      "databaseId": 112846749622,
+      "name": "Production native startup and 100000-leg UI/import",
+      "startedAt": "2026-10-07T14:30:45Z",
+      "status": "completed",
+      "steps": [
+        { "conclusion": "success", "name": "Set up job", "number": 1, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Rust toolchain",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install pinned Tauri WebDriver",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install matching WebView2 Edge WebDriver",
+          "number": 9,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Installed production startup, large UI and CSV cancellation/replay",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Production native load evidence",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 20,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 21,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 22,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Complete job", "number": 23, "status": "completed" }
+      ],
+      "url": "https://github.com/kurasis/CoinControl/actions/runs/37636073946/job/112846749622"
+    },
+    {
+      "completedAt": "2026-10-07T14:35:47Z",
+      "conclusion": "failure",
+      "databaseId": 112846749677,
+      "name": "Windows 11 ARM64 running the production x64 installer",
+      "startedAt": "2026-10-07T14:30:45Z",
+      "status": "completed",
+      "steps": [
+        { "conclusion": "success", "name": "Set up job", "number": 1, "status": "completed" },
+        {
+          "conclusion": "success",
+          "name": "Verify and record Windows 11 ARM64 host",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install Rust toolchain",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+          "number": 7,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c",
+          "number": 8,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install pinned Tauri WebDriver",
+          "number": 9,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install matching WebView2 Edge WebDriver",
+          "number": 10,
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Installed production startup, large UI and CSV cancellation/replay",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Production native load evidence",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Windows 11 host identity",
+          "number": 13,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+          "number": 24,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 25,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 26,
+          "status": "completed"
+        },
+        { "conclusion": "success", "name": "Complete job", "number": 27, "status": "completed" }
+      ],
+      "url": "https://github.com/kurasis/CoinControl/actions/runs/37636073946/job/112846749677"
+    }
+  ],
+  "status": "completed"
+}

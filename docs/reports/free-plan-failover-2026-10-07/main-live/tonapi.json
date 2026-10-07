@@ -1,0 +1,45 @@
+{
+  "provider": "tonapi",
+  "started_at": 1791383195,
+  "duration_ms": 10215,
+  "requests": 10,
+  "endpoints": [
+    "accounts",
+    "accounts/events",
+    "accounts/events/{id}",
+    "accounts/jettons",
+    "blockchain/masterchain-head/shards/blocks/transactions"
+  ],
+  "checks": [
+    {
+      "name": "friendly and raw address forms are one account",
+      "result": "PASS",
+      "detail": "0:83dfd552e63729b472fcbcc8c45ebcc6691702558b68ec7527e1ba403a0f31a8"
+    },
+    {
+      "name": "TON and Jetton holdings keyed by Jetton master",
+      "result": "PASS",
+      "detail": "1592540635723082 nanoton, 119 Jettons (33 whitelisted, 14 blacklisted)"
+    },
+    {
+      "name": "events: two pages continued by logical time",
+      "result": "PASS",
+      "detail": "page sizes 10 and 10, overlap 0, strictly descending lt true"
+    },
+    {
+      "name": "events link to transactions without duplicate records",
+      "result": "PASS",
+      "detail": "20 events, 20 with transaction references"
+    },
+    {
+      "name": "known Jetton receipt with master identity and fee",
+      "result": "PASS",
+      "detail": "found true, legs Some(1), fee Some(\"3472\")"
+    },
+    {
+      "name": "canonical TON event root anchored by masterchain",
+      "result": "PASS",
+      "detail": "event root is included in its canonical shard block"
+    }
+  ]
+}

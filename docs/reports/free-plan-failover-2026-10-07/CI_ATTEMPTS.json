@@ -1,0 +1,35 @@
+{
+  "finalSourceSha": "99123fce346d09a31e037d84306bdef205351359",
+  "finalRunId": 37636073946,
+  "attempts": [
+    {
+      "runId": 37632382037,
+      "sourceSha": "c1e2494bba6f28279c7755fe4e9787e70a061d3a",
+      "result": "CANCELLED",
+      "scope": "Incomplete PR duplicate; actual completed source checks and usage only",
+      "evidence": "cancelled-pr-live"
+    },
+    {
+      "runId": 37632407445,
+      "sourceSha": "b2abc22e4040e11fd80a318143ade41636d486a7",
+      "result": "CANCELLED",
+      "scope": "Superseded by multi-account quota correction; completed individual source reports retained, not final-source CI acceptance",
+      "evidence": "initial-main-live"
+    },
+    {
+      "runId": 37633117850,
+      "sourceSha": "4f034afb82afe77c9a5ea0beda640160cfc1e3e2",
+      "result": "CANCELLED",
+      "scope": "Incomplete PR duplicate; actual completed source checks and usage only",
+      "evidence": "cancelled-pause-pr-live"
+    },
+    {
+      "runId": 37633129594,
+      "sourceSha": "28bb3a10736159f44d83623b4e1a2f25df350750",
+      "result": "FAIL",
+      "scope": "Six of eight jobs passed including actual live gate (16 PASS, 2 RATE_LIMITED, 2 PARTIAL). Server first startup 2308 ms and ARM64 2915.5 ms exceed unchanged 2000 ms gate. Candidate not published. Superseded by source-settings quota diagnostic correction; no unchanged retry.",
+      "evidence": "quota-state-main"
+    }
+  ],
+  "finalResult": "FAIL (additional Windows 11 ARM64 startup); all six required application/build gates and actual live gate PASS"
+}

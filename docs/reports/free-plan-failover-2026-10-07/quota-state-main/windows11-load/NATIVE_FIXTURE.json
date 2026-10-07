@@ -1,0 +1,20 @@
+{
+  "build_mode": "release",
+  "dataset": {
+    "accounts": 50,
+    "activity_legs": 100000,
+    "assets": 500
+  },
+  "expected_total_usd": "50000",
+  "first_account_id": "0de1c836-d4d5-459c-bf94-11dcde5d5ad0",
+  "fixture_load_ms": 4402.5625,
+  "limits": [
+    "Synthetic normalized SQL evidence, never queried on chain.",
+    "Fixture preparation is external and is not a production provider import."
+  ],
+  "mode": "offline-native-fixture",
+  "now": 1791382350,
+  "profile_kind": "real",
+  "replay_events": 100000,
+  "replay_ms": 28989.4221
+}
