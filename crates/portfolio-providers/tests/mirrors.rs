@@ -1099,6 +1099,12 @@ async fn all_throttled_sources_pause_without_erasing_cached_balances() {
     assert_eq!(h[0].quantity, "0.009007199254740993");
     assert_eq!(h[0].balance_status, BalanceStatus::Stale);
     assert!(s.sync_status().await.unwrap()[0].last_error.is_none());
+    let usage = s
+        .provider_usage(&portfolio_core::clock::utc_day(s.now()))
+        .await
+        .unwrap();
+    assert_eq!(usage.len(), 2);
+    assert!(usage.iter().all(|p| p.last_error.is_none()));
     let second = s
         .add_account(
             &w.id,

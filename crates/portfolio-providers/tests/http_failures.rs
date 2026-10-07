@@ -118,6 +118,7 @@ async fn mirror_mode_pauses_on_first_429_without_retry_or_wait() {
     assert_no_secret(&e);
     assert_eq!(log.entries()[0].status, "rate_limited");
     assert_eq!(log.entries()[0].http_status, Some(429));
+    assert!(http.take_usage().last_error.is_none());
 }
 
 fn assert_no_secret(e: &ProviderError) {
@@ -466,12 +467,14 @@ async fn solana_rpc_quota_code_is_distinct_from_helius_node_health() {
             assert!(matches!(e, ProviderError::RateLimited { .. }));
             assert_eq!(log.entries()[0].status, "rate_limited");
             assert_eq!(api.slot().await.unwrap_err(), e);
+            assert!(api.http().take_usage().last_error.is_none());
         } else {
             assert!(matches!(
                 e,
                 ProviderError::RpcUnavailable { code: -32005, .. }
             ));
             assert_eq!(log.entries()[0].status, "rpc_error");
+            assert!(api.http().take_usage().last_error.is_some());
         }
         assert_eq!(budget.used(), 1);
     }
