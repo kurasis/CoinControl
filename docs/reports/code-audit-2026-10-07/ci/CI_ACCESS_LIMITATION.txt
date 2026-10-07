@@ -1,0 +1,6 @@
+Application source merged: 153c2463f8f2f032e260c916ee25b6d21d1018b5 (PR #24)
+Run: https://github.com/kurasis/CoinControl/actions/runs/37575008756
+Authenticated API: HTTP 401 Bad credentials
+Native Git read: could not read Username for https://github.com
+Two native Windows job outcomes unconfirmed after access loss.
+CI evidence addition is local until authentication is restored.

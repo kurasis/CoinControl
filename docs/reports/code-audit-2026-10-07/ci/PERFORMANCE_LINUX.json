@@ -1,0 +1,73 @@
+{
+  "arch": "x86_64",
+  "build_mode": "release",
+  "cached_open_and_summary_ms": 203.505242,
+  "dataset": {
+    "accounts": 50,
+    "activity_legs": 100000,
+    "assets": 500
+  },
+  "fixture_load_ms": 1910.730598,
+  "limits": [
+    "Fixture load is direct normalized SQL, not 100000 provider requests or CSV rows.",
+    "Startup measures store reopen plus first summary; native process/render startup is separate.",
+    "Cancellation is measured by native synchronization scenarios, not this store harness.",
+    "No network requests; synthetic account addresses are never queried."
+  ],
+  "logical_cpus": 4,
+  "mode": "offline-store-load",
+  "os": "linux",
+  "overlap_ingest": {
+    "ms": 773.373658,
+    "transactions": 1000
+  },
+  "peak_process_memory_bytes": 601694208,
+  "queries": {
+    "account": {
+      "first_ms": 8.736139,
+      "max_ms": 8.736139,
+      "p50_ms": 0.10705999999999999,
+      "p95_ms": 0.124628,
+      "samples": 25
+    },
+    "activity": {
+      "first_ms": 9.610873000000002,
+      "max_ms": 9.610873000000002,
+      "p50_ms": 9.215829,
+      "p95_ms": 9.574518000000001,
+      "samples": 25
+    },
+    "chart": {
+      "first_ms": 283.908335,
+      "max_ms": 283.908335,
+      "p50_ms": 0.102494,
+      "p95_ms": 0.11654500000000001,
+      "samples": 25
+    },
+    "holdings": {
+      "first_ms": 177.998362,
+      "max_ms": 177.998362,
+      "p50_ms": 1.09183,
+      "p95_ms": 1.1222560000000001,
+      "samples": 25
+    },
+    "summary": {
+      "first_ms": 0.076725,
+      "max_ms": 0.10773100000000001,
+      "p50_ms": 0.096865,
+      "p95_ms": 0.10337500000000001,
+      "samples": 25
+    }
+  },
+  "query_p95_target_ms": 300,
+  "replay_ms": 17689.071891,
+  "result": "PASS",
+  "at": "2026-10-07T05:11:46.057Z",
+  "commit": "153c2463f8f2f032e260c916ee25b6d21d1018b5",
+  "hardware": {
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 4,
+    "totalMemoryBytes": 16766406656,
+    "osVersion": "6.17.0-1022-azure"
+  }
+}
