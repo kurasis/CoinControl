@@ -9,6 +9,9 @@ the application is **Portfolio Desk**.
 The authoritative product specification lives in [`docs/spec`](docs/spec/README.md).
 Start with its README, which lists the reading order.
 
+[Code audit, 2026-10-07](docs/reports/code-audit-2026-10-07/README.md): priorities,
+targeted fixes, baseline/final checks and remaining contract decisions.
+
 ## Status
 
 The project follows the delivery stages in
@@ -275,8 +278,8 @@ crates/portfolio-store   SQLite via SQLx: migrations, profile isolation
                          historical prices, charts, activity paging, settings,
                          demo seed, and the idempotent sync write path.
 crates/portfolio-providers
-                         Read-only provider adapters (Esplora, Zerion, Live Coin
-                         Watch, DefiLlama), shared HTTP transport (pacing,
+                         Read-only provider adapters and reserves (see
+                         docs/PROVIDER_MIRRORS.md), shared HTTP transport (pacing,
                          budgets, retries, size caps, redacted errors), and the
                          sync engine (forward pass + resumable backfill).
 src-tauri                Tauri 2 shell: typed IPC commands, capability allowlist,
@@ -348,7 +351,7 @@ $env:RUN_LIVE_API_TESTS = "1"
 npm run test:e2e:windows -- --live-btc
 ```
 
-The separate production job tests an upgrade from the pinned, SHA-256-verified `0.1.0` NSIS artifact (main `f0603fd`, CI `37345501830`) to the current version in `tauri.conf.json` (now `0.1.5`). The old installed app creates schema 6; an external offline fixture utility fills the closed database with two synthetic owned accounts, an internal transfer, one fee, two audit versions and overlapping groups. Both installed versions open and replay that data. The check compares exact source/derived table fingerprints and balance quantities after migration to schema 7, another restart and normal uninstall. The baseline CI artifact must remain available; expiry is an explicit prerequisite failure, never a silently substituted baseline. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
+The separate production job tests an upgrade from the pinned, SHA-256-verified `0.1.0` NSIS artifact (main `f0603fd`, CI `37345501830`) to the current version in `tauri.conf.json` (currently `0.1.6`). The old installed app creates schema 6; an external offline fixture utility fills the closed database with two synthetic owned accounts, an internal transfer, one fee, two audit versions and overlapping groups. Both installed versions open and replay that data. The check compares exact source/derived table fingerprints and balance quantities after migration to schema 7, another restart and normal uninstall. The baseline CI artifact must remain available; expiry is an explicit prerequisite failure, never a silently substituted baseline. `npm run verify:release` checks command permissions, CSP, excluded credentials/test infrastructure, PE artifacts, installer contents and checksums. `--source-only` performs the portable configuration/frontend subset and does not claim installer verification.
 
 Native acceptance adds the two synthetic addresses and overlapping groups through the actual UI; only deterministic chain evidence is seeded externally while the app is closed. Expected values are independently checked against the production Store APIs: 1.99 ETH at $3000 gives $5970, with one $30 fee. The viewport matrix resizes the actual Windows HWND client area to 1440×900, 1280×800 and 1024×720 CSS pixels, captures EN/RU and dark/light combinations, and checks that all six asset and eight activity columns remain reachable by scrolling. It records WebView2 pixel ratio and Windows window DPI. This does not substitute for changing Windows display scaling to 125%, 150% and 200%; that release gate remains separate. The hosted monitor can be smaller than a requested test window, so the report also records available screen size.
 

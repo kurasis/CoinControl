@@ -82,6 +82,24 @@ async fn lcw(server: &MockServer, config: HttpConfig) -> LiveCoinWatch {
     LiveCoinWatch::with_config(&server.uri(), SENTINEL_KEY, Budget::unlimited(), config).unwrap()
 }
 
+#[test]
+fn json_schema_errors_never_echo_response_values() {
+    use portfolio_providers::http::Body;
+    let body = Body {
+        status: reqwest::StatusCode::OK,
+        bytes: serde_json::to_vec(SENTINEL_KEY).unwrap(),
+    };
+    let err = body.json::<u64>("helius", "getBalance").unwrap_err();
+    assert!(matches!(err, ProviderError::InvalidResponse { .. }));
+    assert_no_secret(&err);
+    // Correctly typed bodies keep the same decoding behavior.
+    let valid = Body {
+        status: reqwest::StatusCode::OK,
+        bytes: b"42".to_vec(),
+    };
+    assert_eq!(valid.json::<u64>("helius", "getBalance").unwrap(), 42);
+}
+
 #[tokio::test]
 async fn unauthorized_fails_once_without_retry() {
     let server = MockServer::start().await;

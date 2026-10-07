@@ -21,6 +21,8 @@ describe("formatting", () => {
   it("marks tiny non-zero balances instead of showing zero", () => {
     expect(formatQuantity("0.000000001", "en-US")).toBe("<0.00000001");
     expect(formatQuantity("0", "en-US")).toBe("0");
+    expect(formatQuantity("0.1", "en-US", 0)).toBe("<1");
+    expect(formatQuantity("0", "en-US", 0)).toBe("0");
   });
 
   it("shows signs on percentages and localizes them", () => {
@@ -29,6 +31,7 @@ describe("formatting", () => {
     expect(formatPercent("1.5", "ru-RU")).toBe("+1,50 %");
     expect(signOf("-0.1")).toBe(-1);
     expect(signOf("0.00")).toBe(0);
+    expect(signOf("-0.00")).toBe(0);
   });
 });
 

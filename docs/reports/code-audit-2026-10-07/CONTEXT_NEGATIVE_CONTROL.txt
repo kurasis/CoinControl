@@ -1,0 +1,75 @@
+
+ RUN  v5.0.3 /workspace/CoinControl
+
+stderr | src/app/AppContext.test.tsx > merges rapid setting edits and serializes saves without flashing an older response
+[["profile-value"]]: No queryFn was passed as an option, and no default queryFn was found. The queryFn parameter is only optional when using a default queryFn. More info here: https://tanstack.com/query/latest/docs/framework/react/guides/default-query-function
+
+stderr | src/app/AppContext.test.tsx > merges rapid setting edits and serializes saves without flashing an older response
+[["profile-value"]]: No queryFn was passed as an option, and no default queryFn was found. The queryFn parameter is only optional when using a default queryFn. More info here: https://tanstack.com/query/latest/docs/framework/react/guides/default-query-function
+
+stderr | src/app/AppContext.test.tsx > merges rapid setting edits and serializes saves without flashing an older response
+[["profile-value"]]: No queryFn was passed as an option, and no default queryFn was found. The queryFn parameter is only optional when using a default queryFn. More info here: https://tanstack.com/query/latest/docs/framework/react/guides/default-query-function
+
+ ❯ src/app/AppContext.test.tsx (4 tests | 2 failed) 1150ms
+   × merges rapid setting edits and serializes saves without flashing an older response 1050ms
+   × clears active and inactive data from the old profile before the new reads finish 71ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/app/AppContext.test.tsx > merges rapid setting edits and serializes saves without flashing an older response
+AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
+
+Ignored nodes: comments, script, style
+<html
+  data-theme="dark"
+  lang="en"
+>
+  <head />
+  <body>
+    <div>
+      <output>
+        loading
+      </output>
+    </div>
+  </body>
+</html>
+ ❯ src/app/AppContext.test.tsx:92:50
+     90|     app.updateSettings({ privacy_mode: true });
+     91|   });
+     92|   await waitFor(() => expect(api.updateSettings).toHaveBeenCalledTimes…
+       |                                                  ^
+     93|   const latest = { ...initial, theme: "light", privacy_mode: true };
+     94|   expect(client.getQueryData(["settings"])).toEqual(latest);
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/app/AppContext.test.tsx > clears active and inactive data from the old profile before the new reads finish
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <output>
+  old private balance
+</output> instead
+ ❯ src/app/AppContext.test.tsx:132:57
+    130|   });
+    131|   await waitFor(() => expect(read).toHaveBeenCalledTimes(2));
+    132|   expect(screen.queryByText("old private balance")).not.toBeInTheDocum…
+       |                                                         ^
+    133|   expect(client.getQueryData(["inactive-leg"])).toBeUndefined();
+    134|   await act(async () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  04:56:01
+   Duration  2.03s (tests 60%, environment 27%, transform 7%, import 4%, setup 3%)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

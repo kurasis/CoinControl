@@ -1,0 +1,14 @@
+
+ RUN  v5.0.3 /workspace/CoinControl
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  05:08:47
+   Duration  308ms (tests 52%, setup 29%, transform 14%, worker 3%, import 2%)
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

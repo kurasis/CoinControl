@@ -186,14 +186,14 @@ function SourceCard({ provider: p }: { provider: ProviderStatus }) {
           {status.text}
         </span>
       </header>
-      <span className="meta">
+      <div className="meta">
         {p.networks.length > 0
           ? p.networks.map((n) => networkNames.get(n) ?? n).join(", ")
           : t("sources.allAssets")}
         {" · "}
         {p.free_allowance}
         {p.id === "chainstack" && <p>{t("sources.chainstackHint")}</p>}
-      </span>
+      </div>
       {p.key_requirement !== "not_needed" && (
         <form
           className="stack"
