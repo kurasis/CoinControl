@@ -5,6 +5,8 @@
   "packagingScript": "scripts/package-windows-release.py (unchanged)",
   "packagingResult": "PASS",
   "releaseStatus": "BLOCKED",
-  "blocker": "GitHub HTTP 500 for workflow dispatch and direct release creation; no v0.1.10 release confirmed",
-  "fullReleaseAcceptance": false
+  "blocker": "Publisher workflow dispatch HTTP 500; initial release creation HTTP 500. Minimal REST draft creation succeeded, but CLI and explicitly authenticated uploads return HTTP 401. No assets, not published.",
+  "fullReleaseAcceptance": false,
+  "draftReleaseId": 405978713,
+  "draftAssets": []
 }

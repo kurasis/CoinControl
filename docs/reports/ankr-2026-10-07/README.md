@@ -8,8 +8,10 @@ Overall CI is **FAIL** because the additional Windows 11 ARM64 startup gate fail
 
 The exact CI installer was packaged locally with the unchanged
 `scripts/package-windows-release.py`; all packaging checks PASS. GitHub returned
-HTTP 500 both for publisher workflow dispatch and direct release creation, so
-**0.1.10 is not published**. The verified local ZIP is 8486521 bytes, SHA-256
+HTTP 500 for publisher workflow dispatch and initial direct release creation.
+A minimal REST request subsequently created draft release **405978713**, but
+both CLI and explicitly authenticated uploads returned **HTTP 401**. The draft
+has no assets; **0.1.10 is not published**. The verified local ZIP is 8486521 bytes, SHA-256
 `70eaca0d0854359913ef13cb615cdd3dac1835fd0888eef0a8422a5d4eccf2ac`.
 [Build manifest](BUILD_INFO.json) · [Local verification](LOCAL_ZIP_VERIFICATION.json)
 · [Delivery status](DELIVERY.json). Source reports are stored with normalized JSON

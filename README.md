@@ -50,7 +50,8 @@ This key's Optimism/Solana Node scopes return 403, with working independent
 mirrors. Ethereum Advanced returns more assets than requested, so discovery is
 bounded to 200 accepted tokens and clearly marked partial. Indexed BNB history
 and full Windows 11 acceptance remain open. The verified 0.1.10 ZIP is local;
-GitHub publication is blocked by HTTP 500. [Exact results and limits](docs/reports/ankr-2026-10-07/README.md).
+GitHub publication is blocked by dispatch HTTP 500 and asset-upload HTTP 401.
+[Exact results and limits](docs/reports/ankr-2026-10-07/README.md).
 
 ## Free-plan reserves and throttling (0.1.9)
 

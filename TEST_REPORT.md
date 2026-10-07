@@ -42,7 +42,8 @@ hardware acceptance remains unrun, and full release acceptance is not claimed.
 
 The unchanged ZIP packager verified the exact CI installer locally: 8486521 bytes,
 SHA-256 `70eaca0d0854359913ef13cb615cdd3dac1835fd0888eef0a8422a5d4eccf2ac`.
-GitHub returned HTTP 500 for both publisher dispatch and direct release creation;
+GitHub returned HTTP 500 for publisher dispatch and initial release creation.
+A minimal REST request created a draft, but its asset uploads return HTTP 401;
 **0.1.10 is not published**. [Local verification](docs/reports/ankr-2026-10-07/LOCAL_ZIP_VERIFICATION.json).
 The previously published 0.1.9 remains the latest downloadable GitHub release.
 
