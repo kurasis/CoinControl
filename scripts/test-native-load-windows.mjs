@@ -212,7 +212,10 @@ try {
       "const body=document.querySelector('tbody');return body?.dataset.rowCount==='100' && body.dataset.windowed==='true' && body.querySelectorAll('tr[data-index]').length>0 && body.querySelectorAll('tr[data-index]').length<80;",
     ),
   );
-  record("Activity loads two 50-row pages with bounded DOM while background preview calculates", true);
+  record(
+    "Activity loads two 50-row pages with bounded DOM while background preview calculates",
+    true,
+  );
   await native.screenshot("load-activity-100");
   for (let page = 0; page < 2; page++) {
     await native.clickText("Load more");
