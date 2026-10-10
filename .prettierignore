@@ -5,3 +5,6 @@ src-tauri/gen
 node_modules
 docs/spec
 package-lock.json
+
+# Preserve the vendored upstream skill byte-for-byte.
+.agents/skills/web-design-guidelines/SKILL.md
