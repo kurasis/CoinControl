@@ -208,9 +208,11 @@ try {
   );
   await native.clickText("Load more");
   await until(() =>
-    native.execute("return document.querySelectorAll('.table tbody tr').length===100;"),
+    native.execute(
+      "const body=document.querySelector('tbody');return body?.dataset.rowCount==='100' && body.dataset.windowed==='true' && body.querySelectorAll('tr[data-index]').length>0 && body.querySelectorAll('tr[data-index]').length<80;",
+    ),
   );
-  record("Activity renders two 50-row pages while background preview calculates", true);
+  record("Activity loads two 50-row pages with bounded DOM while background preview calculates", true);
   await native.screenshot("load-activity-100");
   for (let page = 0; page < 2; page++) {
     await native.clickText("Load more");
