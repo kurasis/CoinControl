@@ -67,9 +67,17 @@ export function ReviewPage() {
             ))}
           </select>
         </div>
+        {list.isError && (
+          <div className="card-pad" role="alert">
+            <p>{t("errors.generic")}</p>
+            <button className="btn" disabled={list.isFetching} onClick={() => void list.refetch()}>
+              {t("common.retry")}
+            </button>
+          </div>
+        )}
         {list.isLoading ? (
           <div className="skeleton skeleton-table" />
-        ) : items.length === 0 ? (
+        ) : list.isError && !list.data ? null : items.length === 0 ? (
           <div className="empty">
             <p>{t("review.empty")}</p>
           </div>

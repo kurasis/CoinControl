@@ -89,3 +89,9 @@ describe("long table navigation", () => {
     expect(screen.getByRole("table")).toHaveAttribute("aria-rowcount", "4");
   });
 });
+
+it("keeps short, horizontally scrollable tables reachable from the keyboard", () => {
+  render(<Table data={rows.slice(0, 2)} />);
+  expect(screen.getByTestId("scroll")).toHaveAttribute("tabindex", "0");
+  expect(screen.getAllByRole("button")).toHaveLength(2);
+});

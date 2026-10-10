@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useViewState } from "../app/useViewState";
 import { useSearchParams } from "react-router";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -15,7 +16,7 @@ export function ActivityPage() {
   const networkNames = useNetworkNames();
   const accountLabels = useAccountLabels(privacy);
   const [params, setParams] = useSearchParams();
-  const [filter, setFilter] = useState({
+  const [filter, setFilter] = useViewState("activity:filters", {
     network: "",
     asset: "",
     operation: "",
@@ -40,7 +41,7 @@ export function ActivityPage() {
     start: filter.start ? Date.parse(filter.start + "T00:00:00Z") / 1000 : null,
     end: filter.end ? Date.parse(filter.end + "T23:59:59Z") / 1000 : null,
   };
-  const [unresolved, setUnresolved] = useState(false);
+  const [unresolved, setUnresolved] = useViewState("activity:unresolved", false);
   const [openLeg, setOpenLeg] = useState<string | null>(null);
   const pages = useInfiniteQuery({
     queryKey: ["activity", activeScope, "all", applied, unresolved],

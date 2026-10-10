@@ -1,3 +1,4 @@
+import { CopyAddressButton } from "../components/CopyAddressButton";
 import { useEffect } from "react";
 import { useParams, Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -50,12 +51,7 @@ export function AccountPage() {
         <section className="card card-pad stack">
           <div className="row">
             <SyncButton accountId={id} />
-            <button
-              className="btn"
-              onClick={() => void navigator.clipboard?.writeText(account.display_address)}
-            >
-              {t("wallets.copyAddress")}
-            </button>
+            <CopyAddressButton address={account.display_address} />
             {explorer.data && (
               <button className="link-button" onClick={() => void openExternal(explorer.data!)}>
                 {t("leg.explorer")}

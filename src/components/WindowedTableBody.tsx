@@ -17,7 +17,7 @@ export function WindowedTableBody<T>({
   const [body, setBody] = useState<HTMLTableSectionElement | null>(null);
   const [focusedKey, setFocusedKey] = useState<string | number | null>(null);
   const focused = focusedKey === null ? -1 : rows.findIndex((row) => rowKey(row) === focusedKey);
-  const enabled = rows.length > 100;
+  const enabled = rows.length > 50;
   const scroller = body?.closest<HTMLElement>(".table-scroll") ?? null;
   // Mutable measurements stay inside this non-memoized component (see the directive above).
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -42,7 +42,7 @@ export function WindowedTableBody<T>({
   useEffect(() => {
     if (!scroller || !body) return;
     scroller.classList.toggle("table-windowed", enabled);
-    scroller.tabIndex = enabled ? 0 : -1;
+    scroller.tabIndex = 0;
     body.closest("table")?.setAttribute("aria-rowcount", String(rows.length + 1));
     return () => {
       scroller.classList.remove("table-windowed");

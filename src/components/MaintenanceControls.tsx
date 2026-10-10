@@ -44,7 +44,7 @@ export function MaintenanceControls() {
     );
   return (
     <section className="stack" aria-label={t("maintenance.title")}>
-      <h3>{t("maintenance.title")}</h3>
+      <h2>{t("maintenance.title")}</h2>
       <p className="meta">{t("maintenance.cacheNote")}</p>
       <div className="row">
         <button className="btn" disabled={busy} onClick={() => maintenance.mutate("cache")}>
