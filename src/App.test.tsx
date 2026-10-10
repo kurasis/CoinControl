@@ -296,7 +296,9 @@ describe("demo portfolio", () => {
     const user = userEvent.setup();
     await api.switchProfile("demo");
     renderApp();
-    await screen.findByRole("region", { name: "Assets" });
+    // The first lazy table also pays Vite's cold module transform cost on CI.
+    // This scroll/focus test does not measure production startup (native CI does).
+    await screen.findByRole("region", { name: "Assets" }, { timeout: 3000 });
     const main = screen.getByRole("main");
     main.scrollTop = 1200;
     await user.click(screen.getByRole("link", { name: "Review" }));
