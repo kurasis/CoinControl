@@ -41,7 +41,7 @@ export function ProviderQuotaControls({ provider }: { provider: ProviderStatus }
             .filter(
               (key) =>
                 key !== "daily_credits" ||
-                ["alchemy", "helius", "drpc", "blockscout"].includes(provider.id),
+                ["alchemy", "helius", "drpc", "blockscout", "ankr"].includes(provider.id),
             )
             .map((key) => (
               <label className="row" key={key}>
@@ -49,6 +49,8 @@ export function ProviderQuotaControls({ provider }: { provider: ProviderStatus }
                 <input
                   className="input"
                   type="number"
+                  name={`${provider.id}-${key}`}
+                  autoComplete="off"
                   min={1}
                   max={1000000}
                   step={1}

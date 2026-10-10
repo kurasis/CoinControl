@@ -8,7 +8,7 @@ use std::sync::Arc;
 use portfolio_core::clock::SystemClock;
 use portfolio_store::{ProfileKind, Scope, Store};
 use tauri::Manager;
-use tokio::sync::RwLock;
+use tokio::sync::{OnceCell, RwLock};
 
 mod commands;
 mod error;
@@ -22,7 +22,8 @@ mod window_geometry;
 use secrets::{OsSecretStore, SecretStore};
 
 pub struct AppState {
-    store: Arc<RwLock<Store>>,
+    store: OnceCell<RwLock<Store>>,
+    startup: std::time::Instant,
     profiles_dir: PathBuf,
     icons: portfolio_providers::icons::IconCache,
     secrets: Arc<dyn SecretStore>,
@@ -32,7 +33,38 @@ pub struct AppState {
 impl AppState {
     /// A cheap handle to the currently open profile.
     pub async fn store(&self) -> Store {
-        self.store.read().await.clone()
+        self.initialized_store()
+            .await
+            .expect("local profile initialization failed")
+            .read()
+            .await
+            .clone()
+    }
+
+    /// Share one initialization between background priming and early IPC reads.
+    /// WebView creation can proceed while SQLite opens and the summary is prepared.
+    async fn initialized_store(&self) -> Result<&RwLock<Store>, portfolio_store::StoreError> {
+        self.store
+            .get_or_try_init(|| async {
+                let store = open_profile(&self.profiles_dir, ProfileKind::Real).await?;
+                tracing::info!(
+                    elapsed_ms = self.startup.elapsed().as_millis(),
+                    "Startup local profile ready"
+                );
+                self.sync
+                    .network_log
+                    .set_enabled(store.get_settings().await?.network_console_enabled);
+                if store.portfolio_summary(&Scope::All).await.is_ok() {
+                    tracing::info!(
+                        elapsed_ms = self.startup.elapsed().as_millis(),
+                        "Startup cached summary ready"
+                    );
+                } else {
+                    tracing::warn!("Startup summary prewarm unavailable");
+                }
+                Ok(RwLock::new(store))
+            })
+            .await
     }
 }
 
@@ -125,36 +157,10 @@ pub fn run() {
                 .unwrap_or(data_dir);
             let profiles_dir = data_dir.join("profiles");
             std::fs::create_dir_all(&profiles_dir)?;
-            let store =
-                tauri::async_runtime::block_on(open_profile(&profiles_dir, ProfileKind::Real))
-                    .map_err(|e| Box::new(e) as Box<dyn std::error::Error>)?;
-            tracing::info!(
-                elapsed_ms = startup.elapsed().as_millis(),
-                "Startup local profile ready"
-            );
             let sync_state = sync::shared();
-            sync_state.network_log.set_enabled(
-                tauri::async_runtime::block_on(store.get_settings())?.network_console_enabled,
-            );
-            let store = Arc::new(RwLock::new(store));
-            // Gate initial IPC reads until this one calculation completes. An
-            // owned guard lets the UI thread continue creating/painting its
-            // window and prevents duplicate cold summary calculations.
-            let priming_store = tauri::async_runtime::block_on(store.clone().write_owned());
-            tauri::async_runtime::spawn(async move {
-                if priming_store.portfolio_summary(&Scope::All).await.is_ok() {
-                    tracing::info!(
-                        elapsed_ms = startup.elapsed().as_millis(),
-                        "Startup cached summary ready"
-                    );
-                } else {
-                    tracing::warn!("Startup summary prewarm unavailable");
-                }
-                // Dropping the guard releases queued IPC; errors remain visible
-                // through the normal summary command rather than fabricated data.
-            });
             app.manage(AppState {
-                store,
+                store: OnceCell::new(),
+                startup,
                 profiles_dir,
                 secrets: Arc::new(OsSecretStore::default()),
                 icons: portfolio_providers::icons::IconCache::new(
@@ -162,6 +168,15 @@ pub fn run() {
                     sync_state.network_log.clone(),
                 ),
                 sync: sync_state,
+            });
+            let priming_app = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(error) = priming_app.state::<AppState>().initialized_store().await {
+                    // Opening/migrating the initial profile was already fatal in
+                    // setup. Keep that behavior instead of exposing an empty store.
+                    tracing::error!(%error, "Startup local profile unavailable");
+                    priming_app.exit(1);
+                }
             });
             tauri::WebviewWindowBuilder::from_config(app, &main_window_config)?.build()?;
             tracing::info!(
@@ -240,4 +255,66 @@ pub fn run() {
         ])
         .run(context)
         .expect("error while running Portfolio Desk");
+}
+
+#[cfg(test)]
+mod startup_tests {
+    use super::*;
+
+    fn isolated_state() -> AppState {
+        let directory = std::env::temp_dir().join(format!(
+            "coincontrol-startup-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&directory).unwrap();
+        let sync = sync::shared();
+        AppState {
+            store: OnceCell::new(),
+            startup: std::time::Instant::now(),
+            profiles_dir: directory.clone(),
+            icons: portfolio_providers::icons::IconCache::new(
+                directory.join("icons"),
+                sync.network_log.clone(),
+            ),
+            secrets: Arc::new(OsSecretStore::default()),
+            sync,
+        }
+    }
+
+    #[tokio::test]
+    async fn concurrent_startup_reads_share_the_real_store_and_subsequent_settings() {
+        let state = isolated_state();
+        let (first, second) = tokio::join!(state.initialized_store(), state.initialized_store());
+        let first = first.unwrap();
+        let second = second.unwrap();
+        assert!(std::ptr::eq(first, second));
+        let store = state.store().await;
+        assert_eq!(store.profile(), ProfileKind::Real);
+        assert!(store.list_wallets().await.unwrap().is_empty());
+        let mut settings = store.get_settings().await.unwrap();
+        settings.timezone = Some("UTC".into());
+        store.update_settings(&settings).await.unwrap();
+        assert_eq!(
+            second.read().await.get_settings().await.unwrap().timezone,
+            Some("UTC".into())
+        );
+        store.close().await;
+        std::fs::remove_dir_all(&state.profiles_dir).unwrap();
+    }
+
+    #[tokio::test]
+    async fn startup_preserves_an_unreadable_profile_instead_of_creating_empty_data() {
+        let state = isolated_state();
+        let path = profile_path(&state.profiles_dir, ProfileKind::Real);
+        let corrupt = b"not a SQLite database";
+        std::fs::write(&path, corrupt).unwrap();
+        assert!(state.initialized_store().await.is_err());
+        assert!(state.store.get().is_none());
+        assert_eq!(std::fs::read(&path).unwrap(), corrupt);
+        std::fs::remove_dir_all(&state.profiles_dir).unwrap();
+    }
 }

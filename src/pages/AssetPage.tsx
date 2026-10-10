@@ -13,6 +13,7 @@ import { RangePicker, toSeries } from "../components/PortfolioChart";
 import { SeriesChart } from "../components/SeriesChart";
 import { ActivityTable } from "../components/ActivityTable";
 import { LegDrawer } from "../components/LegDrawer";
+import { WindowedTableBody } from "../components/WindowedTableBody";
 import { TokenIcon } from "../components/TokenIcon";
 import { openExternal } from "../lib/external";
 import { DASH, formatDate } from "../lib/format";
@@ -32,7 +33,7 @@ export function AssetPage() {
     "chart:window",
     undefined,
   );
-  const [tab, setTab] = useState<Tab>("price");
+  const [tab, setTab] = useViewState<Tab>(`asset:${assetId}:tab`, "price");
   const [openLeg, setOpenLeg] = useState<string | null>(null);
 
   const detail = useQuery({
@@ -135,7 +136,23 @@ export function AssetPage() {
                 key={x}
                 role="tab"
                 aria-selected={tab === x}
-                aria-pressed={tab === x}
+                id={`asset-tab-${x}`}
+                aria-controls={`asset-panel-${x}`}
+                tabIndex={tab === x ? 0 : -1}
+                onKeyDown={(event) => {
+                  if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+                  event.preventDefault();
+                  const next =
+                    event.key === "Home"
+                      ? "price"
+                      : event.key === "End"
+                        ? "holdings"
+                        : x === "price"
+                          ? "holdings"
+                          : "price";
+                  setTab(next);
+                  document.getElementById(`asset-tab-${next}`)?.focus();
+                }}
                 onClick={() => setTab(x)}
               >
                 {t(`asset.tab.${x}`)}
@@ -158,19 +175,26 @@ export function AssetPage() {
             }}
           />
         </div>
-        {chart.isLoading ? (
-          <div className="chart skeleton" />
-        ) : hasData ? (
-          <SeriesChart
-            points={series}
-            kind={tab === "price" ? "price" : "value"}
-            label={t(`asset.tab.${tab}`)}
-          />
-        ) : (
-          <div className="chart-empty">
-            <p>{t("chart.empty")}</p>
-          </div>
-        )}
+        <div
+          role="tabpanel"
+          id={`asset-panel-${tab}`}
+          aria-labelledby={`asset-tab-${tab}`}
+          tabIndex={0}
+        >
+          {chart.isLoading ? (
+            <div className="chart skeleton" />
+          ) : hasData ? (
+            <SeriesChart
+              points={series}
+              kind={tab === "price" ? "price" : "value"}
+              label={t(`asset.tab.${tab}`)}
+            />
+          ) : (
+            <div className="chart-empty">
+              <p>{t("chart.empty")}</p>
+            </div>
+          )}
+        </div>
       </section>
 
       {d && d.accounts.length > 0 && (
@@ -189,9 +213,9 @@ export function AssetPage() {
                   <th className="right">{t("assets.colPnl")}</th>
                 </tr>
               </thead>
-              <tbody>
-                {d.accounts.map((a) => (
-                  <tr key={a.account_id}>
+              <WindowedTableBody rows={d.accounts} columns={5} rowKey={(row) => row.account_id}>
+                {(a) => (
+                  <>
                     <td>
                       <Link to={`/accounts/${a.account_id}`}>
                         {accountLabels.get(a.account_id) ?? "—"}
@@ -219,9 +243,9 @@ export function AssetPage() {
                     <td className="right">
                       <Usd value={a.unrealized_pnl_usd} />
                     </td>
-                  </tr>
-                ))}
-              </tbody>
+                  </>
+                )}
+              </WindowedTableBody>
             </table>
           </div>
         </section>
@@ -244,9 +268,9 @@ export function AssetPage() {
                   <th>{t("asset.basisKind")}</th>
                 </tr>
               </thead>
-              <tbody>
-                {d.lots.map((l) => (
-                  <tr key={l.id}>
+              <WindowedTableBody rows={d.lots} columns={5} rowKey={(row) => row.id}>
+                {(l) => (
+                  <>
                     <td className="num">
                       {formatDate(l.acquired_at, locale, timeZone)}
                       {l.arrived_at !== l.acquired_at && (
@@ -269,9 +293,9 @@ export function AssetPage() {
                       )}
                     </td>
                     <td>{t(`basisKind.${l.basis_kind}`)}</td>
-                  </tr>
-                ))}
-              </tbody>
+                  </>
+                )}
+              </WindowedTableBody>
             </table>
           </div>
         </section>

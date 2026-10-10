@@ -5,7 +5,7 @@ import { LineChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 import { useApp } from "../app/AppContext";
-import { MASK, formatDateTime, formatPrice, formatUsd } from "../lib/format";
+import { MASK, formatDateTime, formatDate, formatPrice, formatUsd } from "../lib/format";
 import type { SeriesPoint } from "./SeriesChart";
 
 echarts.use([LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
@@ -38,13 +38,21 @@ export default function SeriesChartCanvas({
     const border = cssVar("--border");
     const motion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     instance.setOption({
+      useUTC: true,
       animation: !motion?.matches,
       animationDuration: 150,
       grid: { left: 8, right: 8, top: 16, bottom: 24, containLabel: true },
       xAxis: {
         type: "time",
         axisLine: { lineStyle: { color: border } },
-        axisLabel: { color: secondary, hideOverlap: true },
+        axisLabel: {
+          color: secondary,
+          hideOverlap: true,
+          formatter: (value: number) =>
+            (points.at(-1)?.t ?? 0) - (points[0]?.t ?? 0) < 172800
+              ? formatDateTime(value / 1000, locale, timeZone)
+              : formatDate(value / 1000, locale, timeZone),
+        },
         splitLine: { show: false },
       },
       yAxis: {

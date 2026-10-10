@@ -21,6 +21,8 @@ interface AppContextValue {
   settings: Settings | undefined;
   syncProgress: SyncProgress | undefined;
   updateSettings: (patch: Partial<Settings>) => void;
+  settingsSaveStatus: "saving" | "error" | null;
+  retrySettingsSave: () => void;
   privacy: boolean;
   togglePrivacy: () => void;
   locale: string;
@@ -57,6 +59,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   );
   const settingsSaves = useRef(new Set<Promise<Settings>>());
+  const [failedSettings, setFailedSettings] = useState<Settings | null>(null);
 
   const settingsQuery = useQuery({ queryKey: ["settings"], queryFn: api.getSettings });
   const infoQuery = useQuery({ queryKey: ["app-info"], queryFn: api.appInfo });
@@ -75,16 +78,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     mutationKey: ["settings"],
     scope: { id: "settings" },
     mutationFn: api.updateSettings,
+    onMutate: () => setFailedSettings(null),
     onSuccess: (next) => {
       // A queued edit already includes this change. Keep its optimistic state
       // until the final save finishes, rather than flashing an older response.
       if (queryClient.isMutating({ mutationKey: ["settings"] }) > 1) return;
+      setFailedSettings(null);
       queryClient.setQueryData(["settings"], next);
       if (!next.network_console_enabled) queryClient.setQueryData(["network-log"], []);
     },
-    onError: () => {
-      if (queryClient.isMutating({ mutationKey: ["settings"] }) === 1)
+    onError: (_error, next) => {
+      if (queryClient.isMutating({ mutationKey: ["settings"] }) === 1) {
+        setFailedSettings(next);
         void queryClient.invalidateQueries({ queryKey: ["settings"] });
+      }
     },
   });
 
@@ -141,6 +148,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // changing that store so late saves cannot land in the next profile.
       while (settingsSaves.current.size) await Promise.allSettled([...settingsSaves.current]);
       await api.switchProfile(profile);
+      setFailedSettings(null);
       setScope({ kind: "all" });
       setViewState({});
       // Invalidation retains old values while fetching. Profile data must be
@@ -155,6 +163,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       settings,
       syncProgress: infoQuery.data?.profile === "real" ? syncQuery.data : undefined,
       updateSettings,
+      settingsSaveStatus: mutation.isPending ? "saving" : failedSettings ? "error" : null,
+      retrySettingsSave: () => {
+        if (failedSettings && !mutation.isPending) updateSettings(failedSettings);
+      },
       // Keep sensitive values masked during startup and profile transitions.
       privacy: settings?.privacy_mode ?? true,
       togglePrivacy: () => updateSettings({ privacy_mode: !(settings?.privacy_mode ?? false) }),
@@ -171,6 +183,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       settings,
       syncQuery.data,
       updateSettings,
+      failedSettings,
+      mutation.isPending,
       language,
       scope,
       infoQuery.data?.profile,

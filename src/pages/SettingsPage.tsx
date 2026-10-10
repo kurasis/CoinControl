@@ -221,7 +221,7 @@ function SourceCard({ provider: p }: { provider: ProviderStatus }) {
     <article className="card source-card" aria-labelledby={`${p.id}-name`}>
       <header>
         <div className="stack">
-          <h3 id={`${p.id}-name`}>{p.name}</h3>
+          <h2 id={`${p.id}-name`}>{p.name}</h2>
           <span className="meta">{t(`sources.roles.${p.role}`)}</span>
         </div>
         <span className={`chip ${status.tone === "warning" ? "chip-warning" : ""}`}>
@@ -370,7 +370,12 @@ function NetworkCoverage() {
     <>
       <p className="notice meta">{t("coverage.intro")}</p>
       <p className="notice meta">{t("coverage.reserveIntro")}</p>
-      <div className="card table-scroll">
+      <div
+        className="card table-scroll"
+        tabIndex={0}
+        role="region"
+        aria-label={t("settings.networks")}
+      >
         <table className="table coverage-table" aria-label={t("settings.networks")}>
           <thead>
             <tr>
@@ -431,7 +436,7 @@ function NetworkCoverage() {
         </table>
       </div>
       <section className="card coverage-notes" aria-label={t("coverage.limitations")}>
-        <h3>{t("coverage.limitations")}</h3>
+        <h2>{t("coverage.limitations")}</h2>
         <dl>
           {(caps.data ?? []).map((c) => (
             <div key={c.network} className="coverage-note">

@@ -296,7 +296,9 @@ describe("demo portfolio", () => {
     const user = userEvent.setup();
     await api.switchProfile("demo");
     renderApp();
-    await screen.findByRole("region", { name: "Assets" });
+    // The first lazy table also pays Vite's cold module transform cost on CI.
+    // This scroll/focus test does not measure production startup (native CI does).
+    await screen.findByRole("region", { name: "Assets" }, { timeout: 3000 });
     const main = screen.getByRole("main");
     main.scrollTop = 1200;
     await user.click(screen.getByRole("link", { name: "Review" }));
@@ -743,4 +745,162 @@ it("allows queueing during background synchronization and cancels the background
   expect(cancelBackground).toHaveBeenCalledTimes(1);
   expect(cancelJob).not.toHaveBeenCalled();
   expect(start).not.toHaveBeenCalled();
+});
+
+describe("UI audit regressions", () => {
+  async function reviewDrawer(user: ReturnType<typeof userEvent.setup>) {
+    await api.switchProfile("demo");
+    window.location.hash = "#/review";
+    renderApp();
+    await user.click((await screen.findAllByRole("button", { name: "Resolve" }))[0]!);
+    const drawer = await screen.findByRole("dialog", { name: "Movement details" });
+    await within(drawer).findByLabelText("Note");
+    return drawer;
+  }
+
+  it("protects a draft on Escape and restores it across navigation", async () => {
+    const user = userEvent.setup();
+    const drawer = await reviewDrawer(user);
+    await user.type(within(drawer).getByLabelText("Note"), "unsaved decision");
+    await user.keyboard("{Escape}");
+    expect(drawer).toBeInTheDocument();
+    expect(within(drawer).getByRole("button", { name: "Discard changes" })).toHaveFocus();
+    await user.click(within(drawer).getByRole("button", { name: "Cancel" }));
+    expect(within(drawer).getByLabelText("Note")).toHaveValue("unsaved decision");
+    // Programmatic navigation/back can unmount a HashRouter page: keep its draft in memory.
+    await act(async () => {
+      window.location.hash = "#/wallets";
+    });
+    await screen.findByRole("heading", { name: "Wallets", level: 1 });
+    await user.click(screen.getByRole("link", { name: "Review" }));
+    await user.click((await screen.findAllByRole("button", { name: "Resolve" }))[0]!);
+    expect(await screen.findByLabelText("Note")).toHaveValue("unsaved decision");
+    await user.keyboard("{Escape}");
+    await user.click(screen.getByRole("button", { name: "Discard changes" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click((await screen.findAllByRole("button", { name: "Resolve" }))[0]!);
+    expect(await screen.findByLabelText("Note")).toHaveValue("");
+  });
+
+  it("focuses and associates validation errors with the offending financial field", async () => {
+    const user = userEvent.setup();
+    const drawer = await reviewDrawer(user);
+    const save = vi.spyOn(api, "updateBasis");
+    const price = within(drawer).getByLabelText("Unit price override (USD)");
+    await user.type(price, "abc");
+    await user.click(within(drawer).getByRole("button", { name: "Save and recalculate" }));
+    expect(price).toHaveFocus();
+    expect(price).toHaveAttribute("aria-invalid", "true");
+    expect(price).toHaveAttribute("aria-describedby", "decision-error");
+    expect(within(drawer).getByRole("alert")).toHaveTextContent("plain decimal");
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it("masks decision inputs and audit history until private details are explicitly revealed", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    const review = await api.listReviewItems({ kind: "all" }, 500);
+    const leg = await api.legDetail(review.items[0]!.leg_id);
+    leg.current = {
+      classification: "sale",
+      basis_lots: null,
+      basis_from_market: false,
+      proceeds_usd: "2356.70",
+      proceeds_from_market: false,
+      price_usd: "1234.50",
+      pair_with: null,
+      note: "PRIVATE_SAVED_NOTE",
+    };
+    leg.history = [
+      {
+        version: 1,
+        created_at: leg.occurred_at,
+        source: "manual",
+        payload: leg.current,
+        orphaned: false,
+      },
+    ];
+    vi.spyOn(api, "legDetail").mockResolvedValue(leg);
+    const settings = await api.getSettings();
+    await api.updateSettings({ ...settings, privacy_mode: true });
+    window.location.hash = "#/review";
+    renderApp();
+    await user.click((await screen.findAllByRole("button", { name: "Resolve" }))[0]!);
+    const drawer = await screen.findByRole("dialog");
+    const reveal = await within(drawer).findByRole("button", {
+      name: "Reveal private details to edit",
+    });
+    expect(drawer.querySelectorAll("input")).toHaveLength(0);
+    expect(drawer).not.toHaveTextContent("PRIVATE_SAVED_NOTE");
+    expect(drawer).not.toHaveTextContent("2,356.70");
+    await user.click(reveal);
+    expect(await within(drawer).findByLabelText("Note")).toHaveValue("PRIVATE_SAVED_NOTE");
+    const save = vi.spyOn(api, "updateBasis");
+    await user.click(within(drawer).getByRole("button", { name: "Revert to default" }));
+    expect(save).not.toHaveBeenCalled();
+    await user.click(within(drawer).getByRole("button", { name: "Cancel" }));
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it("shows failed review reads with retry instead of claiming an empty review", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    const original = api.listReviewItems;
+    vi.spyOn(api, "listReviewItems")
+      .mockRejectedValueOnce(new Error("read failed"))
+      .mockImplementation(original);
+    window.location.hash = "#/review";
+    renderApp();
+    const alert = await screen.findByRole("alert");
+    expect(screen.queryByText("Nothing needs review in this scope.")).not.toBeInTheDocument();
+    await user.click(within(alert).getByRole("button", { name: "Retry" }));
+    expect((await screen.findAllByRole("button", { name: "Resolve" })).length).toBeGreaterThan(0);
+  });
+
+  it("confirms group deletion, reports failures and blocks duplicate creates", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    window.location.hash = "#/wallets";
+    renderApp();
+    const groups = await screen.findByRole("region", { name: "Groups" });
+    const remove = vi.spyOn(api, "deleteGroup").mockRejectedValueOnce(new Error("delete failed"));
+    await user.click((await within(groups).findAllByRole("button", { name: "Delete group" }))[0]!);
+    expect(remove).not.toHaveBeenCalled();
+    await user.click(within(groups).getByRole("button", { name: "Confirm" }));
+    expect(await within(groups).findByRole("alert")).toBeInTheDocument();
+    expect(remove).toHaveBeenCalledOnce();
+    const create = vi.spyOn(api, "createGroup").mockImplementation(() => new Promise(() => {}));
+    await user.type(within(groups).getByRole("textbox"), "New group");
+    await user.click(within(groups).getByRole("button", { name: "Create group" }));
+    const saving = await within(groups).findByRole("button", { name: "Saving…" });
+    expect(saving).toBeDisabled();
+    await user.click(saving);
+    expect(create).toHaveBeenCalledOnce();
+  });
+
+  it("retains activity filters and gives chart tabs keyboard navigation and panel names", async () => {
+    const user = userEvent.setup();
+    await api.switchProfile("demo");
+    window.location.hash = "#/activity";
+    renderApp();
+    await screen.findByRole("option", { name: "Ethereum" });
+    await user.selectOptions(screen.getByLabelText("Network"), "ethereum");
+    await user.click(screen.getByRole("link", { name: "Wallets" }));
+    await user.click(screen.getByRole("link", { name: "Activity" }));
+    expect(await screen.findByLabelText("Network")).toHaveValue("ethereum");
+    await user.click(screen.getByRole("link", { name: "Portfolio" }));
+    const assets = await screen.findByRole("region", { name: "Assets" });
+    await user.click(await within(assets).findByRole("link", { name: "Bitcoin" }));
+    const price = await screen.findByRole("tab", { name: "Price" });
+    price.focus();
+    await user.keyboard("{ArrowRight}");
+    const holdings = screen.getByRole("tab", { name: "Your holdings value" });
+    expect(holdings).toHaveFocus();
+    expect(holdings).toHaveAttribute("aria-selected", "true");
+    expect(price).toHaveAttribute("tabindex", "-1");
+    expect(screen.getByRole("tabpanel", { name: "Your holdings value" })).toBeInTheDocument();
+    await user.keyboard("{Home}");
+    expect(price).toHaveFocus();
+    expect(price).toHaveAttribute("aria-selected", "true");
+  });
 });

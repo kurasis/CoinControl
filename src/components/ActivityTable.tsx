@@ -97,9 +97,17 @@ export function ActivityTable({
                               l.review ? "chip chip-warning chip-button" : "chip chip-button"
                             }
                             onClick={() => onOpenLeg(l.leg_id)}
-                            aria-label={t("activity.openLeg", {
-                              symbol: l.symbol ?? "",
-                            })}
+                            aria-label={
+                              t("activity.openLeg", {
+                                symbol: l.symbol ?? "",
+                              }) +
+                              " · " +
+                              (l.review
+                                ? t(`review.reason.${l.review}`, { defaultValue: l.review })
+                                : l.treatment
+                                  ? t(`treatment.${l.treatment}`, { defaultValue: l.treatment })
+                                  : t("activity.details"))
+                            }
                           >
                             {l.review
                               ? t(`review.reason.${l.review}`, { defaultValue: l.review })

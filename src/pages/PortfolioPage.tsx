@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -17,9 +17,15 @@ import {
   ReviewBanner,
   UnrealizedMetric,
 } from "../components/AccountingMetrics";
-import { AssetTable } from "../components/AssetTable";
-import { ActivityTable } from "../components/ActivityTable";
 import { DASH, formatDateTime } from "../lib/format";
+
+// Table modules (including virtualization) are optional until the cached balance paints.
+const AssetTable = lazy(() =>
+  import("../components/AssetTable").then((m) => ({ default: m.AssetTable })),
+);
+const ActivityTable = lazy(() =>
+  import("../components/ActivityTable").then((m) => ({ default: m.ActivityTable })),
+);
 
 export function PortfolioPage() {
   const { t } = useTranslation();
@@ -239,13 +245,15 @@ export function PortfolioView({ scope }: { scope: Scope }) {
             />
             {t("ops.showHidden")}
           </label>
-          <AssetTable
-            rows={(holdings.data ?? []).filter(
-              (h) =>
-                showHidden || !policies.data?.some((p) => p.asset_id === h.asset_id && p.hidden),
-            )}
-            networkNames={networkNames}
-          />
+          <Suspense fallback={<div className="card skeleton skeleton-table" />}>
+            <AssetTable
+              rows={(holdings.data ?? []).filter(
+                (h) =>
+                  showHidden || !policies.data?.some((p) => p.asset_id === h.asset_id && p.hidden),
+              )}
+              networkNames={networkNames}
+            />
+          </Suspense>
         </>
       )}
 
@@ -255,11 +263,15 @@ export function PortfolioView({ scope }: { scope: Scope }) {
           <div className="toolbar-spacer" />
           <Link to="/activity">{t("activity.viewAll")}</Link>
         </div>
-        <ActivityTable
-          rows={activity.data?.rows ?? []}
-          networkNames={networkNames}
-          accountLabels={accountLabels}
-        />
+        {deferredReady && (
+          <Suspense fallback={<div className="skeleton skeleton-table" />}>
+            <ActivityTable
+              rows={activity.data?.rows ?? []}
+              networkNames={networkNames}
+              accountLabels={accountLabels}
+            />
+          </Suspense>
+        )}
       </section>
     </>
   );

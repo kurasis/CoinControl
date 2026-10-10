@@ -59,7 +59,7 @@ pub async fn switch_profile(
         ));
     }
     let _sync_guard = state.sync.run_lock.lock().await;
-    let mut guard = state.store.write().await;
+    let mut guard = state.initialized_store().await?.write().await;
     if guard.profile() == profile {
         return Ok(profile);
     }

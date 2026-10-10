@@ -555,7 +555,7 @@ select {
   margin-top: var(--space-4);
 }
 
-.coverage-notes h3 {
+.coverage-notes h2 {
   margin: 0 0 var(--space-3);
 }
 
@@ -672,7 +672,7 @@ select {
   gap: var(--space-3);
 }
 
-.source-card h3 {
+.source-card h2 {
   margin: 0;
   font-size: 16px;
 }
@@ -1169,4 +1169,31 @@ textarea {
   .spinner {
     animation: none;
   }
+}
+
+/* Keyboard navigation and contained dialog scrolling. */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 12px;
+  background: var(--bg-surface);
+  transform: translateY(-150%);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+.drawer-body {
+  overscroll-behavior: contain;
+}
+.segmented button[aria-selected="true"] {
+  background: var(--accent-fill);
+  color: var(--accent);
+}
+.metric-help summary {
+  cursor: pointer;
+}
+.metric-help p {
+  max-width: 32ch;
 }

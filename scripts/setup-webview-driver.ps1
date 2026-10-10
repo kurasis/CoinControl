@@ -1,6 +1,7 @@
 # Match the external driver to the actual installed WebView2 runtime.
 param([switch]$RefreshEvergreen, [string]$ReportDirectory = '')
 $ErrorActionPreference = 'Stop'
+$arm64 = (Get-CimInstance Win32_Processor | Select-Object -First 1).Architecture -eq 12
 function Find-WebViewRuntime {
   @("${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe", "$env:ProgramFiles\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe", "$env:LOCALAPPDATA\Microsoft\EdgeWebView\Application\*\msedgewebview2.exe") | ForEach-Object { Get-Item $_ -ErrorAction SilentlyContinue } | Sort-Object { [version]$_.VersionInfo.ProductVersion } -Descending | Select-Object -First 1
 }
@@ -9,9 +10,9 @@ $runtime = Find-WebViewRuntime
 $runtimeReport = @{ mode = 'webview2-runtime-setup'; at = [DateTime]::UtcNow.ToString('o'); refreshRequested = [bool]$RefreshEvergreen; beforeVersion = $(if ($runtime) { $runtime.VersionInfo.ProductVersion } else { $null }); result = 'PASS' }
 try {
   if ($RefreshEvergreen -or -not $runtime) {
-    # Microsoft Evergreen distribution: the x64 standalone installer refreshes
-    # existing runtimes; the architecture-aware bootstrapper handles absence.
-    $runtimeReport.installerUrl = $(if ($RefreshEvergreen) { 'https://go.microsoft.com/fwlink/p/?LinkId=2124701' } else { 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' })
+    # Use the architecture-aware bootstrapper on ARM64, including refreshes;
+    # the x64 standalone installer is reserved for x64 CI hosts.
+    $runtimeReport.installerUrl = $(if ($RefreshEvergreen -and -not $arm64) { 'https://go.microsoft.com/fwlink/p/?LinkId=2124701' } else { 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' })
     $installer = Join-Path $env:RUNNER_TEMP 'CoinControl-WebView2Setup.exe'
     Invoke-WebRequest $runtimeReport.installerUrl -OutFile $installer
     $signature = Get-AuthenticodeSignature $installer
@@ -25,6 +26,7 @@ try {
   }
   if (-not $runtime) { throw 'Microsoft WebView2 runtime is unavailable' }
   $runtimeReport.afterVersion = $runtime.VersionInfo.ProductVersion
+  $runtimeReport.hostArchitecture = $(if ($arm64) { 'arm64' } else { 'x64' })
   Write-Host "WebView2 runtime before $($runtimeReport.beforeVersion); after $($runtimeReport.afterVersion)"
 } catch {
   $runtimeReport.result = 'FAIL'; $runtimeReport.detail = $_.Exception.Message
@@ -40,6 +42,7 @@ $version = $runtime.VersionInfo.ProductVersion
 Write-Host "Matching Edge WebDriver to WebView2 runtime $version"
 $zip = Join-Path $env:RUNNER_TEMP 'edgedriver.zip'
 $dir = Join-Path $env:RUNNER_TEMP 'edgedriver'
-Invoke-WebRequest "https://msedgedriver.microsoft.com/$version/edgedriver_win64.zip" -OutFile $zip
+$driverArchive = $(if ($arm64) { 'edgedriver_arm64.zip' } else { 'edgedriver_win64.zip' })
+Invoke-WebRequest "https://msedgedriver.microsoft.com/$version/$driverArchive" -OutFile $zip
 Expand-Archive $zip -DestinationPath $dir
 "EDGE_WEBDRIVER_PATH=$dir\msedgedriver.exe" | Out-File -FilePath $env:GITHUB_ENV -Append

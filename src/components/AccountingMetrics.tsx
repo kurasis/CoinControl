@@ -19,8 +19,14 @@ export function Metric({
   note?: ReactNode;
 }) {
   return (
-    <div className="metric" title={hint}>
+    <div className="metric">
       <span className="meta">{label}</span>
+      {hint && (
+        <details className="metric-help">
+          <summary aria-label={label + " — " + hint}>ⓘ</summary>
+          <p className="meta">{hint}</p>
+        </details>
+      )}
       <span className="metric-value">{children}</span>
       {note && <span className="meta">{note}</span>}
     </div>

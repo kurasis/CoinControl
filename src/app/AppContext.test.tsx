@@ -227,3 +227,28 @@ it("finishes queued settings saves in the current profile before switching store
   expect(api.switchProfile).toHaveBeenCalledOnce();
   await waitFor(() => expect(app.settings).toEqual(initial));
 });
+
+it("exposes failed settings and retries the requested values rather than the rollback", async () => {
+  vi.mocked(api.updateSettings)
+    .mockRejectedValueOnce(new Error("save failed"))
+    .mockImplementationOnce(async (settings) => settings);
+  await mount();
+  act(() => app.updateSettings({ language: "ru", theme: "light" }));
+  await waitFor(() => expect(app.settingsSaveStatus).toBe("error"));
+  await waitFor(() => expect(app.settings).toEqual(initial));
+  act(() => app.retrySettingsSave());
+  await waitFor(() => expect(app.settingsSaveStatus).toBeNull());
+  expect(app.settings).toEqual({ ...initial, language: "ru", theme: "light" });
+});
+
+it("does not offer an old profile's failed settings after switching", async () => {
+  vi.mocked(api.updateSettings).mockRejectedValueOnce(new Error("save failed"));
+  vi.mocked(api.switchProfile).mockResolvedValueOnce("real");
+  await mount();
+  act(() => app.updateSettings({ theme: "light" }));
+  await waitFor(() => expect(app.settingsSaveStatus).toBe("error"));
+  await act(async () => app.switchProfile("real"));
+  act(() => app.retrySettingsSave());
+  expect(api.updateSettings).toHaveBeenCalledTimes(1);
+  expect(app.settingsSaveStatus).toBeNull();
+});

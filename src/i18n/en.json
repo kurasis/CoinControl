@@ -12,7 +12,22 @@
   "common": {
     "cancel": "Cancel",
     "close": "Close",
-    "save": "Save"
+    "save": "Save",
+    "retry": "Retry",
+    "skipNavigation": "Skip to main content",
+    "saving": "Saving…",
+    "copied": "Address copied",
+    "copyFailed": "Could not copy the address. Try again.",
+    "settingsSaveFailed": "Settings could not be saved. Retry to save your changes.",
+    "unsaved": "You have unsaved changes. Discard them?",
+    "discard": "Discard changes",
+    "revealEditor": "Reveal private details to edit",
+    "revertConfirm": "Restore the default decision? Your saved decision will remain in the history.",
+    "groupDeleteConfirm": "Delete this group? Wallets and accounts will be kept.",
+    "confirm": "Confirm",
+    "search": "Search…",
+    "previous": "Previous",
+    "next": "Next"
   },
   "errors": {
     "generic": "Something went wrong. Your data was not changed."

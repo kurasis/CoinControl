@@ -1,3 +1,4 @@
+import { CopyAddressButton } from "../components/CopyAddressButton";
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -268,6 +269,8 @@ function AddAddressForm({ onDone }: { onDone: () => void }) {
             <label htmlFor={ids.newWallet}>{t("addAddress.walletName")}</label>
             <input
               id={ids.newWallet}
+              name="wallet-name"
+              autoComplete="off"
               className="input"
               value={newWallet}
               maxLength={80}
@@ -401,13 +404,7 @@ export function WalletList({ walletId }: { walletId?: string } = {}) {
                     {a.archived && <span className="chip">{t("wallets.archived")}</span>}
                     <SyncLine status={syncStatus.data?.find((s) => s.account_id === a.id)} />
                     <div className="toolbar-spacer" />
-                    <button
-                      className="btn btn-ghost"
-                      onClick={() => void navigator.clipboard?.writeText(a.display_address)}
-                      aria-label={t("wallets.copyAddress")}
-                    >
-                      {t("wallets.copy")}
-                    </button>
+                    <CopyAddressButton address={a.display_address} compact />
                     <button
                       className="btn"
                       onClick={() => archive.mutate({ id: a.id, archived: !a.archived })}
@@ -429,6 +426,7 @@ function GroupsManager() {
   const wallets = useQuery({ queryKey: ["wallets"], queryFn: api.listWallets });
   const groups = useQuery({ queryKey: ["groups"], queryFn: api.listGroups });
   const [label, setLabel] = useState("");
+  const [removing, setRemoving] = useState<string | null>(null);
   const create = useMutation({
     mutationFn: () => api.createGroup(label),
     onSuccess: () => {
@@ -443,7 +441,10 @@ function GroupsManager() {
   });
   const remove = useMutation({
     mutationFn: (id: string) => api.deleteGroup(id),
-    onSuccess: () => queryClient.invalidateQueries(),
+    onSuccess: async () => {
+      setRemoving(null);
+      await queryClient.invalidateQueries();
+    },
   });
 
   return (
@@ -452,6 +453,11 @@ function GroupsManager() {
         <h2 id="groups-heading">{t("nav.groups")}</h2>
         <span className="meta">{t("groups.explain")}</span>
       </div>
+      {(create.error ?? setMembers.error ?? remove.error ?? groups.error) && (
+        <p className="card-pad field-error" role="alert">
+          {errorText(create.error ?? setMembers.error ?? remove.error ?? groups.error, t)}
+        </p>
+      )}
       <div className="list">
         {(groups.data ?? []).map((g) => (
           <div key={g.id} className="list-row">
@@ -464,6 +470,7 @@ function GroupsManager() {
                     <input
                       type="checkbox"
                       checked={checked}
+                      disabled={setMembers.isPending || remove.isPending}
                       onChange={() =>
                         setMembers.mutate({
                           id: g.id,
@@ -479,28 +486,65 @@ function GroupsManager() {
               })}
             </div>
             <div className="toolbar-spacer" />
-            <button className="btn btn-ghost" onClick={() => remove.mutate(g.id)}>
-              {t("groups.delete")}
-            </button>
+            {removing === g.id ? (
+              <div className="stack" role="group" aria-label={t("common.groupDeleteConfirm")}>
+                <p>{t("common.groupDeleteConfirm")}</p>
+                <div className="row">
+                  <button
+                    className="btn"
+                    disabled={remove.isPending || setMembers.isPending}
+                    onClick={() => {
+                      remove.reset();
+                      remove.mutate(g.id);
+                    }}
+                  >
+                    {t("common.confirm")}
+                  </button>
+                  <button
+                    className="btn"
+                    disabled={remove.isPending}
+                    onClick={() => setRemoving(null)}
+                  >
+                    {t("common.cancel")}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                className="btn btn-ghost"
+                disabled={remove.isPending}
+                onClick={() => {
+                  remove.reset();
+                  setRemoving(g.id);
+                }}
+              >
+                {t("groups.delete")}
+              </button>
+            )}
           </div>
         ))}
         <form
           className="list-row"
           onSubmit={(e) => {
             e.preventDefault();
-            if (label.trim()) create.mutate();
+            if (label.trim() && !create.isPending) {
+              create.reset();
+              create.mutate();
+            }
           }}
         >
           <input
             className="input"
             value={label}
             maxLength={80}
+            name="group-name"
+            autoComplete="off"
             placeholder={t("groups.newPlaceholder")}
             aria-label={t("groups.newPlaceholder")}
             onChange={(e) => setLabel(e.target.value)}
           />
-          <button type="submit" className="btn" disabled={!label.trim()}>
-            {t("groups.create")}
+          <button type="submit" className="btn" disabled={!label.trim() || create.isPending}>
+            {t(create.isPending ? "common.saving" : "groups.create")}
           </button>
         </form>
       </div>

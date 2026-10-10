@@ -19,11 +19,21 @@ import { SyncStatus } from "./SyncStatus";
 
 export function Layout() {
   const { t } = useTranslation();
-  const { profile, switchProfile } = useApp();
+  const { profile, switchProfile, settingsSaveStatus, retrySettingsSave } = useApp();
   const groups = useQuery({ queryKey: ["groups"], queryFn: api.listGroups });
 
   return (
     <div className="shell">
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById("main-content")?.focus();
+        }}
+      >
+        {t("common.skipNavigation")}
+      </a>
       <aside className="sidebar" aria-label={t("nav.label")}>
         <div className="brand">
           <img src="/app-icon.svg" alt="" />
@@ -78,7 +88,20 @@ export function Layout() {
           </NavLink>
         </div>
       </aside>
-      <main className="main">
+      <main className="main" id="main-content" tabIndex={-1}>
+        {settingsSaveStatus === "saving" && (
+          <p className="notice" role="status">
+            {t("common.saving")}
+          </p>
+        )}
+        {settingsSaveStatus === "error" && (
+          <div className="notice" role="alert">
+            <p>{t("common.settingsSaveFailed")}</p>
+            <button className="btn" onClick={retrySettingsSave}>
+              {t("common.retry")}
+            </button>
+          </div>
+        )}
         <Suspense
           fallback={
             <div className="content" role="status">
